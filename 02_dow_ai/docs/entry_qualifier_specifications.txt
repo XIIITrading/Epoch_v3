@@ -1,0 +1,357 @@
+================================================================================
+EPOCH TRADING SYSTEM v2.0 - ENTRY QUALIFIER APPLICATION
+System Specifications
+XIII Trading LLC
+================================================================================
+
+1. IMPLEMENTATION OVERVIEW
+================================================================================
+
+The Entry Qualifier is a live-session PyQt6 desktop tool that provides
+real-time 1-minute (M1) indicator calculations to support the trader's entry
+and exit decision matrix during active market hours. The application polls
+Polygon.io every 60 seconds -- synchronized to minute boundaries so data
+refreshes align with new candle closes -- and fetches 50 M1 bars per ticker
+(25 displayed plus 25 additional for calculation warm-up), presenting a
+rolling 25-bar indicator dashboard across up to 6 simultaneous tickers. Five
+backtested indicators are computed per bar: Candle Range % (the absorption
+zone filter that dims entire columns below 0.12% to signal consolidation
+periods the trader should skip), Volume Delta (a 5-bar rolling sum of
+close-position-weighted volume estimating net buying/selling pressure),
+Volume Rate of Change (current volume vs. a 20-bar trailing average to
+confirm momentum acceleration), SMA Configuration (SMA9 vs. SMA21 alignment
+with spread percentage to gauge trend strength), and H1 Market Structure
+(swing-based higher-high/higher-low analysis on hourly bars cached and
+refreshed once per hour). These five indicators were selected through
+extensive backtesting across hundreds of historical trades and represent the
+highest-edge conditions identified by the EPCH model, with H1 Structure
+neutral being the single strongest validated edge at +36 percentage points
+above baseline. The system also computes LONG and SHORT composite scores
+(0-7 scale) that combine the indicator readings -- notably using deliberate
+contrarian "paradoxes" in the SHORT score where bullish SMA configuration and
+positive volume delta award points, reflecting an exhaustion/failed-rally
+thesis -- which feed into the integrated DOW AI dual-pass analysis system
+for structured TRADE/NO_TRADE recommendations.
+
+
+2. HIGH-LEVEL TECHNICAL SPECIFICATIONS
+================================================================================
+
+2.1 APPLICATION FRAMEWORK
+--------------------------------------------------------------------------------
+- Runtime:          Python 3.12+
+- UI Framework:     PyQt6 desktop application
+- Window Size:      1920 x 1080 pixels (full-screen)
+- Theme:            Dark mode (custom stylesheet, Segoe UI 10pt base)
+- Version:          Entry Qualifier v3.0 / DOW AI Terminal v3.0
+- Max Tickers:      6 simultaneous
+
+2.2 DATA SOURCES
+--------------------------------------------------------------------------------
+- Market Data:      Polygon.io REST API
+                    - M1 bars: /v2/aggs/ticker/{}/range/1/minute/{from}/{to}
+                    - H1 bars: /v2/aggs/ticker/{}/range/1/hour/{from}/{to}
+- M1 Lookback:      2 calendar days, 50 bars fetched, 25 displayed
+- H1 Lookback:      5 calendar days, 25 bars fetched
+- Rate Limiting:    0.1s between API calls, 3 retry attempts, 1.0s retry delay
+- API Parameters:   adjusted=true, sort=asc, limit=50000
+- AI Engine:        Anthropic Claude (claude-sonnet-4-20250514, 1500 max tokens)
+- AI Context:       JSON files (model_stats, indicator_edges, zone_performance)
+
+2.3 REFRESH ARCHITECTURE
+--------------------------------------------------------------------------------
+- Polling Interval:     60,000ms (1 minute)
+- Minute Sync:          Initial timer aligned to next minute boundary
+                        via seconds_until_next_minute() calculation
+- Clock Timer:          1,000ms interval (UI clock update)
+- Countdown Timer:      1,000ms interval (next-update countdown)
+- Market Hours Check:   Polling pauses when market is closed
+- H1 Cache:             Per-ticker cache, refreshes only when new H1 candle closes
+- Threading:            QThread workers per ticker (parallel data fetch)
+
+2.4 MARKET HOURS (US Equity)
+--------------------------------------------------------------------------------
+- Pre-Market:       04:00 - 09:30 ET
+- Regular Session:  09:30 - 16:00 ET
+- After-Hours:      16:00 - 20:00 ET
+- Closed:           20:00 - 04:00 ET, weekends, US market holidays
+- Holiday Calendar: Hardcoded 2024-2026 (New Year's, MLK, Presidents',
+                    Good Friday, Memorial, Juneteenth, Independence,
+                    Labor, Thanksgiving, Christmas)
+- Timezone:         America/New_York (Eastern Time)
+
+2.5 INDICATOR SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+  Indicator 1: Candle Range %
+  ---------------------------
+  Purpose:    Primary absorption zone filter. Identifies when price action
+              is too compressed for a tradeable move.
+  Formula:    candle_range_pct = (high - low) / close * 100
+  Thresholds:
+    - ABSORPTION:  < 0.12%  (skip -- entire column dimmed in UI)
+    - LOW:         0.12% - 0.15%
+    - NORMAL:      >= 0.15% (tradeable edge confirmed)
+    - HIGH:        >= 0.20% (strong signal)
+  Display:    "X.XX%" with 2 decimal places
+  Colors:     Green (>= 0.15%), Gray (0.12-0.15%), Red (< 0.12%)
+  UI Effect:  Absorption bars dim entire column to #1a1a1a background
+              with #4a4a4a muted text across ALL indicator rows
+
+  Indicator 2: Volume Delta
+  -------------------------
+  Purpose:    Estimates net buying vs. selling pressure using bar
+              close position within the high-low range.
+  Formula:
+    bar_range    = high - low
+    position     = (2 * (close - low) / bar_range) - 1    [range: -1 to +1]
+    raw_delta    = position * volume
+    roll_delta   = sum(raw_deltas[-5:])                    [5-bar rolling sum]
+  Parameters:
+    - Roll period: 5 bars (VOL_DELTA_ROLL_PERIOD)
+    - Close at high: position = +1 (all buying)
+    - Close at low: position = -1 (all selling)
+    - Close at midpoint: position = 0 (neutral)
+    - Zero-range bar: delta = 0
+  Display:    Formatted with K/M suffixes (e.g., "+45k", "-2M")
+  Colors:     Green (positive), Red (negative), Gray (zero)
+
+  Indicator 3: Volume Rate of Change (ROC)
+  -----------------------------------------
+  Purpose:    Measures current volume against recent average to
+              confirm momentum and acceleration.
+  Formula:
+    avg_volume = mean(volumes[-lookback:])   [previous N bars, excluding current]
+    volume_roc = ((current_volume - avg_volume) / avg_volume) * 100
+  Parameters:
+    - Lookback: 20 bars (VOL_ROC_LOOKBACK)
+    - Returns None for bars before lookback period fills
+  Thresholds:
+    - ELEVATED:  >= 30%  (momentum confirmation)
+    - HIGH:      >= 50%  (strong momentum)
+  Display:    "+XX%" or "-XX%" (signed integer percentage)
+  Colors:     Green (>= 30%), Gray (0-30%), Red (< 0%)
+
+  Indicator 4: SMA Configuration
+  ------------------------------
+  Purpose:    Determines trend alignment via SMA9/SMA21 crossover
+              state and spread magnitude.
+  Formula:
+    sma9       = mean(closes[-9:])
+    sma21      = mean(closes[-21:])
+    config     = BULL if sma9 > sma21, BEAR if sma9 < sma21, FLAT if equal
+    spread_pct = abs(sma9 - sma21) / close * 100
+  Parameters:
+    - Short period: 9
+    - Long period: 21
+    - Minimum bars: 21 (returns None before)
+  Thresholds:
+    - WIDE_SPREAD: >= 0.15% (strong trend)
+  Price Position:
+    - ABOVE: close > max(sma9, sma21)
+    - BETWEEN: between the two SMAs
+    - BELOW: close < min(sma9, sma21)
+  Display:    "BULL 0.15%" or "BEAR 0.08%" or "FLAT 0.02%"
+  Colors:     Green (BULL), Red (BEAR), Gray (FLAT)
+
+  Indicator 5: H1 Market Structure
+  --------------------------------
+  Purpose:    Determines macro market structure on the 1-hour timeframe
+              using swing high/low analysis.
+  Algorithm:
+    1. Takes most recent lookback+2 H1 bars (default: 7 bars)
+    2. Splits at midpoint
+    3. Compares max highs and min lows of first half vs. second half
+    4. Higher highs AND higher lows = BULL
+    5. Lower highs AND lower lows = BEAR
+    6. Otherwise = NEUTRAL
+  Parameters:
+    - Lookback: 5 H1 bars (plus 2 for comparison = 7 total)
+    - H1 bars fetched: 25 (H1_BARS_NEEDED)
+    - Cache refresh: Only when new H1 candle closes
+  Display:    "BULL", "BEAR", or "NEUT"
+  Colors:     Green (BULL), Red (BEAR), Cyan #00BCD4 (NEUT)
+  NOTE:       NEUTRAL is the PREFERRED condition for trading --
+              H1 neutral is the single strongest validated backtested
+              edge at +36 percentage points above baseline hit rate
+
+2.6 COMPOSITE SCORING SYSTEM
+--------------------------------------------------------------------------------
+
+  LONG Score (0-7 points):
+  -------------------------
+  | Condition                              | Points |
+  |----------------------------------------|--------|
+  | Candle Range >= 0.15%                  | +2     |
+  | H1 Structure = NEUTRAL                 | +2     |
+  | Volume ROC >= 30%                      | +1     |
+  | |Volume Delta| > 100,000 (magnitude)   | +1     |
+  | SMA Spread >= 0.15% (wide)             | +1     |
+  |                                 Total: | 0-7    |
+
+  SHORT Score (0-7 points -- contains deliberate paradoxes):
+  ----------------------------------------------------------
+  | Condition                              | Points |
+  |----------------------------------------|--------|
+  | Candle Range >= 0.15%                  | +2     |
+  | H1 Structure = NEUTRAL                 | +2     |
+  | Volume ROC >= 30%                      | +1     |
+  | Volume Delta > 0 (POSITIVE = paradox)  | +1     |
+  | SMA Config = BULLISH (paradox)         | +1     |
+  |                                 Total: | 0-7    |
+
+  SHORT Score Paradox Design:
+  - Positive volume delta awards SHORT points because it signals
+    exhausted buyers (buying pressure that failed to push price higher)
+  - Bullish SMA configuration awards SHORT points because it signals
+    a failed rally setup (catching the reversal from bullish structure)
+
+  Score Interpretation:
+  - 0-2: Weak (Red)
+  - 3-4: Moderate (Yellow)
+  - 5-7: Strong (Green)
+
+  NOTE: Composite scores are calculated and passed to the DOW AI
+  dual-pass analysis system but are not displayed in the current
+  ticker panel UI (reserved for AI context layer).
+
+2.7 USER INTERFACE LAYOUT
+--------------------------------------------------------------------------------
+
+  Component 1: Header Bar
+  -----------------------
+  - Title: "EPOCH ENTRY QUALIFIER v3.0" (18px bold)
+  - Live clock: ET time "HH:MM:SS" (Consolas 14pt), updates every second
+  - Status: Green circle + "LIVE" (market open)
+            Yellow circle + "PAUSED" (market closed)
+            "STARTING" (initialization)
+
+  Component 2: Ticker Management
+  ------------------------------
+  - "+ Add Ticker" button
+  - Validation: Ticker verified against Polygon API before adding
+  - Maximum: 6 tickers, button disabled at capacity
+  - Remove: X button per ticker panel
+
+  Component 3: Ticker Panels (up to 6)
+  -------------------------------------
+  - Layout: QTableWidget, 5 rows x 26 columns (1 label + 25 data)
+  - Column order: Newest (0) to oldest (-24), left to right
+  - Row 0: Candle %
+  - Row 1: Vol Delta
+  - Row 2: Vol ROC
+  - Row 3: SMA
+  - Row 4: H1 Struct
+  - Empty panels: "No Ticker Configured" placeholder
+  - Absorption dimming: Full-column visual override for bars < 0.12%
+
+  Component 4: Global Control Panel (140px height)
+  -------------------------------------------------
+  - Ticker dropdown: ComboBox of active tickers
+  - Direction selector: LONG (green) / SHORT (red) radio buttons
+  - "Ask DOW AI" button: Triggers dual-pass AI analysis
+  - Perspective input: "Your Perspective (Pass 1)" text area
+    (QTextEdit, Consolas 9pt, max 60px height, dark background)
+
+  Component 5: DOW AI Terminal (280px height)
+  --------------------------------------------
+  - Header: "DOW AI TERMINAL v3.0" (Consolas 11pt bold)
+  - Status: "Ready" / "Analyzing..." / "Complete" / "Error"
+  - Response area: Read-only QTextEdit (Consolas 11pt)
+  - Dual-pass workflow: User perspective + AI analysis =
+    structured TRADE/NO_TRADE recommendation with confidence
+
+  Component 6: Status Bar (30px height)
+  --------------------------------------
+  - Status message (initialization/refresh)
+  - Next update countdown ("Next Update: XXs")
+  - Ticker count ("Tickers: X/6")
+  - Market status ("Pre-Market" / "Market Open" /
+                    "After-Hours" / "Market Closed")
+
+2.8 DOW AI INTEGRATION
+--------------------------------------------------------------------------------
+- Architecture:     Dual-pass analysis (v3.0)
+- Pass 1:           Trader's market perspective and directional read
+- Pass 2:           AI evaluates perspective against backtested edges
+- Context Sources:  model_stats.json, indicator_edges.json, zone_performance.json
+- Data Passed:      Full M1BarFull objects including all 5 indicators + scores
+- Output:           Structured TRADE/NO_TRADE recommendation with confidence
+- Model:            claude-sonnet-4-20250514 (1500 max tokens)
+- Strongest Edge:   H1 Structure neutral = +36pp above baseline hit rate
+
+2.9 DATA FLOW ARCHITECTURE
+--------------------------------------------------------------------------------
+
+  1. Refresh timer fires (every 60s, synced to minute boundary)
+  2. Market hours check -- skip if closed
+  3. Per-ticker DataWorker (QThread) spawned:
+     a. Fetch 50 M1 bars from Polygon.io (2-day lookback)
+     b. Check H1 cache -- fetch 25 H1 bars if stale (5-day lookback)
+     c. Calculate: candle_range, volume_delta, volume_roc, sma_config
+     d. Calculate: h1_structure (from cached H1 bars)
+     e. Calculate: long_score, short_score (composite)
+     f. Assemble processed bar dictionaries
+     g. Emit data_ready signal
+  4. MainWindow receives signal, updates TickerPanel
+  5. TickerPanel renders 25 most recent bars with color-coding
+  6. Absorption zones trigger full-column dimming
+
+2.10 CONFIGURATION SUMMARY
+--------------------------------------------------------------------------------
+
+  Application Settings:
+  - ROLLING_BARS:           25 (bars displayed per ticker)
+  - REFRESH_INTERVAL_MS:    60,000 (1 minute polling)
+  - MAX_TICKERS:            6
+  - PREFETCH_BARS:          50 (extra bars for calculation warm-up)
+  - WINDOW_WIDTH:           1,920
+  - WINDOW_HEIGHT:          1,080
+
+  Indicator Parameters:
+  - VOL_DELTA_ROLL_PERIOD:  5 bars
+  - VOL_ROC_LOOKBACK:       20 bars
+  - H1_BARS_NEEDED:         25 bars
+  - SMA Short Period:       9
+  - SMA Long Period:        21
+  - H1 Structure Lookback:  5 bars (+ 2 for comparison)
+
+  Thresholds:
+  - Absorption Zone:        < 0.12% candle range (skip signal)
+  - Tradeable Range:        >= 0.15% candle range
+  - Strong Range:           >= 0.20% candle range
+  - Elevated Volume ROC:    >= 30%
+  - High Volume ROC:        >= 50%
+  - Wide SMA Spread:        >= 0.15%
+  - High Vol Delta:         > 100,000 (absolute magnitude)
+
+  API Settings:
+  - Rate Limit Delay:       0.1 seconds
+  - Max Retries:            3
+  - Retry Delay:            1.0 seconds
+
+  Number Formatting:
+  - >= 1,000,000:           "XM" (millions)
+  - >= 1,000:               "Xk" (thousands)
+  - < 1,000:                whole number
+
+2.11 RELATIONSHIP TO EPOCH SYSTEM
+--------------------------------------------------------------------------------
+The Entry Qualifier is a sub-tool within the 02_dow_ai module of the
+Epoch v2.0 system. It imports API credentials from the parent 02_dow_ai
+config.py rather than from 00_shared infrastructure. It uses its own
+self-contained calculation modules rather than the shared indicator
+library, maintaining independence as a direct V1 port. The AI context
+layer connects to backtested model statistics, indicator edges, and
+zone performance data generated by the Epoch backtesting engine
+(03_backtest), creating a closed feedback loop where historical trade
+outcomes inform live-session decision support.
+
+Launch methods:
+  - Direct:   python entry_qualifier/main.py
+  - Via app:  python app.py --entry-qualifier
+  - Launcher: Epoch master launcher (launcher.py)
+
+================================================================================
+Document generated for XIII Trading LLC - Epoch Trading System v2.0
+================================================================================

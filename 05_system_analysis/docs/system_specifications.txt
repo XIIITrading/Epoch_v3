@@ -1,0 +1,1244 @@
+================================================================================
+EPOCH TRADING SYSTEM v2.0 - SYSTEM ANALYSIS APPLICATION
+System Specifications
+XIII Trading LLC
+================================================================================
+
+1. IMPLEMENTATION OVERVIEW
+================================================================================
+
+The System Analysis module is a comprehensive Streamlit web application that
+serves as the analytical hub for the Epoch zone-based trading system, providing
+statistical analysis, trade management simulation, indicator edge testing,
+options analysis, and AI-powered research assistance across four major
+dashboard tabs plus an archived analysis tab. The application consumes trade
+records from the Supabase trades table, MFE/MAE potential data from the
+mfe_mae_potential table, indicator snapshots from entry_indicators, bar-by-bar
+progression data from m5_trade_bars, pre-calculated stop analysis outcomes
+from the stop_analysis table, indicator refinement scores from the
+indicator_refinement table, options data from the op_mfe_mae_potential table,
+and canonical unified outcomes from the trades_m5_r_win table. The module
+implements 11 numbered calculation modules (CALC-001 through CALC-011) plus
+5 options calculation modules (CALC-O01 through CALC-O09), each performing
+specific statistical analyses: win rate by model (CALC-001), MFE/MAE
+distribution analysis (CALC-002), MFE/MAE sequence analysis for Monte Carlo
+baseline (CALC-003), simulated outcome grid search (CALC-004), health score
+correlation (CALC-005), factor importance via information gain (CALC-006),
+indicator progression analysis (CALC-007), rejection dynamics (CALC-008),
+stop type analysis comparing 6 stop placement methods (CALC-009), indicator
+refinement continuation/rejection scoring (CALC-010), and EPCH indicator
+edge analysis via chi-square and Spearman tests (CALC-011). For each analysis,
+the system generates structured Claude AI prompts through the Monte AI
+subsystem, which assembles persona context, calculation results, and analysis
+questions into copyable prompts for external AI analysis. A separate
+secondary processor (ramp_up_analysis) performs batch pre-entry indicator
+progression analysis using 15 M1 bars before entry, calculating trends,
+momentum, and structure consistency across 9 analytical dimensions exported
+to both database tables and Claude-readable markdown documents.
+
+
+2. HIGH-LEVEL TECHNICAL SPECIFICATIONS
+================================================================================
+
+2.1 APPLICATION FRAMEWORK
+--------------------------------------------------------------------------------
+- Runtime:          Python 3.12+
+- UI Framework:     Streamlit (web application)
+- Default Port:     8502
+- Layout:           Wide mode
+- Theme:            Dark mode (#1a1a2e background)
+- Charting:         Plotly Express + Plotly Graph Objects
+- Data Caching:     st.cache_data with TTL (300s data, 600s metadata)
+
+2.2 DATA SOURCES
+--------------------------------------------------------------------------------
+- Primary Database: Supabase PostgreSQL via psycopg2 + SSL
+                    Direct connection (not via shared data layer)
+- Market Data API:  Polygon.io REST API (for stop analysis calculations)
+                    Rate limited: 0.25s delay, 3 retries, 2.0s retry delay
+- Connection:       Singleton SupabaseClient with auto-reconnect
+
+2.3 APPLICATION TABS
+--------------------------------------------------------------------------------
+
+  Tab 1: METRICS OVERVIEW
+  - Stop Type Analysis (CALC-009, foundation)
+  - Stop Type Selector (bridges CALC-009 to downstream)
+  - Win Rate by Model (CALC-001)
+  - MFE/MAE Distribution Analysis (CALC-002)
+  - MFE/MAE Sequence Analysis (CALC-003)
+  - Simulated Outcome Analysis (CALC-004)
+  - Monte AI Research Assistant
+
+  Tab 2: OPTIONS ANALYSIS
+  - Options Stop Type Analysis (CALC-O09)
+  - Options Win Rate by Model (CALC-O01)
+  - Options MFE/MAE Distribution
+  - Options MFE/MAE Sequence (CALC-O03)
+  - Options Simulated Outcomes (CALC-O05)
+  - Options vs Underlying Comparison (CALC-O04)
+  - Monte AI Options Analysis
+
+  Tab 3: INDICATOR ANALYSIS
+  - Stop Type Selector for indicator win condition
+  - Health Score Correlation (CALC-005)
+  - Factor Importance (CALC-006)
+  - Indicator Progression (CALC-007)
+  - Rejection Dynamics (CALC-008)
+  - Monte AI Indicator Analysis
+
+  Tab 4: EPCH INDICATORS
+  - Edge Analysis (CALC-011)
+  - Chi-square and Spearman statistical tests
+  - Candle Range, Volume Delta, Volume ROC, SMA, Structure tests
+
+  Tab 5: ARCHIVED ANALYSIS
+  - Overview, Continuation, Rejection, Indicators, Health, Raw Data
+
+
+3. DATABASE TABLES
+================================================================================
+
+3.1 PRIMARY INPUT TABLES
+--------------------------------------------------------------------------------
+
+  trades:
+  - Core trade records from 03_backtest
+  - Fields: trade_id, date, ticker, model, direction, entry_price,
+            entry_time, exit_price, exit_time, exit_reason, is_winner,
+            pnl_r, zone_high, zone_low
+
+  mfe_mae_potential:
+  - Maximum Favorable/Adverse Excursion from entry to 15:30 ET
+  - Fields: trade_id, date, ticker, direction, model, entry_time,
+            entry_price, mfe_potential_price, mfe_potential_time,
+            mfe_r_potential, mae_potential_price, mae_potential_time,
+            mae_r_potential, bars_analyzed, is_winner, pnl_r
+
+  optimal_trade:
+  - Indicator snapshots at key trade events
+  - Fields: trade_id, event_type (ENTRY/MFE/MAE/EXIT), date, ticker,
+            direction, model, win, event_time, bars_from_entry,
+            price_at_event, health_score, health_delta, health_summary,
+            vwap, sma9, sma21, sma_spread, sma_momentum, vol_roc,
+            vol_delta, cvd_slope, m5/m15/h1/h4_structure, actual_r
+
+  entry_indicators:
+  - Indicator snapshots specifically at trade entry time
+  - Fields: trade_id, date, ticker, direction, model, entry_time,
+            plus all indicator columns, health_score, structure columns
+
+  m5_trade_bars:
+  - 5-minute bar progression during each trade
+  - Fields: trade_id, bar_seq, bar_time, bars_from_entry, event_type,
+            OHLCV, all indicator columns, health_score, health_label,
+            structure/volume/price sub-scores
+
+  stop_analysis:
+  - Pre-calculated stop outcomes for 6 stop types
+  - Fields: trade_id, stop_type, date, ticker, direction, model,
+            entry_time, entry_price, zone_low, zone_high, stop_price,
+            stop_distance, stop_distance_pct, stop_hit, stop_hit_time,
+            mfe_price, mfe_time, mfe_distance, r_achieved, outcome,
+            trigger_type
+
+  trades_m5_r_win:
+  - Canonical unified trade outcomes (single source of truth)
+  - Fields: trade_id, date, ticker, model, direction, entry_price,
+            stop_price, stop_distance, r1_price, outcome, exit_reason,
+            outcome_method, is_winner, pnl_r, max_r_achieved,
+            reached_2r, reached_3r, minutes_to_r1
+
+  indicator_refinement:
+  - Continuation (0-10) and rejection (0-11) qualification scores
+  - Fields: trade_id, date, ticker, direction, model, trade_type,
+            continuation_score, continuation_label, rejection_score,
+            rejection_label, plus individual component scores
+
+  op_mfe_mae_potential:
+  - Options MFE/MAE data from entry to 15:30 ET
+  - Fields: trade_id, date, ticker, direction, model, options_ticker,
+            strike, expiration, contract_type, entry_time,
+            option_entry_price, mfe/mae/exit points/price/time/pct,
+            underlying_mfe/mae/exit_pct, bars_analyzed
+
+  m1_indicator_bars:
+  - 1-minute bar data with pre-calculated indicators
+  - Fields: ticker, bar_date, bar_time, OHLCV, vol_delta, vol_roc,
+            cvd_slope, vwap, sma9, sma21, sma_spread,
+            sma_momentum_label, health_score
+
+  m1_bars:
+  - Raw 1-minute OHLCV bars
+  - Fields: ticker, bar_date, bar_time, open, high, low, close,
+            volume, vwap
+
+3.2 SECONDARY PROCESSOR TABLES
+--------------------------------------------------------------------------------
+
+  ramp_up_macro:
+  - Per-trade summary of pre-entry indicator behavior
+  - 44 columns: trade identity, outcome, entry bar snapshot (9 indicators),
+    ramp averages (7), ramp trends (7), ramp momentum (7),
+    structure consistency (2), bars_analyzed
+
+  ramp_up_progression:
+  - Bar-by-bar indicator values for 15 bars before entry
+  - Fields: trade_id, bars_to_entry (-15 to 0), bar_time,
+            9 indicator values per bar
+
+  ramp_analysis_* (9 tables):
+  - ramp_analysis_direction
+  - ramp_analysis_trade_type
+  - ramp_analysis_model
+  - ramp_analysis_model_direction
+  - ramp_analysis_indicator_trend
+  - ramp_analysis_indicator_momentum
+  - ramp_analysis_structure_consistency
+  - ramp_analysis_entry_snapshot
+  - ramp_analysis_progression_avg
+
+3.3 DATABASE VIEWS
+--------------------------------------------------------------------------------
+  - v_stop_analysis_summary: Aggregated stop analysis by stop type
+  - v_stop_analysis_by_model: Stop analysis by stop type + model
+  - v_stop_analysis_by_direction: Stop analysis by stop type + direction
+
+
+4. CALCULATION MODULES
+================================================================================
+
+4.1 CALC-009: STOP TYPE ANALYSIS (Foundation)
+--------------------------------------------------------------------------------
+
+  Purpose: Analyzes 6 different stop placement methods to determine which
+  provides the best risk-adjusted returns. This is the foundation for all
+  downstream win/loss classification.
+
+  Stop Types:
+    zone_buffer  - Zone boundary + 5% buffer (core thesis stop)
+    prior_m1     - Prior M1 bar high/low
+    prior_m5     - Prior M5 bar high/low
+    m5_atr       - M5 ATR(14) x 1.1 close-based (DEFAULT)
+    m15_atr      - M15 ATR(14) x 1.1 close-based
+    fractal      - M5 fractal high/low
+
+  Win Condition:
+    WIN = MFE reached (>= 1R) before stop hit
+    LOSS = Stop hit before reaching 1R
+    PARTIAL = Stop hit after some MFE but < 1R
+
+  Stop Analysis Components:
+    - stop_calculator.py: Computes stop prices for all 6 types
+    - atr_calculator.py: ATR calculation (True Range method)
+    - fractal_detector.py: Fractal high/low detection (length=5)
+    - outcome_simulator.py: Bar-by-bar simulation of stop/target outcomes
+    - results_aggregator.py: Aggregates results into summary statistics
+    - stop_selector.py: Session state management for UI selection
+    - ui_components.py: Streamlit rendering of stop analysis results
+
+  Metrics Per Stop Type:
+    - Total trades, wins, losses, partials
+    - Win rate %
+    - Average stop distance %
+    - Average R for winners
+    - Expectancy = (win_rate * avg_win_r) - ((1 - win_rate) * 1.0)
+
+4.2 CALC-001: WIN RATE BY MODEL
+--------------------------------------------------------------------------------
+
+  Purpose: Calculates win/loss rates for each EPCH entry model using the
+  selected stop type's outcome classification.
+
+  Models:
+    EPCH1 - Primary zone continuation
+    EPCH2 - Primary zone rejection
+    EPCH3 - Secondary zone continuation
+    EPCH4 - Secondary zone rejection
+
+  Outputs:
+    - Per-model: trades, wins, losses, win_rate, avg_points, total_points
+    - Trade type grouping: continuation (EPCH1+3) vs rejection (EPCH2+4)
+    - Zone type grouping: primary (EPCH1+2) vs secondary (EPCH3+4)
+
+4.3 CALC-002: MFE/MAE DISTRIBUTION ANALYSIS
+--------------------------------------------------------------------------------
+
+  Purpose: Analyzes raw price movement potential from entry to 15:30 ET,
+  independent of any stop selection.
+
+  MFE/MAE as Percentage:
+    mfe_pct = abs(mfe_potential_price - entry_price) / entry_price * 100
+    mae_pct = abs(mae_potential_price - entry_price) / entry_price * 100
+
+  Statistics Calculated:
+    - Mean, median, std, min, max, percentiles (25th, 75th, 90th)
+    - MFE:MAE ratio (median_mfe / median_mae)
+    - Favorable ratio: trades where MFE > MAE / total trades
+    - Breakdown by model and direction
+
+  Visualizations:
+    - MFE histogram (profit available)
+    - MAE histogram (heat taken)
+    - MFE vs MAE scatter (above diagonal = favorable)
+    - Model breakdown table
+
+4.4 CALC-003: MFE/MAE SEQUENCE ANALYSIS
+--------------------------------------------------------------------------------
+
+  Purpose: Determines WHEN MFE and MAE occur to establish probability
+  of favorable movement happening before adverse movement.
+
+  Key Metric: P(MFE First)
+    Percentage of trades where MFE time < MAE time
+    (favorable movement occurs before adverse movement)
+
+  Monte Carlo Parameters Generated:
+    - p_mfe_first: probability MFE occurs first
+    - avg_time_to_mfe: average minutes to maximum favorable excursion
+    - avg_time_to_mae: average minutes to maximum adverse excursion
+    - Breakdown by model and direction
+
+4.5 CALC-004: SIMULATED OUTCOME ANALYSIS
+--------------------------------------------------------------------------------
+
+  Purpose: Simulates trade outcomes at configurable stop/target levels
+  to find optimal parameters.
+
+  Grid Search:
+    Stop levels: 0.5R to 3.0R in 0.25R increments
+    Target levels: 1.0R to 5.0R in 0.5R increments
+    For each (stop, target) combination:
+      - Simulate which is hit first using MFE/MAE data
+      - Calculate win rate, expectancy, profit factor
+      - Identify optimal parameter set
+
+  find_optimal_parameters():
+    Returns the (stop, target) combination with highest expectancy
+
+4.6 CALC-005: HEALTH SCORE CORRELATION
+--------------------------------------------------------------------------------
+
+  Purpose: Tests whether higher health scores predict higher win rates.
+
+  Health Score: 10-factor composite (0-10 scale)
+    Structure factors (4): H4, H1, M15, M5 structure alignment
+    Volume factors (3): Volume ROC, Volume Delta, CVD slope
+    Price factors (3): VWAP position, SMA alignment, SMA momentum
+    Each factor: 1 point if aligned with trade direction, 0 otherwise
+
+  Health Buckets:
+    CRITICAL: 0-3  |  WEAK: 4-5  |  MODERATE: 6-7  |  STRONG: 8-10
+
+  Analysis:
+    - Win rate by health score (0-10) with 95% confidence intervals
+    - Win rate by health bucket with lift vs baseline
+    - Correlation coefficient and p-value
+    - Model-specific health thresholds
+    - Wilson confidence interval for small sample sizes
+
+4.7 CALC-006: FACTOR IMPORTANCE
+--------------------------------------------------------------------------------
+
+  Purpose: Determines which of the 10 health score factors individually
+  predict win/loss outcomes.
+
+  Method: Information Gain (entropy reduction)
+    For each factor:
+      - Calculate baseline win rate
+      - Calculate win rate when factor is HEALTHY vs UNHEALTHY
+      - Lift = healthy_win_rate - baseline_win_rate
+      - Information gain = H(outcome) - H(outcome | factor)
+
+  Factor Groups:
+    Structure: h4_structure, h1_structure, m15_structure, m5_structure
+    Volume: vol_roc, vol_delta, cvd_slope
+    Price: sma_alignment, sma_momentum, vwap_position
+
+  Output: Ranked list of factors by predictive importance with lift values
+
+4.8 CALC-007: INDICATOR PROGRESSION ANALYSIS
+--------------------------------------------------------------------------------
+
+  Purpose: Tracks how indicators change during a trade to identify early
+  warning signals for winners vs losers.
+
+  Data Source: m5_trade_bars (5-minute bar progression)
+
+  Analysis:
+    - Average indicator paths: winners vs losers at each bar position
+    - Divergence detection: where paths separate meaningfully
+    - Early warning signals: factors that predict outcome within N bars
+    - Best early warning: factor with highest divergence earliest
+
+4.9 CALC-008: REJECTION DYNAMICS
+--------------------------------------------------------------------------------
+
+  Purpose: Tests whether rejection trades (EPCH2/4) require different
+  indicator analysis than continuation trades (EPCH1/3).
+
+  Analysis:
+    - Time-to-MFE comparison: rejections vs continuations
+    - Time-to-MFE buckets: FAST (0-5m), QUICK (5-15m),
+                           NORMAL (15-30m), SLOW (30m+)
+    - Factor inversion: indicators that flip predictive direction
+    - Exhaustion signals specific to rejection entries
+
+4.10 CALC-010: INDICATOR REFINEMENT (DEPRECATED)
+--------------------------------------------------------------------------------
+
+  Purpose: Continuation (0-10) and rejection (0-11) qualification scores
+  for trade entry filtering. Replaced by CALC-011.
+
+  Continuation Score Components (10 points max):
+    MTF Alignment (4pts): H4, H1, M15, M5 structure aligned
+    SMA Momentum (2pts): Spread direction + expanding
+    Volume Thrust (2pts): Vol ROC strong + Delta aligned
+    Pullback Quality (2pts): In pullback + delta ratio favorable
+
+  Rejection Score Components (11 points max):
+    Structure Divergence (3pts): HTF aligned + LTF divergent
+    SMA Exhaustion (2pts): Contracting + tight spread
+    Delta Absorption (2pts): Absorption ratio favorable
+    Volume Climax (2pts): Vol ROC Q5 + declining
+    CVD Extreme (2pts): Extreme CVD + normalized extreme
+
+4.11 CALC-011: EPCH INDICATOR EDGE ANALYSIS
+--------------------------------------------------------------------------------
+
+  Purpose: Statistical edge testing for EPCH v1.0 indicators using
+  chi-square and Spearman correlation tests. Replaces CALC-010.
+
+  Indicators Tested:
+    - Candle Range: threshold categories, quintiles, absorption filter
+    - Volume Delta: sign, alignment, magnitude quintiles
+    - Volume ROC: category, quintiles
+    - CVD Slope: direction, alignment
+    - SMA: spread direction, price position
+    - Market Structure: H1/M15/M5 direction, MTF alignment
+    - Composite Score: combined indicator scoring
+
+  Edge Criteria:
+    - p-value < 0.05 (statistical significance)
+    - Effect size > 3.0pp (practical significance)
+    - Minimum 30 trades per group (MEDIUM confidence)
+
+  Test Types:
+    - Chi-square test of independence for categorical groupings
+    - Spearman rank correlation for ordinal quintiles
+
+
+5. OPTIONS ANALYSIS CALCULATIONS
+================================================================================
+
+5.1 CALC-O09: OPTIONS STOP TYPE ANALYSIS
+--------------------------------------------------------------------------------
+  Analyzes options-specific stop levels (percentage-based) to find
+  best risk-adjusted returns for options trades.
+
+5.2 CALC-O01: OPTIONS WIN RATE BY MODEL
+--------------------------------------------------------------------------------
+  Win/loss rates using stop-based outcomes for options positions.
+  Win = Target reached before stop hit (in options price terms).
+
+5.3 CALC-O02/O03: OPTIONS MFE/MAE DISTRIBUTION AND SEQUENCE
+--------------------------------------------------------------------------------
+  Options price movement analysis measured in points and percentages.
+  P(MFE First) for options positions.
+
+5.4 CALC-O04: OPTIONS VS UNDERLYING COMPARISON
+--------------------------------------------------------------------------------
+  Leverage analysis comparing options movement to underlying movement.
+  Metrics: MFE leverage, MAE leverage, exit leverage multipliers.
+
+5.5 CALC-O05: OPTIONS SIMULATED OUTCOMES
+--------------------------------------------------------------------------------
+  Grid search of stop/target parameters for options positions.
+  Stop levels in percentage terms (10%-50%).
+
+
+6. DATA LAYER
+================================================================================
+
+6.1 SUPABASE CLIENT (data/supabase_client.py)
+--------------------------------------------------------------------------------
+
+  Class: SupabaseClient
+  Singleton access: get_client()
+  Connection: psycopg2 with RealDictCursor, auto-reconnect
+
+  Query Methods (30+ methods):
+
+  Trade Data:
+    fetch_trades() - Core trade records with filtering
+    fetch_trade_bars() - Bar-by-bar trade data
+    fetch_trade_bars_grouped() - Grouped by trade_id
+    fetch_trades_with_zones() - Trades with zone boundaries
+    fetch_trades_m5_r_win() - Canonical unified outcomes
+    fetch_trades_m5_r_win_by_trade() - Indexed by trade_id
+
+  Indicator Data:
+    fetch_optimal_trades() - Event-level indicator snapshots
+    fetch_entry_indicators() - Entry-time snapshots
+    fetch_m5_trade_bars_with_outcomes() - M5 bars + outcomes
+
+  MFE/MAE Data:
+    fetch_mfe_mae_potential() - Price movement potential
+    fetch_op_mfe_mae_potential() - Options price movement
+
+  Stop Analysis Data:
+    fetch_stop_analysis() - Pre-calculated outcomes
+    fetch_stop_analysis_summary() - Aggregated by stop type
+    fetch_stop_analysis_by_model() - By stop type + model
+    fetch_stop_analysis_by_direction() - By stop type + direction
+    fetch_stop_outcomes_by_trade() - Indexed by trade_id
+    get_stop_analysis_count() - Record count check
+    get_stop_analysis_trade_count() - Per-type count
+
+  Indicator Refinement:
+    fetch_indicator_refinement() - Scores with component details
+    fetch_indicator_refinement_summary() - Aggregated stats
+    get_indicator_refinement_count() - Record count
+
+  M1 Bar Data:
+    fetch_m1_bars() - Single ticker-date
+    fetch_m1_bars_batch() - Batch fetch
+    check_m1_bars_coverage() - Coverage statistics
+    fetch_m1_bars_for_stop_analysis() - Optimized for stop calc
+    fetch_m5_trade_bars_for_stop_analysis() - M5 bars for stops
+
+  Metadata:
+    get_available_tickers() - Distinct tickers
+    get_available_models() - Distinct models
+    get_date_range() - Min/max dates
+    get_trade_count() - Total trade count
+    get_trade_summary() - Aggregated stats
+    get_summary_by_model() - Stats per model
+    get_options_summary() - Options summary stats
+
+
+7. ANALYSIS MODULES
+================================================================================
+
+7.1 TRADE STATISTICS (analysis/trade_stats.py)
+--------------------------------------------------------------------------------
+
+  Win Condition: Pre-computed is_winner from stop_analysis table
+
+  Points Calculation:
+    Win Points = abs(mfe_potential_price - entry_price) for winners
+    Loss Points = abs(mae_potential_price - entry_price) for losers
+    Total Points = Sum(Win Points) - Sum(Loss Points)
+    Avg Points = Total Points / Total Trades
+
+  Functions:
+    get_trade_statistics(data) -> {total, wins, losses, win_rate,
+                                   avg_points, total_points,
+                                   median_mfe_pct, median_mae_pct}
+    get_stats_by_model(data) -> [{model, trade_type, zone_type, ...stats}]
+    get_stats_by_direction(data) -> {LONG: stats, SHORT: stats}
+    get_stats_by_exit_reason(data) -> {reason: stats}
+
+7.2 INDICATOR STATISTICS (analysis/indicator_stats.py)
+--------------------------------------------------------------------------------
+
+  Indicator Columns: health_score, vwap, sma9, sma21, sma_spread,
+                     vol_roc, vol_delta, cvd_slope
+  Structure Columns: m5_structure, m15_structure, h1_structure, h4_structure
+
+  Functions:
+    get_indicator_averages(data, group_by) -> {indicator_mean/median/std/...}
+    get_indicator_by_event(data, indicator) -> {ENTRY/MFE/MAE/EXIT: stats}
+    get_indicator_by_outcome(data, indicator) -> {WIN/LOSS: stats}
+    get_health_distribution(data, by_outcome) -> {overall/winners/losers: dist}
+    get_indicator_comparison_by_outcome(data) -> {winners/losers: {ind: avg}}
+
+7.3 MODEL COMPARISON (analysis/model_comparison.py)
+--------------------------------------------------------------------------------
+
+  Functions:
+    compare_continuation_vs_rejection(trades)
+      -> {continuation: stats, rejection: stats}
+    compare_primary_vs_secondary(trades)
+      -> {primary: stats, secondary: stats}
+    get_indicator_comparison_by_trade_type(optimal_trades, event_type)
+      -> {continuation: indicator_avgs, rejection: indicator_avgs}
+    get_win_rate_by_model_and_indicator(optimal_trades, indicator, threshold)
+      -> {model: {above/below_threshold_count/wins/win_rate}}
+
+
+8. INDICATOR CALCULATION MODULES
+================================================================================
+
+8.1 INDICATOR CALCULATORS (calculations/indicators/)
+--------------------------------------------------------------------------------
+
+  cvd.py - Cumulative Volume Delta Slope
+    - Cumulates volume delta over rolling window
+    - Slope via linear regression on rolling CVD
+    - Thresholds: rising > 0.1, falling < -0.1
+
+  sma.py - Simple Moving Average Analysis
+    - SMA9 and SMA21 calculation
+    - Spread = SMA9 - SMA21
+    - Momentum = current_spread / prior_spread ratio
+    - Labels: WIDENING (>1.1), NARROWING (<0.9), STABLE
+
+  volume_delta.py - Volume Delta
+    - Calculates buy vs sell volume imbalance
+    - Rolling 5-bar sum
+
+  volume_roc.py - Volume Rate of Change
+    - ROC relative to 20-bar baseline average
+    - Categories: HIGH (>50), ELEVATED (>30), NORMAL
+
+  vwap.py - Volume Weighted Average Price
+    - Standard VWAP calculation
+    - Position: ABOVE/BELOW relative to price
+
+8.2 STRUCTURE CALCULATORS (calculations/structure/)
+--------------------------------------------------------------------------------
+
+  Fractal-based market structure for 4 timeframes:
+
+  m5_structure.py  - 5-minute timeframe
+  m15_structure.py - 15-minute timeframe
+  h1_structure.py  - 1-hour timeframe
+  h4_structure.py  - 4-hour timeframe
+
+  MarketStructureCalculator:
+    - Fractal detection (length=5, p=2 bars each side)
+    - Break of Structure (BOS): price breaks prior swing
+    - Change of Character (ChoCH): structure direction reversal
+    - States: BULLISH, BEARISH, NEUTRAL
+
+8.3 HEALTH SCORE (calculations/health/)
+--------------------------------------------------------------------------------
+
+  health_score.py:
+    10 binary factors (0 or 1), summed for 0-10 composite
+    Each factor tests alignment with trade direction
+
+  Factor Weights (all 1.0 in current config):
+    h4_structure, h1_structure, m15_structure, m5_structure
+    volume_roc, volume_delta, cvd
+    sma_alignment, sma_momentum, vwap
+
+  thresholds.py:
+    STRONG: 8-10  |  MODERATE: 6-7  |  WEAK: 4-5  |  CRITICAL: 0-3
+
+
+9. STOP ANALYSIS SUBSYSTEM
+================================================================================
+
+9.1 STOP CALCULATOR (calculations/stop_analysis/stop_calculator.py)
+--------------------------------------------------------------------------------
+
+  Computes stop prices for 6 stop types:
+
+  Zone + 5% Buffer:
+    LONG: stop = zone_low - (zone_high - zone_low) * 0.05
+    SHORT: stop = zone_high + (zone_high - zone_low) * 0.05
+
+  Prior M1 H/L:
+    LONG: stop = prior M1 bar low
+    SHORT: stop = prior M1 bar high
+
+  Prior M5 H/L:
+    LONG: stop = prior M5 bar low
+    SHORT: stop = prior M5 bar high
+
+  M5 ATR (Close-based):
+    ATR = SMA(14) of True Range on M5 bars
+    LONG: stop = close - ATR * 1.1
+    SHORT: stop = close + ATR * 1.1
+
+  M15 ATR (Close-based):
+    Same as M5 ATR but on M15 timeframe
+
+  M5 Fractal H/L:
+    LONG: stop = most recent bullish fractal (swing low)
+    SHORT: stop = most recent bearish fractal (swing high)
+    Fractal length = 5, p = 2
+
+9.2 ATR CALCULATOR (calculations/stop_analysis/atr_calculator.py)
+--------------------------------------------------------------------------------
+
+  True Range:
+    TR = max(high - low, abs(high - prev_close), abs(low - prev_close))
+
+  ATR(14):
+    Simple moving average of True Range over 14 periods
+
+9.3 FRACTAL DETECTOR (calculations/stop_analysis/fractal_detector.py)
+--------------------------------------------------------------------------------
+
+  Bearish Fractal (Swing High):
+    pivot_high > all p bars on each side (p = length // 2 = 2)
+
+  Bullish Fractal (Swing Low):
+    pivot_low < all p bars on each side
+
+  Length = 5, confirmed after p bars on right side
+
+9.4 OUTCOME SIMULATOR (calculations/stop_analysis/outcome_simulator.py)
+--------------------------------------------------------------------------------
+
+  Bar-by-bar simulation:
+    For each bar after entry:
+      Check if stop hit (LONG: low <= stop, SHORT: high >= stop)
+      Check if target hit (1R from entry)
+      Record which occurs first
+
+  Outcome Classification:
+    WIN: Target hit before stop
+    LOSS: Stop hit before target
+    PARTIAL: Stop hit, but some MFE achieved
+
+9.5 RESULTS AGGREGATOR (calculations/stop_analysis/results_aggregator.py)
+--------------------------------------------------------------------------------
+
+  Per Stop Type:
+    total_trades, wins, losses, partials
+    win_rate = wins / total * 100
+    avg_stop_distance_pct
+    avg_r_winners
+    expectancy = (win_rate/100 * avg_r_winners) - ((1-win_rate/100) * 1.0)
+
+
+10. TRADE MANAGEMENT SUBSYSTEM
+================================================================================
+
+10.1 MFE/MAE STATISTICS (calculations/trade_management/mfe_mae_stats.py)
+--------------------------------------------------------------------------------
+
+  MFE/MAE as R-multiples:
+    mfe_r = mfe_r_potential (from mfe_mae_potential table)
+    mae_r = mae_r_potential (from mfe_mae_potential table)
+
+  Summary Statistics:
+    Mean, median, std, min, max for both MFE and MAE
+    Percentiles: 25th, 75th, 90th
+    MFE:MAE ratio = median_mfe / median_mae
+    Favorable ratio = trades where MFE > MAE / total
+
+  By-Model Breakdown:
+    Same statistics per EPCH model and per direction
+
+  Visualizations:
+    MFE/MAE histograms, scatter plot, model breakdown table
+
+10.2 MFE/MAE SEQUENCE (calculations/trade_management/mfe_mae_sequence.py)
+--------------------------------------------------------------------------------
+
+  Sequence Analysis:
+    P(MFE First) = trades where mfe_time < mae_time / total
+
+  Time-to-Event:
+    avg_time_to_mfe = mean(mfe_time - entry_time) in minutes
+    avg_time_to_mae = mean(mae_time - entry_time) in minutes
+
+  Monte Carlo Parameters:
+    p_mfe_first, avg_time_to_mfe, avg_time_to_mae
+    Breakdown by model and direction
+
+10.3 SIMULATED OUTCOMES (calculations/trade_management/simulated_outcomes.py)
+--------------------------------------------------------------------------------
+
+  Grid Search:
+    Stop levels: [0.5R, 0.75R, 1.0R, 1.25R, ..., 3.0R]
+    Target levels: [1.0R, 1.5R, 2.0R, 2.5R, ..., 5.0R]
+
+  Per (stop, target) combination:
+    win_rate = trades where MFE >= target AND (MAE < stop OR MFE first)
+    expectancy = (win_rate * target) - ((1 - win_rate) * stop)
+    profit_factor = gross_wins / gross_losses
+
+  find_optimal_parameters():
+    Returns (stop, target) with max expectancy
+
+
+11. MONTE AI PROMPT GENERATION SYSTEM
+================================================================================
+
+11.1 ARCHITECTURE
+--------------------------------------------------------------------------------
+
+  The Monte AI system generates structured Claude analysis prompts through
+  a four-layer pipeline:
+
+  Layer 1: Prompt Templates (prompts.py, indicator_prompts.py,
+           options_prompts.py, refinement_prompts.py)
+    - System persona and context
+    - Tab-specific background information
+    - Analysis request questions
+    - Database schema (optional)
+
+  Layer 2: Data Collectors (data_collector.py)
+    - Collects computed statistics from the dashboard
+    - Formats into Claude-readable text tables
+    - Always uses default stop type (m5_atr) for reproducibility
+
+  Layer 3: Prompt Generators (prompt_generator.py,
+           indicator_prompt_generator.py, options_prompt_generator.py,
+           refinement_prompt_generator.py)
+    - Combines templates with collected data
+    - Assembles: persona + context + schema + analysis + data
+    - Full prompt and quick prompt variants
+
+  Layer 4: UI Rendering (ui.py)
+    - Displays prompt statistics (chars, words, tokens)
+    - Copyable text area with JavaScript clipboard button
+    - Download as .txt file
+    - Expandable sections per analysis type
+
+11.2 PROMPT TYPES
+--------------------------------------------------------------------------------
+
+  Metrics Overview:
+    - System context with EPCH model definitions
+    - Stop analysis data (always m5_atr default)
+    - Model stats, MFE/MAE distributions, sequence analysis
+    - 7 analysis sections requested
+
+  Indicator Analysis (per CALC-005 through CALC-008):
+    - Health score composition context (10 factors)
+    - Specific calculation results as formatted tables
+    - Analysis questions per calculation type
+    - Synthesis option combining all four
+
+  Options Analysis:
+    - Options context (always buy, first ITM/ATM, CALL=LONG/PUT=SHORT)
+    - MFE/MAE stats, leverage comparison, sequence analysis
+    - Stop analysis and simulated outcomes
+
+  Refinement Analysis:
+    - Continuation scoring system (4 components, 10 points)
+    - Rejection scoring system (5 components, 11 points)
+    - Score label tables with lift vs baseline
+    - Combined synthesis option
+
+11.3 TOKEN ESTIMATION
+--------------------------------------------------------------------------------
+  Estimated tokens = character count / 4
+  (approximate for Claude tokenizer)
+
+
+12. SECONDARY PROCESSOR: RAMP-UP ANALYSIS
+================================================================================
+
+12.1 PURPOSE
+--------------------------------------------------------------------------------
+
+  The ramp-up analysis processor examines the 15 M1 bars BEFORE each trade
+  entry to identify pre-entry indicator patterns that correlate with trade
+  outcomes. This answers: "What was happening in the minutes leading up to
+  a winning vs losing entry?"
+
+12.2 INDICATORS ANALYZED
+--------------------------------------------------------------------------------
+
+  Numeric (7):
+    candle_range_pct, vol_delta, vol_roc, sma_spread,
+    sma_momentum_ratio, long_score, short_score
+
+  Categorical (2):
+    m15_structure, h1_structure
+
+12.3 CALCULATIONS PER TRADE
+--------------------------------------------------------------------------------
+
+  Entry Bar Snapshot:
+    Values of all 9 indicators at the entry bar (position 0)
+
+  Ramp Averages (bars -1 to -14):
+    Mean of each numeric indicator across pre-entry bars
+
+  Ramp Trends:
+    Linear regression slope normalized by value range
+    Classification: RISING (slope > 0.05), FALLING (< -0.05), FLAT
+
+  Ramp Momentum:
+    First half average (bars -15 to -8) vs second half (bars -7 to -1)
+    pct_change = (second_half - first_half) / abs(first_half)
+    Classification: BUILDING (> 0.10), FADING (< -0.10), STABLE
+
+  Structure Consistency (for M15, H1):
+    If 80%+ of bars share same value -> CONSISTENT_BULL/BEAR/NEUTRAL
+    If first half differs from second half -> FLIP_TO_BULL/FLIP_TO_BEAR
+    Otherwise -> MIXED
+
+12.4 NINE ANALYZERS
+--------------------------------------------------------------------------------
+
+  1. Direction Analysis: LONG vs SHORT win rates
+  2. Trade Type Analysis: Continuation vs Rejection
+  3. Model Analysis: EPCH1/2/3/4 individual performance
+  4. Model Direction: 4 models x 2 directions = 8 combinations
+  5. Indicator Trend: For each indicator, RISING/FALLING/FLAT vs outcome
+  6. Indicator Momentum: BUILDING/FADING/STABLE vs outcome
+  7. Structure Consistency: Consistency patterns vs outcome
+  8. Entry Snapshot: Indicator value buckets at entry vs outcome
+  9. Progression Average: Average indicator paths (winners vs losers)
+
+  Each analyzer calculates lift vs baseline win rate and flags results
+  with minimum 30-trade significance threshold.
+
+12.5 EXPORTS
+--------------------------------------------------------------------------------
+
+  Database: 9 ramp_analysis_* tables with aggregated results
+
+  Markdown: 10 Claude-readable documents:
+    01_direction_analysis.md through 09_progression_summary.md
+    Plus 09_progression_analysis.json for machine-readable data
+
+  CSV: 3 export formats:
+    ramp_up_macro_{date}.csv - One row per trade (44 columns)
+    ramp_up_progression_{date}.csv - One row per bar per trade
+    ramp_up_combined_{date}.csv - Flattened (one wide row per trade)
+
+
+13. UI COMPONENTS
+================================================================================
+
+13.1 CHARTS (components/charts.py)
+--------------------------------------------------------------------------------
+
+  All charts use Plotly with consistent dark theme:
+    background: #0e1117, text: white, transparent plot area
+
+  Chart Types:
+    render_win_rate_chart() - Bar chart by model
+    render_indicator_distribution() - Histogram by win/loss
+    render_health_heatmap() - Score x Model heatmap
+    render_indicator_by_event() - Bar chart across events
+    render_comparison_chart() - Continuation vs rejection subplots
+
+13.2 INDICATOR CHARTS (components/indicator_charts.py)
+--------------------------------------------------------------------------------
+
+  Returns Plotly Figure objects (not rendered directly):
+    render_health_correlation_curve() - Line with CI band
+    render_health_bucket_bars() - Grouped bars by bucket
+    render_factor_importance_bars() - Horizontal lift chart
+    render_time_to_mfe_histogram() - With bar-count reference lines
+    render_indicator_progression_lines() - Winner vs loser paths
+
+13.3 OPTIONS CHARTS (components/options_charts.py)
+--------------------------------------------------------------------------------
+
+  Colors: call=#26a69a, put=#ef5350, mfe=#2E86AB, mae=#E94F37
+
+  Chart Types:
+    render_options_win_rate_by_model()
+    render_options_win_loss_by_contract()
+    render_options_mfe/mae_distribution() - With 25%/50%/100% refs
+    render_options_mfe_mae_scatter() - With diagonal reference
+    render_leverage_comparison_bars()
+    render_leverage_scatter() - With 5x/10x/20x reference lines
+    render_options_sequence_probability_chart()
+
+13.4 FILTERS (components/filters.py)
+--------------------------------------------------------------------------------
+
+  Sidebar Filters:
+    Date range: All Time, This Year, This Month, This Week, Today
+    Models: Multiselect EPCH1-4
+    Trade type: All / Continuation / Rejection
+    Direction: All / Long / Short
+    Tickers: Multiselect
+    Outcome: All / Winners / Losers
+
+13.5 SUMMARY CARDS (components/summary_cards.py)
+--------------------------------------------------------------------------------
+
+  render_summary_cards() - 5 metrics: Total, WR%, W/L, Avg Pts, Total Pts
+  render_model_cards() - Split by Continuation/Rejection
+  render_indicator_card() - Winner vs Loser value comparison
+
+  Win Rate Color Thresholds:
+    Green: >= 55%  |  Yellow: >= 45%  |  Red: < 45%
+
+13.6 CHART CONFIGURATION
+--------------------------------------------------------------------------------
+
+  CHART_CONFIG Colors:
+    background:     #1a1a2e     paper:        #1a1a2e
+    grid:           #2a2a4e     text:         #e0e0e0
+    text_muted:     #888888     win:          #26a69a
+    loss:           #ef5350     continuation: #2196F3
+    rejection:      #FF9800     long:         #00C853
+    short:          #FF1744     strong:       #00C853
+    moderate:       #FFC107     weak:         #FF9800
+    critical:       #FF1744     height:       400px
+
+
+14. CONFIGURATION SUMMARY
+================================================================================
+
+  Application:
+  - STREAMLIT_PORT:             8502
+  - PAGE_TITLE:                 "Epoch Indicator Analysis"
+  - LAYOUT:                     wide
+  - CACHE_TTL_DATA:             300 seconds (5 minutes)
+  - CACHE_TTL_METADATA:         600 seconds (10 minutes)
+
+  Entry Models:
+  - EPCH1: continuation, primary zone
+  - EPCH2: rejection, primary zone
+  - EPCH3: continuation, secondary zone
+  - EPCH4: rejection, secondary zone
+
+  SMA:
+  - fast_period: 9, slow_period: 21
+  - momentum_lookback: 10
+  - widening_threshold: 1.1, narrowing_threshold: 0.9
+
+  Volume ROC:
+  - baseline_period: 20
+  - above_avg_threshold: 20, below_avg_threshold: -20
+
+  Volume Delta:
+  - rolling_period: 5
+
+  CVD:
+  - window: 15
+  - rising_threshold: 0.1, falling_threshold: -0.1
+
+  Structure:
+  - fractal_length: 5
+
+  Health Score:
+  - max_score: 10
+  - All factor weights: 1.0 (equal weighting)
+  - STRONG: 8-10, MODERATE: 6-7, WEAK: 4-5, CRITICAL: 0-3
+
+  Win Condition:
+  - Default stop type: m5_atr
+  - Win = MFE >= 1R before stop hit
+  - Available: zone_buffer, prior_m1, prior_m5, m5_atr, m15_atr, fractal
+
+  Indicator Analysis:
+  - min_trades_for_analysis: 30
+  - confidence_interval: 0.95
+  - vol_roc threshold: 20.0
+  - cvd_slope thresholds: 0.1 / -0.1
+  - sma_widening: 1.1
+  - time_to_mfe_buckets: FAST(0-5m), QUICK(5-15m), NORMAL(15-30m), SLOW(30m+)
+
+  Polygon API:
+  - delay: 0.25s, retries: 3, retry_delay: 2.0s
+
+  Ramp-Up Analysis:
+  - LOOKBACK_BARS: 15 (M1 bars before entry)
+  - MIN_BARS_REQUIRED: 10
+  - BATCH_SIZE: 100
+  - TREND_THRESHOLD: 0.05
+  - MOMENTUM_THRESHOLD: 0.10
+  - MOMENTUM_SPLIT_BAR: -8
+
+
+15. RELATIONSHIP TO EPOCH SYSTEM
+================================================================================
+
+  The System Analysis module is the fifth module in the Epoch closed-loop
+  system. It serves as the primary analytical dashboard, consuming data
+  produced by upstream modules and feeding insights back into the system.
+
+  Upstream Dependencies:
+  - 01_application: Zone identification and setup export
+  - 03_backtest: Trade simulation producing trade records
+  - 03_backtest/processor: Secondary processors populating
+    mfe_mae_potential, stop_analysis, entry_indicators, m5_trade_bars,
+    m1_indicator_bars, optimal_trade, indicator_refinement,
+    op_mfe_mae_potential tables
+
+  Downstream Consumers:
+  - 02_dow_ai: Monte AI prompts inform AI trading assistant context
+  - 04_indicators: Edge testing framework uses same statistical methods
+  - 06_training: Training module uses findings for education
+  - Manual: Trader uses dashboards for system refinement decisions
+
+  Feedback Loop:
+  Zone Identification (01) -> Backtesting (03) -> System Analysis (05) ->
+  Statistical Edge Validation (04) -> AI Recommendations (02) ->
+  Refinement -> Zone Identification (01)
+
+  Launch Method:
+  - Streamlit: streamlit run app.py --server.port 8502
+  - Master: Via Epoch launcher (launcher.py)
+
+
+16. EXTERNAL DEPENDENCIES
+================================================================================
+
+  Python Packages:
+  - streamlit         (Web application framework)
+  - plotly            (Interactive charting - Express and Graph Objects)
+  - pandas            (DataFrame manipulation and statistics)
+  - numpy             (Numerical operations)
+  - scipy             (Statistical tests - chi-square, spearman)
+  - psycopg2          (PostgreSQL database driver with SSL)
+  - python-dotenv     (Environment variable loading)
+  - logging           (Standard library - structured logging)
+
+  External Services:
+  - Supabase PostgreSQL (db.pdbmcskznoaiybdiobje.supabase.co:5432)
+  - Polygon.io REST API (market data for stop analysis)
+
+
+17. FILE INVENTORY
+================================================================================
+
+  05_system_analysis/
+  ├── app.py                                    Main Streamlit entry (1644 lines)
+  ├── config.py                                 Configuration (272 lines)
+  ├── credentials.py                            DB + API credentials
+  ├── CLAUDE.md                                 AI context documentation
+  ├── 12_indicator_analysis.md                  Module documentation
+  │
+  ├── data/
+  │   └── supabase_client.py                    Database client (1717 lines)
+  │
+  ├── analysis/
+  │   ├── trade_stats.py                        Trade statistics
+  │   ├── indicator_stats.py                    Indicator statistics
+  │   └── model_comparison.py                   Model comparison
+  │
+  ├── calculations/
+  │   ├── model/
+  │   │   └── win_rate_by_model.py              CALC-001
+  │   ├── trade_management/
+  │   │   ├── mfe_mae_stats.py                  CALC-002
+  │   │   ├── mfe_mae_sequence.py               CALC-003
+  │   │   └── simulated_outcomes.py             CALC-004
+  │   ├── stop_analysis/
+  │   │   ├── stop_calculator.py                Stop price computation
+  │   │   ├── atr_calculator.py                 ATR calculation
+  │   │   ├── fractal_detector.py               Fractal detection
+  │   │   ├── outcome_simulator.py              Bar-by-bar simulation
+  │   │   ├── results_aggregator.py             Results aggregation
+  │   │   ├── stop_selector.py                  UI state management
+  │   │   └── ui_components.py                  Streamlit rendering
+  │   ├── indicators/
+  │   │   ├── cvd.py, sma.py, volume_delta.py
+  │   │   ├── volume_roc.py, vwap.py
+  │   ├── structure/
+  │   │   ├── h4_structure.py, h1_structure.py
+  │   │   ├── m15_structure.py, m5_structure.py
+  │   ├── health/
+  │   │   ├── health_score.py, thresholds.py
+  │   ├── indicator_analysis/
+  │   │   ├── health_correlation.py             CALC-005
+  │   │   ├── factor_importance.py              CALC-006
+  │   │   ├── indicator_progression.py          CALC-007
+  │   │   └── rejection_dynamics.py             CALC-008
+  │   ├── indicator_refinement/
+  │   │   └── ui_components.py                  CALC-010 (deprecated)
+  │   ├── epch_indicators/
+  │   │   ├── base_tester.py                    CALC-011 infrastructure
+  │   │   ├── candle_range_tests.py             Range edge tests
+  │   │   ├── volume_delta_tests.py             Delta edge tests
+  │   │   ├── volume_roc_tests.py               ROC edge tests
+  │   │   ├── sma_tests.py                      SMA edge tests
+  │   │   ├── structure_tests.py                Structure edge tests
+  │   │   ├── composite_score_tests.py          Composite scoring
+  │   │   ├── prompt_generator.py               CALC-011 prompts
+  │   │   └── ui_components.py                  CALC-011 Streamlit UI
+  │   ├── indicator_edge/
+  │   │   ├── base_tester.py, edge_report.py, vwap_edge.py
+  │   ├── options/
+  │   │   ├── op_win_rate_by_model.py           CALC-O01
+  │   │   ├── op_mfe_mae_stats.py               CALC-O02
+  │   │   ├── op_mfe_mae_sequence.py            CALC-O03
+  │   │   ├── op_vs_underlying.py               CALC-O04
+  │   │   ├── op_simulated_outcomes.py          CALC-O05
+  │   │   ├── op_stop_selector.py               Options stop selector
+  │   │   └── op_stop_analysis/                 Options stop subsystem
+  │   │       ├── outcome_simulator.py, results_aggregator.py
+  │   │       ├── stop_calculator.py, stop_types.py
+  │   │       └── ui_components.py
+  │   └── derived/
+  │       ├── mfe_mae.py, trade_outcome.py
+  │
+  ├── components/
+  │   ├── charts.py                             Plotly chart rendering
+  │   ├── indicator_charts.py                   Indicator-specific charts
+  │   ├── options_charts.py                     Options charts
+  │   ├── filters.py                            Sidebar filter UI
+  │   ├── summary_cards.py                      Metric cards
+  │   ├── options_summary_cards.py              Options metric cards
+  │   └── prompt_generator.py                   Legacy prompt generation
+  │
+  ├── monte_ai/
+  │   ├── ui.py                                 Monte AI UI components
+  │   ├── prompts.py                            Metrics overview templates
+  │   ├── indicator_prompts.py                  CALC-005-008 templates
+  │   ├── options_prompts.py                    Options templates
+  │   ├── refinement_prompts.py                 CALC-010 templates
+  │   ├── prompt_generator.py                   Metrics prompt assembly
+  │   ├── indicator_prompt_generator.py         Indicator prompt assembly
+  │   ├── options_prompt_generator.py           Options prompt assembly
+  │   ├── refinement_prompt_generator.py        Refinement prompt assembly
+  │   └── data_collector.py                     Data formatting for prompts
+  │
+  ├── secondary_processor/
+  │   └── ramp_up_analysis/
+  │       ├── ramp_config.py                    Configuration
+  │       ├── run.py                            Monolithic runner (original)
+  │       ├── run_analysis.py                   Modular orchestrator
+  │       ├── run_full_analysis.py              Full pipeline runner
+  │       ├── calculator.py                     Core calculations
+  │       ├── data_fetcher.py                   Database queries
+  │       ├── db_writer.py                      Database writes
+  │       ├── analysis/
+  │       │   ├── base.py                       Abstract analyzer base
+  │       │   ├── calculators.py                9 concrete analyzers
+  │       │   └── run_analysis.py               Analyzer orchestrator
+  │       ├── exporters/
+  │       │   ├── csv_exporter.py               CSV export
+  │       │   └── prompt_exporter.py            Markdown export
+  │       ├── schema/
+  │       │   ├── ramp_up_tables.sql
+  │       │   └── ramp_analysis_tables.sql
+  │       └── outputs/                          Generated reports
+  │
+  ├── results/                                  Generated analysis reports
+  └── docs/                                     Documentation
+
+
+18. ARCHITECTURAL NOTES
+================================================================================
+
+  Module Independence:
+  - This module connects directly to Supabase via psycopg2 rather than
+    using the shared data layer (00_shared/data/supabase.py)
+  - Credentials are in a local credentials.py file
+  - V2 migration status: "Complete (Hybrid approach)"
+
+  Hybrid Architecture:
+  - Uses Streamlit (not PyQt6 like other V2 modules)
+  - Plotly for charting (not the shared UI framework)
+  - V1 calculation logic preserved, V2 viewer layer on top
+
+  Win Condition Evolution:
+  - Original: MFE time < MAE time (temporal ordering)
+  - Current: Stop-based from stop_analysis table (bar-by-bar simulation)
+  - Canonical: trades_m5_r_win (M5 ATR 1.1x close-based)
+  - Monte AI always uses m5_atr default regardless of UI selection
+
+  Data Caching:
+  - Streamlit cache with TTL prevents redundant queries
+  - Data TTL: 300s (5 min), Metadata TTL: 600s (10 min)
+  - Cache keys include all filter parameters
+
+  Total Python Files: ~94
+  Total Calculation Modules: 16 (CALC-001 through CALC-011 + O01-O09)
+  Database Tables Consumed: 12+
+  Database Tables Written: 11 (ramp-up analysis only)
+
+
+================================================================================
+Document generated for XIII Trading LLC - Epoch Trading System v2.0
+================================================================================

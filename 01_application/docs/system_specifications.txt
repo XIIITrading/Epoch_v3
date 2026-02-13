@@ -1,0 +1,243 @@
+================================================================================
+EPOCH TRADING SYSTEM v2.0 - ZONE ANALYSIS APPLICATION
+System Specifications
+XIII Trading LLC
+================================================================================
+
+1. IMPLEMENTATION OVERVIEW
+================================================================================
+
+The Epoch Zone Analysis application is a PyQt6 desktop application that serves
+as a pre-market preparation tool for identifying high-probability supply and
+demand trading zones through volume profile analysis. The system operates as a
+closed-loop pipeline: a two-phase market scanner first filters the S&P 500 or
+NASDAQ 100 universe by ATR (>=$2.00), price (>=$10.00), and gap magnitude
+(>=2%), then ranks survivors by overnight volume, relative volume, and gap
+size to surface "in-play" candidates. Once the user selects tickers and
+assigns anchor dates (the start of the volume profile epoch), the pipeline
+fetches 1-minute bar data from Polygon.io, constructs a $0.01-granularity
+volume profile across the full epoch period, and extracts the top 10
+non-overlapping High Volume Nodes (HVNs) ranked by cumulative volume with an
+ATR/2 separation threshold. Each HVN Point of Control (POC) becomes the
+center of a confluence zone (POC +/- M15_ATR/2), which is then scored against
+60+ multi-timeframe technical levels -- including monthly/weekly/daily OHLC,
+prior period levels, Camarilla pivots (S3/S4/S6, R3/R4/R6), top-10 options
+open interest strikes, and fractal-based market structure strong/weak levels
+across D1, H4, H1, and M15 timeframes -- using a bucket-max scoring system
+that prevents intra-category stacking. The resulting confluence scores drive an
+L1-L5 rank (thresholds at 3/6/9/12 points) and T1-T3 tier classification,
+after which zones are filtered by proximity (within 2x D1 ATR of current
+price), deduplicated for overlap, and the closest HVN above and below price
+are designated as bull and bear POC anchors. Finally, the setup analyzer
+assigns primary and secondary trading directions aligned with a weighted
+composite market structure score (D1:1.5, H4:1.5, H1:1.0, M15:0.5), calculates
+targets via a 3R/4R HVN POC cascade, and exports all results to Supabase for
+downstream consumption by the backtesting engine.
+
+
+2. HIGH-LEVEL TECHNICAL SPECIFICATIONS
+================================================================================
+
+2.1 APPLICATION FRAMEWORK
+--------------------------------------------------------------------------------
+- Runtime:          Python 3.12+
+- UI Framework:     PyQt6 desktop application
+- Window Size:      Minimum 1400 x 900 pixels
+- Theme:            Dark mode (custom stylesheet)
+- Tab Count:        10 tabs in sequential workflow
+- State Management: QObject with pyqtSignal for inter-tab communication
+
+2.2 DATA SOURCES
+--------------------------------------------------------------------------------
+- Market Data:      Polygon.io REST API (1-min, 15-min, 1-hour, 4-hour, daily)
+- Database:         Supabase (PostgreSQL) via psycopg2 with SSL
+- Caching:          File-based pickle cache with configurable TTL
+                    - Intraday: 1-hour TTL
+                    - Daily: 24-hour TTL
+- Rate Limiting:    0.25s between Polygon API calls, 3 retry attempts
+
+2.3 ANALYSIS PIPELINE (6 STAGES)
+--------------------------------------------------------------------------------
+
+  Stage 1: Market Structure
+  -------------------------
+  - Fractal detection (length=5, p=2 bars each side) across 4 timeframes
+  - Timeframes: D1 (250-day lookback), H4 (100-day), H1 (50-day), M15 (15-day)
+  - Break types: BOS (Break of Structure), ChoCH (Change of Character)
+  - Output: Direction per timeframe (Bull/Bear/Neutral) + strong/weak levels
+  - Composite: Weighted score (D1=1.5, H4=1.5, H1=1.0, M15=0.5)
+  - Thresholds: score >= 3.5 = Bull+, score <= -3.5 = Bear+
+
+  Stage 2: Bar Data
+  -----------------
+  - OHLC: Current + prior period for Monthly, Weekly, Daily
+  - ATR: M1, M5, M15, H1, D1 (14-period)
+  - Camarilla Pivots: S3/S4/S6, R3/R4/R6 at daily, weekly, monthly
+  - Overnight: High and Low from extended hours
+  - Output: BarData Pydantic model with ~70 technical levels
+
+  Stage 2b: Options Levels
+  ------------------------
+  - Top 10 strikes by open interest near current price
+  - Weighted by proximity to price (op_01=2.5 down to op_09/10=0.5)
+
+  Stage 3: HVN POC Identification
+  --------------------------------
+  - Data: 1-minute bars from anchor_date to analysis_date
+  - Chunked fetching: 30-day chunks for API compliance
+  - Volume Profile: $0.01 price granularity, volume distributed proportionally
+  - Selection: Top 10 POCs by volume, non-overlapping (ATR/2 minimum distance)
+  - Base weights: POC1=3.0, POC2=2.5, POC3=2.0 ... POC10=0.1
+
+  Stage 4: Zone Calculation (Confluence Scoring)
+  -----------------------------------------------
+  - Zone boundaries: POC +/- (M15_ATR / 2)
+  - Confluence check: Each zone tested against all technical levels
+  - Scoring: Bucket-max system (max weight per confluence category, no stacking)
+  - Total score = base_score (from POC rank) + sum(bucket_max scores)
+  - Ranking thresholds:
+      L5: score >= 12.0 (highest quality)
+      L4: score >= 9.0
+      L3: score >= 6.0
+      L2: score >= 3.0
+      L1: score < 3.0  (lowest quality)
+
+  Stage 5: Zone Filtering
+  -----------------------
+  - Tier classification: L4/L5 = T3, L3 = T2, L1/L2 = T1
+  - Proximity filter: Within 2x D1 ATR of current price
+  - Proximity groups: Group 1 (<=1 ATR), Group 2 (1-2 ATR)
+  - Overlap elimination: Highest score wins
+  - Max zones per ticker: 10
+  - Bull/Bear POC: Closest HVN above/below current price
+
+  Stage 6: Setup Analysis
+  -----------------------
+  - Target selection: 3R/4R HVN POC cascade
+    - Bull: Find POC above zone >= 3R from zone_high (highest volume priority)
+    - Bear: Find POC below zone <= 3R from zone_low (highest volume priority)
+    - Fallback: Calculated 4R level if no qualifying POC
+  - R:R calculation: reward / risk based on zone boundaries
+  - Direction assignment:
+    - Bull/Bull+ composite: Primary = Bull setup, Secondary = Bear
+    - Bear/Bear+ composite: Primary = Bear setup, Secondary = Bull
+    - Neutral: Primary = Bull (default), Secondary = Bear
+
+2.4 CONFLUENCE WEIGHT SYSTEM
+--------------------------------------------------------------------------------
+
+  Category                Weight    Bucket Max
+  -------------------------------------------
+  Monthly OHLC            3.0       3.0
+  Prior Monthly           3.0       3.0
+  Monthly Camarilla       3.0       3.0
+  Weekly OHLC             2.0       2.0
+  Prior Weekly            2.0       2.0
+  Weekly Camarilla        2.0       2.0
+  Options (top 10 OI)     0.5-2.5   2.5
+  Market Structure D1     1.5       1.5
+  Market Structure H4     1.25      1.25
+  Market Structure H1     1.0       1.0
+  Market Structure M15    0.75      0.75
+  Daily OHLC              1.0       1.0
+  Prior Daily             1.0       1.0
+  Daily Camarilla         1.0       1.0
+
+  Maximum theoretical score: ~27.0 (base 3.0 + all buckets)
+
+2.5 USER INTERFACE (10 TABS)
+--------------------------------------------------------------------------------
+
+  Tab 1:  Pre-Market Scanner
+          - Universe: S&P 500 (~503 tickers) or NASDAQ 100
+          - Phase 1 filters: ATR >= $2.00, Price >= $10.00, Gap >= 2%
+          - Phase 2 ranking: Normalized composite (overnight vol, relative vol, gap)
+          - Parallel execution: 10 worker threads
+
+  Tab 2:  Market Screener
+          - Up to 10 custom tickers with individual anchor dates
+          - Anchor presets: Custom, Prior Day, Prior Week, Prior Month, YTD
+          - Index tickers (SPY, QQQ, DIA) auto-analyzed with prior month anchor
+          - Pre-Market / Post-Market time modes with cutoff timestamps
+
+  Tab 3:  Dashboard
+          - Summary metrics per ticker (direction, zone count, bull/bear POC)
+
+  Tab 4:  Bar Data
+          - Full OHLC, ATR, Camarilla, Options, Market Structure levels
+
+  Tab 5:  Raw Zones
+          - All 10 zones per ticker before filtering (score, rank, confluences)
+
+  Tab 6:  Zone Results
+          - Filtered zones with tier, proximity group, bull/bear flags
+
+  Tab 7:  Zone Analysis
+          - Primary and secondary setups with targets and R:R ratios
+
+  Tab 8:  TradingView Export
+          - PineScript_6 format: pri_high,pri_low,pri_target,sec_high,sec_low,sec_target
+          - PineScript_16 format: above + 10 POC prices
+
+  Tab 9:  Database Export
+          - Supabase upload: zones, setups, bar_data, hvn_pocs, market_structure
+          - Terminal output for export confirmation
+
+  Tab 10: Pre-Market Report
+          - Full pre-market visualization and summary report
+
+2.6 DATA MODELS (Pydantic v2)
+--------------------------------------------------------------------------------
+
+  - Direction:       Enum (Bull+, Bull, Neutral, Bear, Bear+)
+  - Rank:            Enum (L1 through L5)
+  - Tier:            Enum (T1, T2, T3)
+  - TickerInput:     ticker, analysis_date, anchor_date
+  - MarketStructure: D1/H4/H1/M15 TimeframeStructure + composite
+  - TimeframeStructure: direction, strong level, weak level
+  - BarData:         ~70 fields (OHLC x3 periods, ATR x5, Camarilla x3, etc.)
+  - OHLCData:        open, high, low, close
+  - CamarillaLevels: S3/S4/S6, R3/R4/R6
+  - HVNResult:       10 POCResult objects (price, volume, rank)
+  - RawZone:         POC, zone boundaries, score, rank, confluences
+  - FilteredZone:    Extends RawZone with tier, proximity, bull/bear flags
+  - Setup:           zone, target, R:R, direction, type (Primary/Secondary)
+
+2.7 INDEX TICKER HANDLING
+--------------------------------------------------------------------------------
+  - SPY, QQQ, DIA always analyzed for broad market context
+  - Default anchor: First day of prior month
+  - Processed before custom tickers in pipeline
+
+2.8 EXPORT TARGETS
+--------------------------------------------------------------------------------
+
+  Supabase Tables:
+  - zones:             Filtered zone data per ticker
+  - setups:            Primary/secondary setup configurations
+  - bar_data:          Full OHLC, ATR, Camarilla, Options levels
+  - hvn_pocs:          POC 1-10 price levels per ticker
+  - market_structure:  Direction and strong/weak levels per timeframe
+
+  TradingView:
+  - PineScript_6:  6-value comma-separated string for zone overlay
+  - PineScript_16: 16-value string including all 10 POC levels
+
+2.9 RISK MANAGEMENT PARAMETERS
+--------------------------------------------------------------------------------
+  - Risk per trade:            $20.00 (ATR-based sizing)
+  - Minimum R:R for targets:   3.0R (POC-based targets)
+  - Default R:R fallback:      4.0R (calculated targets)
+  - Zone risk:                 zone_high - zone_low (M15_ATR width)
+
+2.10 CONFIGURATION DEFAULTS
+--------------------------------------------------------------------------------
+  - Scanner: min_atr=$2.00, min_price=$10.00, min_gap=2.0%
+  - Zones: max_zones=10, zone_atr_divisor=2.0, proximity_multiplier=2.0
+  - HVN: poc_count=10, $0.01 granularity, 30-day API chunks
+  - Fractals: length=5, p=2 (bars each side)
+  - Cache: intraday=3600s, daily=86400s
+
+================================================================================
+Document generated for XIII Trading LLC - Epoch Trading System v2.0
+================================================================================

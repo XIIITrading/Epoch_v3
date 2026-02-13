@@ -1,0 +1,1375 @@
+================================================================================
+EPOCH TRADING SYSTEM - MACHINE LEARNING MODULE SETUP
+Claude Code Implementation Instructions
+XIII Trading LLC
+================================================================================
+
+PURPOSE
+================================================================================
+This document provides step-by-step instructions for Claude Code to create the 
+10_machine_learning module within the EPOCH Trading System. This module serves 
+as the central hub for Claude-assisted continuous system improvement, housing
+export pipelines, system state documentation, prompt templates, and ML workflow
+automation.
+
+TARGET LOCATION: C:\XIIITradingSystems\Epoch\10_machine_learning
+
+================================================================================
+PHASE 1: DIRECTORY STRUCTURE CREATION
+================================================================================
+
+Create the following directory structure:
+
+```
+C:\XIIITradingSystems\Epoch\10_machine_learning\
+│
+├── CLAUDE.md                           # Project context for Claude sessions
+├── README.md                           # Module documentation
+├── app.py                              # Module entry point (future GUI)
+├── config.py                           # Module configuration
+├── credentials.py                      # Database credentials (gitignored)
+│
+├── exports/                            # Claude-readable data exports
+│   ├── daily/                          # Daily exports (auto-generated)
+│   │   └── .gitkeep
+│   ├── weekly/                         # Weekly aggregations
+│   │   └── .gitkeep
+│   └── reference/                      # Static reference documents
+│       └── .gitkeep
+│
+├── scripts/                            # Export and automation scripts
+│   ├── __init__.py
+│   ├── export_for_claude.py            # Main daily export script
+│   ├── weekly_aggregation.py           # Weekly summary generator
+│   └── run_ml_workflow.py              # Master orchestrator
+│
+├── state/                              # System state tracking
+│   ├── system_state.md                 # Living system document
+│   ├── hypothesis_tracker.md           # Active experiments
+│   └── changelog/                      # Version history
+│       └── .gitkeep
+│
+├── prompts/                            # Prompt template library
+│   ├── __init__.py
+│   ├── edge_audit.md                   # Weekly edge analysis prompt
+│   ├── hypothesis_generator.md         # New hypothesis exploration
+│   ├── trade_pattern_mining.md         # Pattern discovery
+│   ├── code_review.md                  # Code optimization prompts
+│   └── templates.py                    # Python prompt builders
+│
+├── analysis/                           # Claude analysis archive
+│   ├── edge_audits/                    # Archived edge analysis sessions
+│   │   └── .gitkeep
+│   ├── hypotheses/                     # Hypothesis test results
+│   │   └── .gitkeep
+│   └── patterns/                       # Discovered patterns
+│       └── .gitkeep
+│
+├── sql/                                # Database views and queries
+│   ├── v_claude_trade_export.sql       # Main export view
+│   ├── v_edge_summary.sql              # Edge analysis view
+│   └── migration/                      # Schema migrations
+│       └── .gitkeep
+│
+└── docs/                               # Additional documentation
+    ├── indicator_definitions.md        # All indicator formulas
+    ├── entry_model_specs.md            # EPCH1-4 specifications
+    └── database_schema.md              # Full schema reference
+```
+
+================================================================================
+PHASE 2: CORE FILE CREATION
+================================================================================
+
+------------------------------------------------------------------------------
+FILE 1: CLAUDE.md (Project Context for Claude Sessions)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\CLAUDE.md
+
+```markdown
+# EPOCH 2.0 Trading System - Claude Project Context
+
+> **Module**: 10_machine_learning
+> **Purpose**: Claude-assisted continuous system improvement
+> **Last Updated**: [AUTO-UPDATE DATE]
+
+---
+
+## System Overview
+
+EPOCH 2.0 is a closed-loop zone-based trading system consisting of 7 modules:
+- **01_application**: Zone Analysis (pre-market zone identification)
+- **02_dow_ai**: Entry Qualifier & Live AI assistance
+- **03_backtest**: Trade simulation with 15 secondary processors
+- **04_indicators**: Statistical edge testing
+- **05_system_analysis**: Analytics dashboard (Streamlit)
+- **06_training**: Flashcard review system
+- **10_machine_learning**: This module - Claude integration hub
+
+---
+
+## Win Condition (CANONICAL - Use This)
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| **Table** | `trades_m5_r_win` | Unified canonical outcomes |
+| **Stop Type** | M5 ATR(14) × 1.1 | Close-based trigger |
+| **Win** | MFE >= 1R before stop hit | Price-based MFE check |
+| **Loss** | Stop hit before reaching 1R | Close-based stop trigger |
+
+**Critical**: Always use `trades_m5_r_win.is_winner` for outcome classification.
+Do NOT use `trades.is_winner` (legacy) or temporal MFE/MAE ordering.
+
+---
+
+## Entry Models
+
+| Model | Type | Zone | Description |
+|-------|------|------|-------------|
+| EPCH1 | Continuation | Primary | Price traverses through primary zone |
+| EPCH2 | Rejection | Primary | Price wicks into zone, closes outside |
+| EPCH3 | Continuation | Secondary | Price traverses through secondary zone |
+| EPCH4 | Rejection | Secondary | Price wicks into zone, closes outside |
+
+**Price Origin Detection**: When bar opens inside zone, system looks back up to 
+1,000 bars to find last close outside zone to determine directionality.
+
+---
+
+## Validated Edges (Statistically Significant)
+
+| Edge | Effect Size | Confidence | Action |
+|------|-------------|------------|--------|
+| H1 Structure NEUTRAL | +36pp | HIGH | Trade when H1 = NEUTRAL |
+| Candle Range < 0.12% | -17pp (33% WR) | HIGH | SKIP - Absorption zone |
+| Volume Delta MISALIGNED | +5-21pp | MEDIUM | Trade against order flow |
+| SMA Spread Direction | +19-25pp | MEDIUM | Context dependent |
+
+**Edge Criteria**:
+- p-value < 0.05 (statistical significance)
+- Effect size > 3.0pp (practical significance)
+- Minimum 30 trades per group (MEDIUM confidence)
+- Minimum 100 trades per group (HIGH confidence)
+
+---
+
+## Key Indicator Thresholds
+
+### Candle Range (Absorption Filter)
+```
+ABSORPTION:  < 0.12%   → SKIP (universal filter)
+LOW:         0.12-0.15%
+NORMAL:      >= 0.15%  → TRADEABLE
+HIGH:        >= 0.20%  → STRONG SIGNAL
+```
+
+### Volume ROC
+```
+NORMAL:      < 30%
+ELEVATED:    >= 30%    → Momentum present
+HIGH:        >= 50%    → Strong momentum
+```
+
+### CVD Slope
+```
+FALLING:     < -0.1
+FLAT:        -0.1 to +0.1
+RISING:      > +0.1
+Window: 15 bars
+```
+
+### SMA Configuration
+```
+Periods: SMA9 vs SMA21
+WIDE_SPREAD: >= 0.15%  → Strong trend
+Momentum: Compare spread to 10 bars ago
+  WIDENING:  ratio > 1.1x
+  NARROWING: ratio < 0.9x
+  STABLE:    0.9x - 1.1x
+```
+
+### Health Score (0-10)
+```
+Structure (0-4): H4, H1, M15, M5 aligned with direction
+Volume (0-3):    Vol ROC healthy, Vol Delta aligned, CVD slope aligned
+Price (0-3):     SMA alignment, SMA momentum, VWAP position
+
+STRONG:    8-10
+MODERATE:  6-7
+WEAK:      4-5
+CRITICAL:  0-3
+```
+
+---
+
+## Database Quick Reference
+
+### Primary Tables
+| Table | Purpose | Owner |
+|-------|---------|-------|
+| `trades` | Core trade records | 03_backtest |
+| `trades_m5_r_win` | Canonical outcomes | 03_backtest |
+| `zones` | Zone boundaries | 01_application |
+| `setups` | Primary/Secondary setups | 01_application |
+
+### Indicator Tables
+| Table | Purpose | Owner |
+|-------|---------|-------|
+| `entry_indicators` | Snapshot at entry | 03_backtest |
+| `m1_indicator_bars` | M1 bars with indicators | 03_backtest |
+| `m5_indicator_bars` | M5 bars with indicators | 03_backtest |
+| `m5_trade_bars` | Trade-specific M5 progression | 03_backtest |
+
+### Analysis Tables
+| Table | Purpose | Owner |
+|-------|---------|-------|
+| `stop_analysis` | 6 stop types with outcomes | 03_backtest |
+| `mfe_mae_potential` | Price excursion data | 03_backtest |
+| `optimal_trade` | Event indicators (ENTRY/MFE/MAE/EXIT) | 03_backtest |
+| `indicator_refinement` | Continuation/Rejection scores | 03_backtest |
+
+---
+
+## Stop Types Available
+
+| Stop Type | Trigger | Description |
+|-----------|---------|-------------|
+| `zone_buffer` | Price | Zone edge + 5% buffer |
+| `prior_m1` | Price | Prior M1 bar high/low |
+| `prior_m5` | Price | Prior M5 bar high/low |
+| `m5_atr` | **Close** | M5 ATR(14) × 1.1 (CANONICAL) |
+| `m15_atr` | Close | M15 ATR(14) × 1.1 |
+| `fractal` | Price | M5 fractal high/low |
+
+---
+
+## File Locations
+
+### Export Directory
+```
+/exports/daily/trades_YYYYMMDD.json     - Daily trade data
+/exports/daily/edge_analysis_YYYYMMDD.md - Edge testing results
+/exports/weekly/hypothesis_tracker.md    - Active experiments
+```
+
+### State Files
+```
+/state/system_state.md      - Current system performance
+/state/hypothesis_tracker.md - Experiments in progress
+/state/changelog/           - Version history
+```
+
+### Prompt Templates
+```
+/prompts/edge_audit.md          - Weekly edge analysis
+/prompts/hypothesis_generator.md - New hypothesis exploration
+/prompts/trade_pattern_mining.md - Pattern discovery
+```
+
+---
+
+## Analysis Workflow
+
+### Weekly Edge Audit
+1. Run `scripts/export_for_claude.py` to generate fresh data
+2. Load `/prompts/edge_audit.md` template
+3. Paste exports into Claude session
+4. Archive results in `/analysis/edge_audits/`
+
+### Hypothesis Testing
+1. Document hypothesis in `/state/hypothesis_tracker.md`
+2. Define test criteria and sample requirements
+3. Run backtest with isolated parameter changes
+4. Analyze results with `/prompts/hypothesis_generator.md`
+5. Update validated edges if criteria met
+
+---
+
+## Anti-Patterns (Avoid These)
+
+- ❌ Using `trades.is_winner` instead of `trades_m5_r_win.is_winner`
+- ❌ Implementing Claude suggestions without backtesting
+- ❌ Over-optimizing on samples < 30 trades
+- ❌ Changing multiple parameters simultaneously
+- ❌ Asking Claude to "find the edge" without your hypothesis
+- ❌ Relying on Claude's session memory (use exports instead)
+
+---
+
+## Session Start Checklist
+
+Before any Claude analysis session:
+1. [ ] Verify latest exports exist in `/exports/daily/`
+2. [ ] Check `/state/system_state.md` is current
+3. [ ] Review active hypotheses in `/state/hypothesis_tracker.md`
+4. [ ] Note any recent system changes in changelog
+```
+
+------------------------------------------------------------------------------
+FILE 2: config.py (Module Configuration)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\config.py
+
+```python
+"""
+EPOCH 10_machine_learning - Configuration
+=========================================
+Central configuration for the Machine Learning module.
+"""
+
+import os
+from pathlib import Path
+from datetime import datetime
+
+# =============================================================================
+# PATHS
+# =============================================================================
+
+# Module root
+MODULE_ROOT = Path(__file__).parent
+
+# Export directories
+EXPORTS_DIR = MODULE_ROOT / "exports"
+DAILY_EXPORTS_DIR = EXPORTS_DIR / "daily"
+WEEKLY_EXPORTS_DIR = EXPORTS_DIR / "weekly"
+REFERENCE_DIR = EXPORTS_DIR / "reference"
+
+# State directory
+STATE_DIR = MODULE_ROOT / "state"
+CHANGELOG_DIR = STATE_DIR / "changelog"
+
+# Analysis archive
+ANALYSIS_DIR = MODULE_ROOT / "analysis"
+EDGE_AUDITS_DIR = ANALYSIS_DIR / "edge_audits"
+HYPOTHESES_DIR = ANALYSIS_DIR / "hypotheses"
+PATTERNS_DIR = ANALYSIS_DIR / "patterns"
+
+# Prompts
+PROMPTS_DIR = MODULE_ROOT / "prompts"
+
+# SQL
+SQL_DIR = MODULE_ROOT / "sql"
+
+# =============================================================================
+# DATABASE CONFIGURATION
+# =============================================================================
+
+# Import from shared credentials or define locally
+try:
+    from credentials import SUPABASE_HOST, SUPABASE_PORT, SUPABASE_DB, SUPABASE_USER, SUPABASE_PASSWORD
+except ImportError:
+    # Fallback - should match your Supabase instance
+    SUPABASE_HOST = "db.pdbmcskznoaiybdiobje.supabase.co"
+    SUPABASE_PORT = 5432
+    SUPABASE_DB = "postgres"
+    SUPABASE_USER = "postgres"
+    SUPABASE_PASSWORD = os.environ.get("SUPABASE_PASSWORD", "")
+
+# =============================================================================
+# CANONICAL WIN CONDITION
+# =============================================================================
+
+# This is the SINGLE SOURCE OF TRUTH for win/loss classification
+CANONICAL_OUTCOME = {
+    "table": "trades_m5_r_win",
+    "stop_type": "m5_atr",
+    "atr_period": 14,
+    "atr_multiplier": 1.1,
+    "trigger": "close",  # Close-based, not price-based
+    "win_field": "is_winner",
+    "outcome_field": "outcome",  # WIN/LOSS
+}
+
+# =============================================================================
+# STATISTICAL THRESHOLDS
+# =============================================================================
+
+EDGE_CRITERIA = {
+    "p_value_threshold": 0.05,       # Statistical significance
+    "effect_size_threshold": 3.0,    # Practical significance (percentage points)
+    "min_sample_medium": 30,         # MEDIUM confidence
+    "min_sample_high": 100,          # HIGH confidence
+}
+
+# =============================================================================
+# INDICATOR THRESHOLDS
+# =============================================================================
+
+CANDLE_RANGE = {
+    "absorption_threshold": 0.12,    # Below = SKIP
+    "normal_threshold": 0.15,        # Above = TRADEABLE
+    "high_threshold": 0.20,          # Above = STRONG
+}
+
+VOLUME_ROC = {
+    "baseline_period": 20,
+    "elevated_threshold": 30,        # Momentum present
+    "high_threshold": 50,            # Strong momentum
+}
+
+CVD_SLOPE = {
+    "window": 15,
+    "rising_threshold": 0.1,
+    "falling_threshold": -0.1,
+}
+
+SMA_CONFIG = {
+    "fast_period": 9,
+    "slow_period": 21,
+    "wide_spread_threshold": 0.15,
+    "momentum_lookback": 10,
+    "widening_threshold": 1.1,
+    "narrowing_threshold": 0.9,
+}
+
+VOLUME_DELTA = {
+    "rolling_period": 5,
+    "magnitude_threshold": 100000,
+}
+
+HEALTH_SCORE = {
+    "max_score": 10,
+    "strong_threshold": 8,
+    "moderate_threshold": 6,
+    "weak_threshold": 4,
+    # Factor weights (all 1.0 for equal weighting)
+    "weights": {
+        "h4_structure": 1.0,
+        "h1_structure": 1.0,
+        "m15_structure": 1.0,
+        "m5_structure": 1.0,
+        "vol_roc": 1.0,
+        "vol_delta": 1.0,
+        "cvd_slope": 1.0,
+        "sma_alignment": 1.0,
+        "sma_momentum": 1.0,
+        "vwap_position": 1.0,
+    }
+}
+
+# =============================================================================
+# ENTRY MODELS
+# =============================================================================
+
+ENTRY_MODELS = {
+    "EPCH1": {"type": "continuation", "zone": "primary"},
+    "EPCH2": {"type": "rejection", "zone": "primary"},
+    "EPCH3": {"type": "continuation", "zone": "secondary"},
+    "EPCH4": {"type": "rejection", "zone": "secondary"},
+}
+
+CONTINUATION_MODELS = ["EPCH1", "EPCH3"]
+REJECTION_MODELS = ["EPCH2", "EPCH4"]
+PRIMARY_MODELS = ["EPCH1", "EPCH2"]
+SECONDARY_MODELS = ["EPCH3", "EPCH4"]
+
+# =============================================================================
+# STOP TYPES
+# =============================================================================
+
+STOP_TYPES = {
+    "zone_buffer": {"trigger": "price", "description": "Zone edge + 5% buffer"},
+    "prior_m1": {"trigger": "price", "description": "Prior M1 bar high/low"},
+    "prior_m5": {"trigger": "price", "description": "Prior M5 bar high/low"},
+    "m5_atr": {"trigger": "close", "description": "M5 ATR(14) × 1.1 (CANONICAL)"},
+    "m15_atr": {"trigger": "close", "description": "M15 ATR(14) × 1.1"},
+    "fractal": {"trigger": "price", "description": "M5 fractal high/low"},
+}
+
+DEFAULT_STOP_TYPE = "m5_atr"
+
+# =============================================================================
+# EXPORT CONFIGURATION
+# =============================================================================
+
+EXPORT_CONFIG = {
+    "date_format": "%Y%m%d",
+    "timestamp_format": "%Y-%m-%d %H:%M:%S",
+    "json_indent": 2,
+    "max_trades_per_file": 10000,
+}
+
+# =============================================================================
+# VALIDATED EDGES (Updated from edge testing)
+# =============================================================================
+
+VALIDATED_EDGES = [
+    {
+        "name": "H1 Structure NEUTRAL",
+        "indicator": "h1_structure",
+        "condition": "NEUTRAL",
+        "effect_size_pp": 36.0,
+        "confidence": "HIGH",
+        "action": "TRADE when H1 = NEUTRAL",
+        "validated_date": "2026-01-31",
+    },
+    {
+        "name": "Absorption Zone Skip",
+        "indicator": "candle_range_pct",
+        "condition": "< 0.12%",
+        "effect_size_pp": -17.0,
+        "confidence": "HIGH",
+        "action": "SKIP - do not trade",
+        "validated_date": "2026-01-31",
+    },
+    {
+        "name": "Volume Delta Paradox",
+        "indicator": "vol_delta_alignment",
+        "condition": "MISALIGNED",
+        "effect_size_pp": 13.0,  # Average of 5-21pp range
+        "confidence": "MEDIUM",
+        "action": "Trade against order flow",
+        "validated_date": "2026-01-31",
+    },
+]
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def get_daily_export_path(date: datetime = None, file_type: str = "trades") -> Path:
+    """Get path for daily export file."""
+    if date is None:
+        date = datetime.now()
+    date_str = date.strftime(EXPORT_CONFIG["date_format"])
+    return DAILY_EXPORTS_DIR / f"{file_type}_{date_str}.json"
+
+
+def get_weekly_export_path(file_type: str = "edge_trend_report") -> Path:
+    """Get path for weekly export file."""
+    return WEEKLY_EXPORTS_DIR / f"{file_type}.md"
+
+
+def ensure_directories():
+    """Create all required directories if they don't exist."""
+    dirs = [
+        DAILY_EXPORTS_DIR, WEEKLY_EXPORTS_DIR, REFERENCE_DIR,
+        STATE_DIR, CHANGELOG_DIR,
+        EDGE_AUDITS_DIR, HYPOTHESES_DIR, PATTERNS_DIR,
+        PROMPTS_DIR, SQL_DIR,
+    ]
+    for d in dirs:
+        d.mkdir(parents=True, exist_ok=True)
+
+
+# Initialize directories on import
+ensure_directories()
+```
+
+------------------------------------------------------------------------------
+FILE 3: scripts/export_for_claude.py (Main Export Script)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\scripts\export_for_claude.py
+
+```python
+"""
+EPOCH 10_machine_learning - Export for Claude
+=============================================
+Generates Claude-readable exports from the EPOCH database.
+
+Usage:
+    python export_for_claude.py                    # Export today's data
+    python export_for_claude.py --date 2026-01-31 # Export specific date
+    python export_for_claude.py --all             # Export all available dates
+"""
+
+import sys
+import json
+import argparse
+from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional
+
+# Add parent to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+from config import (
+    SUPABASE_HOST, SUPABASE_PORT, SUPABASE_DB, SUPABASE_USER, SUPABASE_PASSWORD,
+    DAILY_EXPORTS_DIR, EXPORT_CONFIG, CANONICAL_OUTCOME, VALIDATED_EDGES,
+    EDGE_CRITERIA, ensure_directories
+)
+
+
+class ClaudeExporter:
+    """Exports EPOCH data in Claude-readable format."""
+    
+    def __init__(self):
+        self.conn = None
+        self._connect()
+    
+    def _connect(self):
+        """Establish database connection."""
+        self.conn = psycopg2.connect(
+            host=SUPABASE_HOST,
+            port=SUPABASE_PORT,
+            database=SUPABASE_DB,
+            user=SUPABASE_USER,
+            password=SUPABASE_PASSWORD,
+            sslmode="require"
+        )
+        print(f"✓ Connected to Supabase")
+    
+    def _execute(self, query: str, params: tuple = None) -> List[Dict]:
+        """Execute query and return results as list of dicts."""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query, params)
+            return [dict(row) for row in cur.fetchall()]
+    
+    def export_trades(self, date: datetime) -> Dict[str, Any]:
+        """
+        Export trades with canonical outcomes for a specific date.
+        
+        Returns a Claude-optimized structure with:
+        - Summary statistics
+        - Trade list with key fields
+        - Model breakdown
+        - Direction breakdown
+        """
+        date_str = date.strftime("%Y-%m-%d")
+        
+        query = """
+        SELECT 
+            t.trade_id,
+            t.date,
+            t.ticker,
+            t.model,
+            t.direction,
+            t.entry_price,
+            t.entry_time::text,
+            t.exit_price,
+            t.exit_time::text,
+            t.exit_reason,
+            t.zone_high,
+            t.zone_low,
+            -- Canonical outcome
+            COALESCE(m.is_winner, t.pnl_r > 0) as is_winner,
+            COALESCE(m.outcome, CASE WHEN t.pnl_r > 0 THEN 'WIN' ELSE 'LOSS' END) as outcome,
+            COALESCE(m.pnl_r, t.pnl_r) as pnl_r,
+            m.reached_2r,
+            m.reached_3r,
+            m.stop_price as canonical_stop,
+            -- Entry indicators
+            ei.health_score,
+            ei.h1_structure,
+            ei.m15_structure,
+            ei.m5_structure,
+            ei.vol_roc,
+            ei.vol_delta,
+            ei.sma_spread,
+            ei.sma_momentum_label
+        FROM trades t
+        LEFT JOIN trades_m5_r_win m ON t.trade_id = m.trade_id
+        LEFT JOIN entry_indicators ei ON t.trade_id = ei.trade_id
+        WHERE t.date = %s
+        ORDER BY t.entry_time
+        """
+        
+        trades = self._execute(query, (date_str,))
+        
+        if not trades:
+            return {
+                "date": date_str,
+                "total_trades": 0,
+                "message": "No trades found for this date"
+            }
+        
+        # Calculate summary statistics
+        winners = [t for t in trades if t["is_winner"]]
+        losers = [t for t in trades if not t["is_winner"]]
+        
+        total_r = sum(t["pnl_r"] or 0 for t in trades)
+        
+        summary = {
+            "date": date_str,
+            "total_trades": len(trades),
+            "winners": len(winners),
+            "losers": len(losers),
+            "win_rate": round(len(winners) / len(trades) * 100, 1) if trades else 0,
+            "total_r": round(total_r, 2),
+            "expectancy_r": round(total_r / len(trades), 3) if trades else 0,
+            "canonical_win_condition": f"{CANONICAL_OUTCOME['stop_type']} (ATR({CANONICAL_OUTCOME['atr_period']}) × {CANONICAL_OUTCOME['atr_multiplier']}, {CANONICAL_OUTCOME['trigger']}-based)",
+        }
+        
+        # Model breakdown
+        model_stats = {}
+        for model in ["EPCH1", "EPCH2", "EPCH3", "EPCH4"]:
+            model_trades = [t for t in trades if t["model"] == model]
+            model_winners = [t for t in model_trades if t["is_winner"]]
+            if model_trades:
+                model_stats[model] = {
+                    "trades": len(model_trades),
+                    "winners": len(model_winners),
+                    "win_rate": round(len(model_winners) / len(model_trades) * 100, 1),
+                    "total_r": round(sum(t["pnl_r"] or 0 for t in model_trades), 2),
+                }
+        
+        # Direction breakdown
+        direction_stats = {}
+        for direction in ["LONG", "SHORT"]:
+            dir_trades = [t for t in trades if t["direction"] == direction]
+            dir_winners = [t for t in dir_trades if t["is_winner"]]
+            if dir_trades:
+                direction_stats[direction] = {
+                    "trades": len(dir_trades),
+                    "winners": len(dir_winners),
+                    "win_rate": round(len(dir_winners) / len(dir_trades) * 100, 1),
+                    "total_r": round(sum(t["pnl_r"] or 0 for t in dir_trades), 2),
+                }
+        
+        # Clean trades for export (convert dates, handle None values)
+        clean_trades = []
+        for t in trades:
+            clean_trade = {}
+            for k, v in t.items():
+                if v is None:
+                    clean_trade[k] = None
+                elif hasattr(v, 'isoformat'):
+                    clean_trade[k] = v.isoformat()
+                elif isinstance(v, (int, float, str, bool)):
+                    clean_trade[k] = v
+                else:
+                    clean_trade[k] = str(v)
+            clean_trades.append(clean_trade)
+        
+        return {
+            "export_timestamp": datetime.now().isoformat(),
+            "summary": summary,
+            "model_breakdown": model_stats,
+            "direction_breakdown": direction_stats,
+            "trades": clean_trades,
+        }
+    
+    def export_edge_analysis(self, date: datetime) -> str:
+        """
+        Export edge analysis results as markdown for Claude.
+        
+        Pulls from indicator edge testing and formats as readable report.
+        """
+        date_str = date.strftime("%Y-%m-%d")
+        
+        # Get trade data for the date range (last 30 days for context)
+        start_date = (date - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        query = """
+        SELECT 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN COALESCE(m.is_winner, t.pnl_r > 0) THEN 1 ELSE 0 END) as winners,
+            ROUND(AVG(COALESCE(m.pnl_r, t.pnl_r))::numeric, 3) as avg_r
+        FROM trades t
+        LEFT JOIN trades_m5_r_win m ON t.trade_id = m.trade_id
+        WHERE t.date BETWEEN %s AND %s
+        """
+        
+        stats = self._execute(query, (start_date, date_str))
+        baseline = stats[0] if stats else {"total_trades": 0, "winners": 0, "avg_r": 0}
+        
+        baseline_wr = (baseline["winners"] / baseline["total_trades"] * 100) if baseline["total_trades"] else 0
+        
+        # Build markdown report
+        md = f"""# Edge Analysis Report
+
+**Date**: {date_str}
+**Analysis Period**: {start_date} to {date_str}
+**Total Trades**: {baseline['total_trades']}
+**Baseline Win Rate**: {baseline_wr:.1f}%
+**Average R**: {baseline['avg_r']}
+
+---
+
+## Validated Edges
+
+| Edge | Effect Size | Confidence | Action |
+|------|-------------|------------|--------|
+"""
+        
+        for edge in VALIDATED_EDGES:
+            md += f"| {edge['name']} | {edge['effect_size_pp']:+.1f}pp | {edge['confidence']} | {edge['action']} |\n"
+        
+        md += f"""
+
+---
+
+## Edge Criteria
+
+- **Statistical Significance**: p-value < {EDGE_CRITERIA['p_value_threshold']}
+- **Practical Significance**: Effect size > {EDGE_CRITERIA['effect_size_threshold']}pp
+- **Minimum Sample (MEDIUM)**: {EDGE_CRITERIA['min_sample_medium']} trades
+- **Minimum Sample (HIGH)**: {EDGE_CRITERIA['min_sample_high']} trades
+
+---
+
+## Notes
+
+- Win condition: {CANONICAL_OUTCOME['stop_type']} stop (ATR({CANONICAL_OUTCOME['atr_period']}) × {CANONICAL_OUTCOME['atr_multiplier']}, {CANONICAL_OUTCOME['trigger']}-based)
+- All edges validated against `trades_m5_r_win.is_winner`
+- Effect sizes measured in percentage points (pp) above baseline
+
+---
+
+*Generated: {datetime.now().isoformat()}*
+"""
+        
+        return md
+    
+    def export_system_metrics(self, date: datetime) -> Dict[str, Any]:
+        """
+        Export system-wide metrics for Claude analysis.
+        
+        Includes:
+        - Overall performance metrics
+        - Model performance over time
+        - Recent trend indicators
+        """
+        date_str = date.strftime("%Y-%m-%d")
+        
+        # Overall stats (last 30 days)
+        start_30 = (date - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        query = """
+        SELECT 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN COALESCE(m.is_winner, t.pnl_r > 0) THEN 1 ELSE 0 END) as winners,
+            ROUND(SUM(COALESCE(m.pnl_r, t.pnl_r))::numeric, 2) as total_r,
+            ROUND(AVG(COALESCE(m.pnl_r, t.pnl_r))::numeric, 3) as avg_r,
+            ROUND(STDDEV(COALESCE(m.pnl_r, t.pnl_r))::numeric, 3) as std_r
+        FROM trades t
+        LEFT JOIN trades_m5_r_win m ON t.trade_id = m.trade_id
+        WHERE t.date BETWEEN %s AND %s
+        """
+        
+        stats_30 = self._execute(query, (start_30, date_str))
+        
+        # Last 7 days
+        start_7 = (date - timedelta(days=7)).strftime("%Y-%m-%d")
+        stats_7 = self._execute(query, (start_7, date_str))
+        
+        def calc_metrics(stats):
+            if not stats or not stats[0]["total_trades"]:
+                return {"trades": 0, "win_rate": 0, "total_r": 0, "avg_r": 0, "std_r": 0}
+            s = stats[0]
+            return {
+                "trades": s["total_trades"],
+                "win_rate": round(s["winners"] / s["total_trades"] * 100, 1),
+                "total_r": float(s["total_r"] or 0),
+                "avg_r": float(s["avg_r"] or 0),
+                "std_r": float(s["std_r"] or 0),
+            }
+        
+        return {
+            "export_timestamp": datetime.now().isoformat(),
+            "report_date": date_str,
+            "last_30_days": calc_metrics(stats_30),
+            "last_7_days": calc_metrics(stats_7),
+            "canonical_win_condition": CANONICAL_OUTCOME,
+            "validated_edges_count": len(VALIDATED_EDGES),
+        }
+    
+    def run_daily_export(self, date: datetime = None):
+        """Run full daily export and save to files."""
+        if date is None:
+            date = datetime.now()
+        
+        date_str = date.strftime(EXPORT_CONFIG["date_format"])
+        ensure_directories()
+        
+        print(f"\n📊 Exporting data for {date.strftime('%Y-%m-%d')}...")
+        
+        # Export trades
+        trades_data = self.export_trades(date)
+        trades_path = DAILY_EXPORTS_DIR / f"trades_{date_str}.json"
+        with open(trades_path, "w") as f:
+            json.dump(trades_data, f, indent=EXPORT_CONFIG["json_indent"], default=str)
+        print(f"  ✓ Trades: {trades_path}")
+        
+        # Export edge analysis
+        edge_md = self.export_edge_analysis(date)
+        edge_path = DAILY_EXPORTS_DIR / f"edge_analysis_{date_str}.md"
+        with open(edge_path, "w") as f:
+            f.write(edge_md)
+        print(f"  ✓ Edge Analysis: {edge_path}")
+        
+        # Export system metrics
+        metrics_data = self.export_system_metrics(date)
+        metrics_path = DAILY_EXPORTS_DIR / f"system_metrics_{date_str}.json"
+        with open(metrics_path, "w") as f:
+            json.dump(metrics_data, f, indent=EXPORT_CONFIG["json_indent"], default=str)
+        print(f"  ✓ System Metrics: {metrics_path}")
+        
+        print(f"\n✅ Daily export complete for {date.strftime('%Y-%m-%d')}")
+        
+        return {
+            "date": date_str,
+            "files": [str(trades_path), str(edge_path), str(metrics_path)],
+            "summary": trades_data.get("summary", {}),
+        }
+    
+    def close(self):
+        """Close database connection."""
+        if self.conn:
+            self.conn.close()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Export EPOCH data for Claude analysis")
+    parser.add_argument("--date", type=str, help="Export date (YYYY-MM-DD)")
+    parser.add_argument("--all", action="store_true", help="Export all available dates")
+    args = parser.parse_args()
+    
+    exporter = ClaudeExporter()
+    
+    try:
+        if args.date:
+            date = datetime.strptime(args.date, "%Y-%m-%d")
+            exporter.run_daily_export(date)
+        elif args.all:
+            # Get all available dates
+            dates = exporter._execute(
+                "SELECT DISTINCT date FROM trades ORDER BY date DESC LIMIT 30"
+            )
+            for d in dates:
+                exporter.run_daily_export(d["date"])
+        else:
+            # Default: today
+            exporter.run_daily_export()
+    finally:
+        exporter.close()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+------------------------------------------------------------------------------
+FILE 4: state/system_state.md (Living System Document)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\state\system_state.md
+
+```markdown
+# EPOCH 2.0 System State
+
+> **Last Updated**: [DATE]
+> **Updated By**: [NAME]
+> **Version**: 2.0.1
+
+---
+
+## Current Performance (Last 30 Days)
+
+| Metric | Value | Change |
+|--------|-------|--------|
+| Total Trades | XXX | - |
+| Win Rate | XX.X% | ±X.X% |
+| Total R | +X.XX | ±X.XX |
+| Expectancy | X.XXX R | ±X.XXX |
+| Profit Factor | X.XX | ±X.XX |
+
+### By Model
+
+| Model | Trades | Win Rate | Total R | Notes |
+|-------|--------|----------|---------|-------|
+| EPCH1 | - | - | - | Primary continuation |
+| EPCH2 | - | - | - | Primary rejection |
+| EPCH3 | - | - | - | Secondary continuation |
+| EPCH4 | - | - | - | Secondary rejection |
+
+---
+
+## Validated Edges (Active)
+
+| # | Edge | Effect | Confidence | Status |
+|---|------|--------|------------|--------|
+| 1 | H1 Structure NEUTRAL | +36pp | HIGH | ✅ Active |
+| 2 | Candle Range < 0.12% → SKIP | -17pp | HIGH | ✅ Active |
+| 3 | Vol Delta MISALIGNED | +5-21pp | MEDIUM | ✅ Active |
+
+---
+
+## Hypotheses Under Test
+
+| ID | Hypothesis | Status | Sample | Target | Result |
+|----|------------|--------|--------|--------|--------|
+| H001 | [Description] | Testing | N=XX | N=100 | Pending |
+
+---
+
+## Recent Changes
+
+### [DATE] - [Version]
+- Change description
+- Impact assessment
+- Validation status
+
+---
+
+## Open Questions for Claude
+
+1. [ ] Question needing analysis
+2. [ ] Question needing analysis
+
+---
+
+## Data Quality Notes
+
+- Last export: [DATE]
+- Trade count verified: [Y/N]
+- Canonical outcomes populated: [Y/N]
+
+---
+
+## Next Review: [DATE]
+```
+
+------------------------------------------------------------------------------
+FILE 5: prompts/edge_audit.md (Weekly Edge Analysis Prompt)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\prompts\edge_audit.md
+
+```markdown
+# EPOCH Weekly Edge Audit Prompt
+
+## Context
+
+You are analyzing the EPOCH 2.0 trading system's performance for the past week.
+Use the canonical win condition: M5 ATR(14) × 1.1, close-based stop.
+All outcomes reference `trades_m5_r_win.is_winner`.
+
+## Data Provided
+
+1. **trades_YYYYMMDD.json** - Daily trade data with:
+   - Entry/exit details
+   - Canonical outcomes (is_winner, pnl_r)
+   - Entry indicators (health_score, structure, volume metrics)
+
+2. **edge_analysis_YYYYMMDD.md** - Edge summary with:
+   - Validated edges and effect sizes
+   - Baseline win rate
+   - Statistical thresholds
+
+3. **system_metrics_YYYYMMDD.json** - Performance metrics:
+   - 30-day and 7-day performance
+   - Model breakdown
+   - Direction breakdown
+
+## Analysis Request
+
+### 1. Performance Review
+- Compare this week to 30-day baseline
+- Identify any significant deviations
+- Note model-specific performance changes
+
+### 2. Edge Validation
+- Are validated edges still holding? (H1 NEUTRAL, Absorption skip, Vol Delta paradox)
+- Any edges showing degradation?
+- New potential edges emerging?
+
+### 3. Indicator Patterns
+- Which indicators predicted winners vs losers this week?
+- Any unusual indicator combinations?
+- Health score distribution for winners vs losers?
+
+### 4. Hypothesis Generation
+Based on this week's data, propose 1-2 testable hypotheses:
+- What patterns show promise?
+- What sample size needed to validate?
+- What would prove/disprove the hypothesis?
+
+### 5. Action Items
+- What should be investigated further?
+- Any parameters to consider adjusting?
+- Risk management observations?
+
+## Output Format
+
+Please structure your response as:
+
+1. **Executive Summary** (2-3 sentences)
+2. **Performance Analysis** (bullet points)
+3. **Edge Status** (table format)
+4. **New Hypotheses** (structured proposals)
+5. **Recommended Actions** (prioritized list)
+
+---
+
+*Paste data below this line*
+```
+
+------------------------------------------------------------------------------
+FILE 6: sql/v_claude_trade_export.sql (Main Export View)
+------------------------------------------------------------------------------
+
+Create file: C:\XIIITradingSystems\Epoch\10_machine_learning\sql\v_claude_trade_export.sql
+
+```sql
+-- =============================================================================
+-- EPOCH 10_machine_learning - Claude Trade Export View
+-- =============================================================================
+-- Purpose: Single optimized view for Claude analysis exports
+-- Usage:   SELECT * FROM v_claude_trade_export WHERE date = '2026-01-31'
+-- =============================================================================
+
+CREATE OR REPLACE VIEW v_claude_trade_export AS
+SELECT 
+    -- Trade Identity
+    t.trade_id,
+    t.date,
+    t.ticker,
+    t.model,
+    t.direction,
+    
+    -- Zone Context
+    t.zone_type,
+    t.zone_high,
+    t.zone_low,
+    (t.zone_high + t.zone_low) / 2 as zone_mid,
+    
+    -- Entry Details
+    t.entry_price,
+    t.entry_time,
+    
+    -- Exit Details
+    t.exit_price,
+    t.exit_time,
+    t.exit_reason,
+    
+    -- Canonical Outcome (SINGLE SOURCE OF TRUTH)
+    COALESCE(m.is_winner, t.pnl_r > 0) as is_winner,
+    COALESCE(m.outcome, CASE WHEN t.pnl_r > 0 THEN 'WIN' ELSE 'LOSS' END) as outcome,
+    COALESCE(m.pnl_r, t.pnl_r) as pnl_r,
+    m.reached_2r,
+    m.reached_3r,
+    m.stop_price as canonical_stop,
+    m.stop_distance,
+    m.outcome_method,
+    
+    -- R-Levels (from canonical)
+    m.r1_price,
+    m.r2_price,
+    m.r3_price,
+    
+    -- Entry Indicators
+    ei.health_score,
+    ei.health_label,
+    ei.h4_structure,
+    ei.h1_structure,
+    ei.m15_structure,
+    ei.m5_structure,
+    ei.vol_roc,
+    ei.vol_delta,
+    ei.cvd_slope,
+    ei.sma9,
+    ei.sma21,
+    ei.sma_spread,
+    ei.sma_momentum_label,
+    ei.vwap,
+    
+    -- Calculated Fields
+    CASE 
+        WHEN t.model IN ('EPCH1', 'EPCH3') THEN 'continuation'
+        ELSE 'rejection'
+    END as trade_type,
+    
+    CASE 
+        WHEN t.model IN ('EPCH1', 'EPCH2') THEN 'primary'
+        ELSE 'secondary'
+    END as zone_classification,
+    
+    -- MFE/MAE (from potential table)
+    mfe.mfe_r_potential,
+    mfe.mae_r_potential,
+    mfe.mfe_potential_time,
+    mfe.mae_potential_time
+
+FROM trades t
+LEFT JOIN trades_m5_r_win m ON t.trade_id = m.trade_id
+LEFT JOIN entry_indicators ei ON t.trade_id = ei.trade_id
+LEFT JOIN mfe_mae_potential mfe ON t.trade_id = mfe.trade_id;
+
+-- =============================================================================
+-- Usage Examples:
+-- =============================================================================
+-- 
+-- Get all trades for a date:
+-- SELECT * FROM v_claude_trade_export WHERE date = '2026-01-31';
+--
+-- Get winners only:
+-- SELECT * FROM v_claude_trade_export WHERE is_winner = true;
+--
+-- Get by model:
+-- SELECT * FROM v_claude_trade_export WHERE model = 'EPCH1';
+--
+-- Get with H1 NEUTRAL (strongest edge):
+-- SELECT * FROM v_claude_trade_export WHERE h1_structure = 'NEUTRAL';
+-- =============================================================================
+```
+
+================================================================================
+PHASE 3: NOTION PAGE CREATION
+================================================================================
+
+After creating the file structure, create a Notion page in the "Epoch Trading 
+System" database with the following properties:
+
+**Page Title**: 10_machine_learning - Claude Integration Hub
+
+**Properties**:
+| Property | Value |
+|----------|-------|
+| Module ID | 10_machine_learning |
+| Status | In Progress |
+| Doc Type | Module Overview |
+| UI Framework | CLI (future: PyQt6) |
+| Version | 1.0.0 |
+| Entry Points | scripts/export_for_claude.py, scripts/run_ml_workflow.py |
+| Tables Owned | None (read-only module) |
+| Tables Consumed | trades, trades_m5_r_win, entry_indicators, stop_analysis, mfe_mae_potential, m1_indicator_bars, m5_indicator_bars, optimal_trade, indicator_refinement |
+| Upstream Dependencies | 01_application, 02_dow_ai, 03_backtest, 04_indicators, 05_system_analysis, 06_training |
+| Downstream Consumers | None (terminal analysis module) |
+
+**Page Content**:
+
+```markdown
+# 10_machine_learning - Claude Integration Hub
+
+## Purpose
+
+Central hub for Claude-assisted continuous system improvement. Houses export 
+pipelines, system state documentation, prompt templates, and ML workflow 
+automation.
+
+## Module Structure
+
+```
+10_machine_learning/
+├── CLAUDE.md              # Project context for Claude sessions
+├── config.py              # Configuration and thresholds
+├── exports/               # Claude-readable data exports
+│   ├── daily/             # Daily trade exports
+│   ├── weekly/            # Weekly aggregations
+│   └── reference/         # Static reference docs
+├── scripts/               # Export automation
+├── state/                 # System state tracking
+├── prompts/               # Prompt template library
+├── analysis/              # Claude analysis archive
+├── sql/                   # Database views
+└── docs/                  # Additional documentation
+```
+
+## Key Files
+
+### CLAUDE.md
+Project context loaded at the start of every Claude session. Contains:
+- Canonical win condition (M5 ATR 1.1x)
+- Validated edges with effect sizes
+- Indicator thresholds
+- Database quick reference
+
+### scripts/export_for_claude.py
+Main export script that generates:
+- `trades_YYYYMMDD.json` - Daily trade data
+- `edge_analysis_YYYYMMDD.md` - Edge testing results
+- `system_metrics_YYYYMMDD.json` - Performance metrics
+
+### state/system_state.md
+Living document tracking:
+- Current performance metrics
+- Validated edges
+- Active hypotheses
+- Recent changes
+- Open questions for Claude
+
+## Workflow
+
+### Daily (Post-Session)
+1. Run `python scripts/export_for_claude.py`
+2. Review generated exports
+3. Archive any Claude analysis sessions
+
+### Weekly (Edge Audit)
+1. Run `python scripts/weekly_aggregation.py`
+2. Load `prompts/edge_audit.md` template
+3. Paste data into Claude session
+4. Update `state/system_state.md` with findings
+5. Archive analysis in `analysis/edge_audits/`
+
+## Database Access
+
+This module is **read-only** - it consumes data from all other modules but 
+does not write to any tables.
+
+### Primary Sources
+- `trades` + `trades_m5_r_win`: Trade outcomes (canonical)
+- `entry_indicators`: Indicator snapshots at entry
+- `stop_analysis`: 6 stop types with simulated outcomes
+- `mfe_mae_potential`: Price excursion data
+
+### Views Created
+- `v_claude_trade_export`: Optimized single-query export
+
+## Configuration
+
+See `config.py` for all thresholds:
+- Canonical win condition: M5 ATR(14) × 1.1, close-based
+- Edge criteria: p < 0.05, effect > 3.0pp, n >= 30
+- All indicator thresholds (candle range, vol ROC, CVD, SMA, health)
+
+## Validated Edges
+
+| Edge | Effect | Confidence |
+|------|--------|------------|
+| H1 Structure NEUTRAL | +36pp | HIGH |
+| Candle Range < 0.12% (SKIP) | -17pp | HIGH |
+| Vol Delta MISALIGNED | +5-21pp | MEDIUM |
+```
+
+================================================================================
+PHASE 4: VERIFICATION CHECKLIST
+================================================================================
+
+After completing setup, verify:
+
+[ ] Directory structure created at C:\XIIITradingSystems\Epoch\10_machine_learning\
+[ ] CLAUDE.md contains correct canonical win condition
+[ ] config.py imports successfully (test: python -c "from config import *")
+[ ] export_for_claude.py connects to Supabase (test: python scripts/export_for_claude.py --help)
+[ ] SQL view can be created in Supabase
+[ ] Notion page created with correct properties
+[ ] All .gitkeep files present in empty directories
+
+================================================================================
+PHASE 5: INITIAL DATA POPULATION
+================================================================================
+
+After setup, run initial population:
+
+1. Create SQL view:
+   - Execute sql/v_claude_trade_export.sql in Supabase SQL editor
+
+2. Run first export:
+   ```bash
+   cd C:\XIIITradingSystems\Epoch\10_machine_learning
+   python scripts/export_for_claude.py
+   ```
+
+3. Update system_state.md with actual metrics from export
+
+4. Test a Claude session:
+   - Load CLAUDE.md as project context
+   - Paste today's trade export
+   - Verify Claude understands the data structure
+
+================================================================================
+END OF INSTRUCTIONS
+================================================================================
+
+Document Version: 1.0
+Created: 2026-01-31
+For: EPOCH Trading System v2.0
+Module: 10_machine_learning

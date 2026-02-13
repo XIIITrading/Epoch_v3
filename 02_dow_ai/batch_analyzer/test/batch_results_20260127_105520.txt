@@ -1,0 +1,423 @@
+================================================================================
+DOW AI v3.0 DUAL-PASS BATCH ANALYZER
+================================================================================
+Analysis Started: 2026-01-27 10:55:20
+Prompt Version: v3.0.1
+
+PASS 1 (Trader's Eye):
+  - Claude sees: Ticker, Direction, 15 M1 bars with ALL indicators
+  - Claude does NOT see: Backtested edges, zone performance
+
+PASS 2 (System Decision):
+  - Claude sees: Everything from Pass 1 + learned edges
+  - This is the authoritative system recommendation
+================================================================================
+
+FILTERS:
+  Limit: 20
+  Ticker: ALL
+  Direction: ALL
+  Model: ALL
+  Date Range: ANY to ANY
+  Reprocess: False
+
+Trades available: 3832
+
+Loading up to 20 trades...
+Loaded 20 trades with M1 bar data
+
+Loading AI context...
+  Loaded: indicator_edges, zone_performance, model_stats
+
+Initializing analyzer...
+
+================================================================================
+TRADE RESULTS
+================================================================================
+
+[1/20] AAPL_012626_EPCH1_1453
+  AAPL LONG | 2026-01-26 14:53:30
+  Entry: $256.49 | Model: EPCH1 | Zone: PRIMARY
+
+  Pass 1: TRADE     (HIGH) [-]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: All structure checks are strongly bullish across timeframes (H1/M15/M5/M1 all BULL), with Long scores improving from 0-1 to 2-3 in recent bars. The final bar shows explosive buying pressure with +212k delta and high volume (107k), suggesting strong institutional accumulation at this level. Range percentages are adequate (0.04-0.07%) and positive spread (+0.14) confirms upward momentum alignment.
+  Pass 2 Reasoning: The strongest edge (+36pp) is present with H1 structure fully aligned for LONG. While we're in an absorption zone with low range% (0.056%), the aligned SMA spread and strong positive volume delta in the final bar (+212,765) suggest building momentum. The H1 alignment alone provides substantial edge over our baseline win rate.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BULL, M5=BULL, M1=BULL
+    L_Score=2, S_Score=3
+    Range%=0.074%, SMA_Spread=0.14
+--------------------------------------------------------------------------------
+
+[2/20] PLTR_012626_EPCH2_1446
+  PLTR LONG | 2026-01-26 14:46:30
+  Entry: $167.91 | Model: EPCH2 | Zone: PRIMARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration with consistent negative delta from bars -7 through -1 (-60K to -75K), indicating strong selling pressure exactly where we want to enter long. The recent pullback from 168.44 to 167.88 demonstrates sellers are in control, and entering long at 167.91 would be fighting this momentum. While structure remains bullish across timeframes, the immediate M1 action shows absorption and selling pressure that directly opposes our long entry.
+  Pass 2 Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is significant enough to overcome weaker supporting indicators. While the range is below our preferred 0.12% threshold and long scores are low, the SMA spread alignment adds additional support. The H1 bull alignment for a LONG trade is the most reliable predictor in our backtested data, making this a viable trade despite mixed secondary signals.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BULL, M5=BULL, M1=BULL
+    L_Score=0, S_Score=0
+    Range%=0.048%, SMA_Spread=-0.01
+--------------------------------------------------------------------------------
+
+[3/20] AVGO_012626_EPCH4_1437
+  AVGO LONG | 2026-01-26 14:37:00
+  Entry: $327.26 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure is BEAR which directly opposes this LONG entry, and this has been consistently bearish throughout the entire 15-bar period. The Long scores are extremely weak, showing mostly 0s with only occasional 1s, indicating minimal bullish conviction. Additionally, the recent bars (-3 to -1) show concerning absorption patterns with low range percentages (0.11%, 0.13%, 0.05%) and minimal positive delta, suggesting buyers are not stepping in aggressively at this level despite the system identifying it as a high-volume node.
+  Pass 2 Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our most powerful +36pp edge working against us), combined with consistently low long scores and average range below the 0.12% threshold indicating we're in an absorption zone. With SMA spread also opposed and no supportive momentum, this contradicts our best-performing indicators.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BULL, M1=BULL
+    L_Score=0, S_Score=1
+    Range%=0.050%, SMA_Spread=-0.22
+--------------------------------------------------------------------------------
+
+[4/20] AVGO_012626_EPCH4_1435
+  AVGO LONG | 2026-01-26 14:35:00
+  Entry: $327.21 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure is BEAR which directly opposes this LONG entry, and this bearish bias has been consistent across all 15 bars leading to entry. The Long scores are extremely weak (mostly 0-1, never reaching 4) while recent bars show negative delta (-25,199 and -25,398 in the last two bars), indicating selling pressure right before the entry point. The combination of opposing higher timeframe structure, weak directional scores, and immediate selling pressure presents clear warning signs against this setup.
+  Pass 2 Reasoning: This setup has multiple clear red flags that override the pre-qualification. H1 structure is OPPOSED (our strongest -36pp edge working against us), the long score is extremely weak at 0.4, and SMA spread is also opposed to our long direction. While range% meets the threshold, the alignment of negative factors creates a clearly unfavorable setup that falls well below our edge criteria.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BULL, M1=BULL
+    L_Score=0, S_Score=0
+    Range%=0.110%, SMA_Spread=-0.18
+--------------------------------------------------------------------------------
+
+[5/20] AVGO_012626_EPCH4_1433
+  AVGO LONG | 2026-01-26 14:33:30
+  Entry: $327.29 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (MEDIUM) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure is BEAR which directly opposes this LONG entry, and this bearish bias has been consistent throughout the entire 15-bar sequence. Additionally, the Long scores are extremely weak (mostly 0-1, never reaching 4) while Short scores show more strength in recent bars, indicating the price action is not supportive of long positions. The final bar shows negative delta (-25,199) right before entry, suggesting selling pressure rather than the buying support needed for a successful long trade.
+  Pass 2 Reasoning: This setup shows multiple unfavorable factors converging - H1 structure is opposed to our LONG direction (removing our strongest +36pp edge), the long score is very weak at 1.0, and SMA spread is also opposed. While we have adequate range for movement, the alignment of negative factors against our strongest backtested edges suggests this trade lacks the structural support for positive expectancy despite the system pre-qualification.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BULL, M1=BULL
+    L_Score=0, S_Score=0
+    Range%=0.134%, SMA_Spread=-0.16
+--------------------------------------------------------------------------------
+
+[6/20] AVGO_012626_EPCH4_1432_1
+  AVGO LONG | 2026-01-26 14:32:30
+  Entry: $327.22 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure is BEAR which directly opposes this LONG entry, and the Long scores are consistently weak (0-3) throughout the entire 15-bar sequence, never reaching the favorable threshold of 4+. Additionally, the final bar (-1) shows a significant pullback with 0.19% range and the price closing at 326.89, well below the entry at 327.22, suggesting immediate adverse movement against the position.
+  Pass 2 Reasoning: This setup shows multiple clear unfavorable factors working against us. H1 structure is OPPOSED to our LONG direction (eliminating our strongest +36pp edge), the long score is extremely low at 1.2, and SMA spread is also opposed. While we have adequate range, the combination of our most powerful edge being negative plus weak momentum signals creates a clearly unfavorable risk profile that falls below our trading threshold.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BULL, M1=BULL
+    L_Score=2, S_Score=3
+    Range%=0.190%, SMA_Spread=-0.14
+--------------------------------------------------------------------------------
+
+[7/20] AVGO_012626_EPCH4_1432
+  AVGO LONG | 2026-01-26 14:32:15
+  Entry: $327.23 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 timeframe shows persistent BEAR structure throughout all 15 bars, which directly opposes this LONG entry. Additionally, the Long scores are consistently weak (0-3 range) with only brief spikes to 4, indicating poor directional alignment. The final bar (-1) shows a significant drop to 326.89 with only modest buying delta (+14,209), suggesting weak buying interest at these levels despite the system's high-volume-node identification.
+  Pass 2 Reasoning: This setup shows clear opposition from our strongest edge - H1 structure is BEAR against our LONG direction, costing us the critical +36pp advantage. Additionally, the long score is very low at 1.4, SMA spread is opposed, and while range is adequate, the combination of multiple unfavorable factors creates a clearly disadvantageous setup that falls below our quality threshold.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BULL, M1=BULL
+    L_Score=2, S_Score=3
+    Range%=0.190%, SMA_Spread=-0.14
+--------------------------------------------------------------------------------
+
+[8/20] TSLA_012626_EPCH2_1411
+  TSLA LONG | 2026-01-26 14:11:15
+  Entry: $438.29 | Model: EPCH2 | Zone: PRIMARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The price action shows clear selling absorption from bars -5 to -2, with massive negative delta (-119K, -145K, -116K, -122K) and declining prices despite high volume, indicating strong institutional selling. While bar -1 shows a bounce with positive delta (+10K), this is relatively weak compared to the preceding selling pressure. The H1 bearish structure combined with consistently low long scores (0-2) and the absorption pattern suggests this bounce is likely to fail against the dominant selling flow.
+  Pass 2 Reasoning: Multiple critical red flags align against this trade. H1 structure is OPPOSED (our strongest -36pp edge), we're in an absorption zone with low range (<0.12%), and SMA spread is opposed. The combination of our strongest negative edge plus absorption zone conditions creates a clearly unfavorable setup that falls well below our risk threshold.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BEAR, M1=BULL
+    L_Score=1, S_Score=2
+    Range%=0.125%, SMA_Spread=-0.24
+--------------------------------------------------------------------------------
+
+[9/20] TSLA_012626_EPCH2_1407
+  TSLA LONG | 2026-01-26 14:07:00
+  Entry: $438.07 | Model: EPCH2 | Zone: PRIMARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration into the entry with consistent negative delta on the final 4 bars (-31,286, -18,182, -35,534, -49,681), indicating accelerating selling pressure. Additionally, H1 structure is BEAR which directly opposes this LONG entry, and the Long scores remain consistently low (0-2 range) throughout the entire sequence. The combination of bearish higher timeframe structure, negative momentum, and absorption-level volatility (most bars <0.10% range) creates multiple red flags against this setup.
+  Pass 2 Reasoning: This setup has multiple critical red flags that override the positive expectancy. H1 structure is OPPOSED to our LONG direction (our strongest -36pp edge working against us), we're in an absorption zone with average range of only 0.054% (well below the 0.12% threshold), and the consistently low long scores (0-1 range) indicate weak bullish momentum. While SMA spread is aligned, it cannot overcome the combination of opposed H1 structure and lack of meaningful price movement.
+
+  Last Bar Indicators:
+    H1=BEAR, M15=BULL, M5=BEAR, M1=BULL
+    L_Score=1, S_Score=1
+    Range%=0.052%, SMA_Spread=-0.03
+--------------------------------------------------------------------------------
+
+[10/20] MU_012626_EPCH4_1405
+  MU LONG | 2026-01-26 14:05:00
+  Entry: $391.48 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: TRADE     (MEDIUM) [-]
+  Pass 2: TRADE     (LOW) [-]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure remains BULL which supports the LONG direction, and we see improving momentum with positive delta emerging in the last 5 bars (+10,424 to +22,313), indicating buying pressure is building. While M15/M5 are still BEAR, the M1 has flipped to BULL and the recent bars show decent range (0.10-0.11%) suggesting the market is moving rather than absorbing. The setup shows classic signs of a potential reversal from the 391.15-391.22 zone with increasing buyer participation.
+  Pass 2 Reasoning: The strongest edge (H1 Structure +36pp) is fully aligned with our LONG direction, providing significant positive expectancy despite other weak indicators. While the low range suggests we're in an absorption zone and SMA spread is opposed, the H1 alignment alone moves our win rate from ~47% baseline to ~83%, far exceeding our breakeven threshold of 33%.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BULL
+    L_Score=0, S_Score=1
+    Range%=0.072%, SMA_Spread=-0.20
+--------------------------------------------------------------------------------
+
+[11/20] MU_012626_EPCH4_1404_1
+  MU LONG | 2026-01-26 14:04:45
+  Entry: $391.41 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: TRADE     (MEDIUM) [-]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The H1 structure is BULL which supports the LONG direction, and we see a clear shift in momentum from bars -5 through -1 with consistent positive delta (+10,424, +10,226, +12,779, +9,779, +22,313) indicating sustained buying pressure into the entry. While the M15/M5 timeframes show BEAR structure, the recent bars show volatility above 0.10% and the entry bar (-1) has strong positive delta of +22,313, suggesting buyers are stepping in at this level.
+  Pass 2 Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which more than compensates for the low range and opposed SMA spread. While the momentum indicators are weak (low long score, narrow ranges), the primary structural alignment combined with recent positive volume delta shift suggests this setup maintains positive expectancy above our baseline.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BULL
+    L_Score=0, S_Score=1
+    Range%=0.072%, SMA_Spread=-0.20
+--------------------------------------------------------------------------------
+
+[12/20] MU_012626_EPCH4_1404
+  MU LONG | 2026-01-26 14:04:15
+  Entry: $391.35 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: TRADE     (MEDIUM) [-]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: H1 structure is BULL which aligns with the LONG direction, and recent bars show improving delta momentum with positive buying pressure (+10,424, +10,226, +12,779, +9,779, +22,313 in the last 5 bars). The M1 structure has shifted from BEAR to BULL in recent bars, and while M15/M5 remain BEAR, the higher timeframe H1 BULL structure provides the primary directional bias needed for this LONG entry.
+  Pass 2 Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which significantly outweighs the negative factors. While the low range and opposed SMA spread are concerning, the volume shows positive delta momentum in recent bars (+10K to +22K), and our 47% baseline already provides positive expectancy at 1.5R targets.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BULL
+    L_Score=0, S_Score=1
+    Range%=0.072%, SMA_Spread=-0.20
+--------------------------------------------------------------------------------
+
+[13/20] MU_012626_EPCH4_1403_1
+  MU LONG | 2026-01-26 14:03:15
+  Entry: $391.43 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: TRADE     (MEDIUM) [-]
+  Pass 2: NO_TRADE  (MEDIUM) [+]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: While the H1 structure is BULL (supportive for LONG) and recent bars show adequate volatility (0.10-0.11% range), the concerning factor is the predominantly negative delta throughout most bars, indicating selling pressure. However, the last 4 bars (-4 to -1) show positive delta suggesting buying interest is emerging, and the M1 structure has flipped from BEAR to BULL. The setup shows mixed signals but no clear evidence against the system's high-volume-node identification.
+  Pass 2 Reasoning: While H1 structure provides our strongest edge (+36pp), multiple other factors are clearly unfavorable. The average range of 0.086% falls well below the 0.12% threshold where we see +13.5pp improvement, indicating we're in an absorption zone. The SMA spread is opposed to our long direction and the consistently low long scores (0-1 range) suggest weak bullish momentum. With three out of four key indicators unfavorable, this setup lacks the supporting confluence needed despite the H1 alignment.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BULL
+    L_Score=0, S_Score=1
+    Range%=0.100%, SMA_Spread=-0.22
+--------------------------------------------------------------------------------
+
+[14/20] MU_012626_EPCH4_1403
+  MU LONG | 2026-01-26 14:03:00
+  Entry: $391.43 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: TRADE     (MEDIUM) [-]
+  Pass 2: NO_TRADE  (MEDIUM) [+]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: While H1 structure is BULL (supportive for LONG) and recent bars show positive delta suggesting buying interest (bars -3, -2, -1 all positive), the M1 momentum has been consistently BEAR throughout most of the sequence. However, there's a notable shift in the final bars with M1 turning BULL and the Long score improving from 0 to 1, plus bar -1 shows strong volume (55,067) with positive delta (+12,779), indicating potential momentum building for the long entry.
+  Pass 2 Reasoning: Despite H1 alignment providing our strongest edge, this setup shows multiple concerning factors. The average range of 0.089% falls into the absorption zone where we should skip trades, indicating potential lack of follow-through. The consistently low long scores (0-1) and opposed SMA spread suggest weak momentum structure, creating a conflict between our best edge (H1) and multiple supporting indicators being unfavorable.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BULL
+    L_Score=1, S_Score=2
+    Range%=0.102%, SMA_Spread=-0.24
+--------------------------------------------------------------------------------
+
+[15/20] MU_012626_EPCH4_1357
+  MU LONG | 2026-01-26 13:57:00
+  Entry: $391.39 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: This setup shows multiple clear warning signs against a long entry. The price action from bar -6 onwards displays consistent selling pressure with negative delta readings (-21,936 to -38,814), while simultaneously showing absorption characteristics with low volatility (Range% consistently below 0.10% from bars -10 to -1). Most critically, all short-term timeframes (M15, M5, M1) are bearish with long scores at 0 across the final 10 bars, indicating the market structure is working directly against this long position despite the bullish H1 timeframe.
+  Pass 2 Reasoning: The H1 structure alignment provides our strongest edge at +36pp, creating a solid foundation despite other mixed signals. While the low range% suggests we're in an absorption zone and long scores are weak, the aligned SMA spread adds supporting confluence. The H1 bull alignment alone gives us significant edge over our baseline, making this a statistically favorable setup even with subdued price action.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.084%, SMA_Spread=0.04
+--------------------------------------------------------------------------------
+
+[16/20] MU_012626_EPCH4_1354
+  MU LONG | 2026-01-26 13:54:00
+  Entry: $391.36 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (MEDIUM) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration in buying interest after the initial push. From bars -11 through -1, delta turns consistently negative (-17,273 to -35,375) with declining volume, indicating sustained selling pressure and lack of follow-through buyers. The Long scores are extremely weak (0-1) across the final 8 bars, and while H1 remains BULL, the immediate M1 structure shows no buying support at this level, suggesting this could be a failed breakout or dead-cat bounce scenario.
+  Pass 2 Reasoning: While H1 structure provides our strongest edge (+36pp), this setup has significant red flags that override that advantage. The consistently low long scores (0-1) over the last 5 bars indicate weak momentum structure, and the average range of 0.078% falls well below our 0.12% threshold where we should "SKIP if Absorption Zone." The combination of weak internal momentum signals and absorption-level price action suggests this breakout attempt lacks the energy to sustain a profitable 1.5R move.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.053%, SMA_Spread=0.26
+--------------------------------------------------------------------------------
+
+[17/20] MU_012626_EPCH4_1353_2
+  MU LONG | 2026-01-26 13:53:45
+  Entry: $391.37 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration with consistently negative delta from bars -10 through -1 (selling pressure), extremely low Long scores (0-1) across recent bars, and declining volume momentum despite H1 still being BULL. The most recent bars (-5 to -1) show persistent selling with negative deltas of -10,775 to -35,375, indicating strong absorption at this level rather than supportive buying interest for a long entry.
+  Pass 2 Reasoning: Despite H1 structure alignment providing our strongest edge (+36pp), this setup shows clear absorption zone characteristics with average range of only 0.08% (well below 0.12% threshold) and extremely weak momentum scores averaging 0.2 over last 5 bars. The backtested edges specifically recommend SKIPPING absorption zones, and the consistently low momentum scores indicate institutional absorption rather than retail breakout potential, making this a clearly unfavorable setup despite the positive H1 alignment.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.053%, SMA_Spread=0.26
+--------------------------------------------------------------------------------
+
+[18/20] MU_012626_EPCH4_1353_1
+  MU LONG | 2026-01-26 13:53:30
+  Entry: $391.38 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration with consistently negative delta from bars -10 through -1 (ranging from -17k to -48k), indicating persistent selling pressure. The Long scores are extremely weak at 0-1 across the final 8 bars, while all timeframes remain bearish. Additionally, the recent bars show absorption characteristics with low range% and declining volume, suggesting the market is not ready for a meaningful long move at this level.
+  Pass 2 Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned BULL for this LONG trade. While the long score is weak and we're in an absorption zone with low range%, the SMA spread is also aligned providing additional edge. The H1 alignment alone provides such a significant statistical advantage that it outweighs the weaker supporting indicators.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.053%, SMA_Spread=0.26
+--------------------------------------------------------------------------------
+
+[19/20] MU_012626_EPCH4_1353
+  MU LONG | 2026-01-26 13:53:00
+  Entry: $391.47 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (HIGH) [+]
+  Pass 2: NO_TRADE  (HIGH) [+]
+  Actual: LOSS | AGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration in the final bars leading to entry. Bars -2 and -1 both have negative delta (-21,936 and -29,627) with declining prices, indicating selling pressure right at the entry zone. Additionally, the Long scores are consistently 0-1 in the recent bars while all timeframes remain bearish, showing no structural support for this long entry despite the system qualification.
+  Pass 2 Reasoning: Despite having the strongest H1 structure alignment (+36pp edge), this setup falls into the absorption zone with range% well below the 0.12% threshold, which our backtesting specifically flags as a SKIP condition. The extremely low long scores (0-2 across all recent bars) combined with the lack of meaningful price movement suggests institutional absorption rather than directional momentum, negating the structural edge.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.105%, SMA_Spread=0.32
+--------------------------------------------------------------------------------
+
+[20/20] MU_012626_EPCH4_1352
+  MU LONG | 2026-01-26 13:52:30
+  Entry: $391.41 | Model: EPCH4 | Zone: SECONDARY
+
+  Pass 1: NO_TRADE  (MEDIUM) [+]
+  Pass 2: TRADE     (MEDIUM) [-]
+  Actual: LOSS | DISAGREE
+
+  Pass 1 Reasoning: The price action shows clear deterioration into the entry with consistent negative delta on the last 4 bars (-10,775, -21,936, -29,627), indicating selling pressure is building. Additionally, all timeframes except H1 are BEAR, and the Long scores are extremely weak (0-1) on recent bars, suggesting no buying interest. While H1 is BULL providing some structural support, the immediate M1 action shows absorption and selling pressure that contradicts the long thesis.
+  Pass 2 Reasoning: The H1 structure alignment provides our strongest statistical edge (+36pp), which is the primary decision factor. While the low range% and weak momentum scores are concerning, the H1 bull alignment combined with favorable SMA spread direction still gives this trade positive expectancy above our baseline. The SECONDARY zone performance (59.82% mid-range win rate) also supports taking this trade despite the mixed signals.
+
+  Last Bar Indicators:
+    H1=BULL, M15=BEAR, M5=BEAR, M1=BEAR
+    L_Score=0, S_Score=1
+    Range%=0.105%, SMA_Spread=0.32
+--------------------------------------------------------------------------------
+
+================================================================================
+SUMMARY
+================================================================================
+
+Trades Analyzed: 20
+Actual Win Rate: 0/20 (0.0%)
+
+PASS COMPARISON:
+--------------------------------------------------
+Metric                             Pass 1     Pass 2
+--------------------------------------------------
+TRADE Calls                             6          8
+TRADE Rate                          30.0%      40.0%
+Correct Predictions                    14         12
+Accuracy                            70.0%      60.0%
+--------------------------------------------------
+
+Agreement Rate: 14/20 (70.0%)
+
+DISAGREEMENTS (6 trades):
+  Pass 1 correct: 4
+  Pass 2 correct: 2
+  Both wrong: 0
+
+BREAKDOWN BY ACTUAL OUTCOME:
+  LOSSES (20): P1 said NO_TRADE on 14, P2 said NO_TRADE on 12
+
+API USAGE:
+  Input tokens:  74,286
+  Output tokens: 6,427
+  Total cost:    $0.3193
+
+CUMULATIVE DATABASE STATS:
+  Total analyzed: 40
+  Pass 1 accuracy: 47.5%
+  Pass 2 accuracy: 47.5%
+  Agreement rate: 70.0%
+  Disagreement winners: P1=6, P2=6, Both Wrong=0
+
+================================================================================
+Analysis Started:  2026-01-27 10:55:20
+Analysis Finished: 2026-01-27 10:59:26
+Duration: 0:04:05.704725
+================================================================================
+END OF REPORT
+================================================================================

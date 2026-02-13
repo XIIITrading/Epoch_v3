@@ -1,0 +1,226 @@
+================================================================================
+  RAMP-UP TABLE MIGRATION GUIDE: LONG/SHORT Scores → M5/M15/H1 Fractal Structure
+  02_dow_ai Module — February 2026
+================================================================================
+
+OVERVIEW
+--------
+The ramp-up indicator table across 06_training and 11_trade_reel has been updated
+to replace LONG/SHORT composite scores (0-7) with multi-timeframe fractal
+structure direction (M5, M15, H1). This document catalogs every location in
+02_dow_ai that references the old scores so we can bring the live market tool
+into alignment.
+
+NO DATABASE CHANGES NEEDED — m5_structure, m15_structure, and h1_structure
+columns already exist in m1_indicator_bars and are fully populated.
+
+
+================================================================================
+WHAT CHANGED IN OTHER MODULES (for reference)
+================================================================================
+
+1. SQL queries: Removed "long_score, short_score" → Added "m5_structure, m15_structure"
+   (h1_structure was already fetched)
+
+2. Indicator labels: ['Candle %', 'Vol Delta', 'Vol ROC', 'SMA', 'H1 Struct', 'LONG', 'SHORT']
+                   → ['Candle %', 'Vol Delta', 'Vol ROC', 'SMA', 'M5 Struct', 'M15 Struct', 'H1 Struct']
+
+3. Display format: Scores (integer 0-7) replaced with structure symbols:
+   BULL → ▲ (green #089981 / #26a69a)
+   BEAR → ▼ (red  #F23645 / #ef5350)
+   NEUTRAL → ─ (gray)
+
+4. AI prompt summary: Average score/trend analysis replaced with:
+   - Per-timeframe structure counts (X BULL / Y BEAR / Z NEUTRAL)
+   - Structure alignment check at entry (ALIGNED BULL/BEAR vs M5=X / M15=Y / H1=Z)
+
+
+================================================================================
+FILES REQUIRING CHANGES IN 02_dow_ai
+================================================================================
+
+Each file below has a PRIORITY (P1=critical path, P2=batch/test, P3=dead code/docs)
+and CHANGE TYPE describing what needs to happen.
+
+
+--- P1: CORE DATA STRUCTURES & FORMATTING ---
+
+FILE: ai_context/prompt_v3.py
+  LINE 60-62: M1BarFull dataclass
+    CURRENT:
+      long_score: int             # 0-10 favorability for LONG
+      short_score: int            # 0-10 favorability for SHORT
+    CHANGE: Remove both fields. The structure fields (h1_structure, m15_structure,
+      m5_structure, m1_structure) on lines 55-58 already exist and carry the data.
+
+  LINE 270-278: format_m1_bars_table() header
+    CURRENT:
+      "... H1 | M15 |  M5 |  M1 |  L |  S"
+    CHANGE: Remove " L |  S" columns from header. Structure columns are already
+      shown. Just delete the score columns.
+
+  LINE 309-317: format_m1_bars_table() row formatting
+    CURRENT:
+      long_score = bar.long_score if bar.long_score is not None else 0
+      short_score = bar.short_score if bar.short_score is not None else 0
+      ...
+      f"{long_score:>2} | {short_score:>2}"
+    CHANGE: Remove these 3 lines. The structure values (H1/M15/M5/M1) are
+      already formatted on line 316.
+
+  LINE 341: format_m1_bars_detailed() row
+    CURRENT:
+      f"Scores: L={bar.long_score} S={bar.short_score}"
+    CHANGE: Remove this segment from the f-string. Structure is already shown
+      on the same line: "H1:{bar.h1_structure} M15:..."
+
+  LINE 348-361: get_direction_guidance()
+    CURRENT:
+      "- Higher Long Score = more favorable conditions"
+      "- Higher Short Score = more favorable conditions"
+    CHANGE: Replace with structure alignment guidance, e.g.:
+      LONG: "- M5/M15/H1 all BULL = full fractal alignment (STRONGLY SUPPORTIVE)"
+            "- Mixed structure = partial alignment (NEUTRAL)"
+            "- M5/M15/H1 all BEAR = counter-trend (OPPOSING)"
+      SHORT: Same logic reversed.
+
+
+--- P1: SQL DATA LOADING ---
+
+FILE: batch_analyzer/data/trade_loader_v3.py
+  LINE 188-190: SQL SELECT
+    CURRENT:
+      h1_structure, m15_structure, m5_structure, m1_structure,
+      candle_range_pct,
+      long_score, short_score
+    CHANGE: Remove "long_score, short_score" from SELECT:
+      h1_structure, m15_structure, m5_structure, m1_structure,
+      candle_range_pct
+
+  LINE 231-232: M1BarFull construction
+    CURRENT:
+      long_score=int(row['long_score']) if row['long_score'] else 0,
+      short_score=int(row['short_score']) if row['short_score'] else 0
+    CHANGE: Remove both lines (after removing fields from M1BarFull dataclass).
+
+FILE: batch_analyzer/data/trade_loader.py (LEGACY)
+  LINE 161-162: SQL SELECT — same change, remove long_score, short_score
+  LINE 197-198: M1BarFull construction — remove both lines
+
+
+--- P1: LIVE ENTRY QUALIFIER ---
+
+FILE: entry_qualifier/ai/compact_prompt.py
+  LINE 29: Import
+    CURRENT:
+      from calculations.scores import calculate_long_score, calculate_short_score
+    CHANGE: Remove this import entirely. Scores are no longer calculated.
+    NOTE: The imported functions are NOT used in the v2.0 code path (line 90-105).
+      They were kept for potential legacy use. Safe to remove.
+
+FILE: entry_qualifier/ai/dual_pass_worker.py
+  LINE 318-319: M1BarFull construction
+    CURRENT:
+      long_score=bar.get('long_score', 0),
+      short_score=bar.get('short_score', 0)
+    CHANGE: Remove both lines (after removing fields from M1BarFull dataclass).
+
+
+--- P1: SCORE CALCULATION MODULE ---
+
+FILE: entry_qualifier/calculations/scores.py
+  ENTIRE FILE: Contains calculate_long_score(), calculate_short_score(),
+    calculate_all_scores(). All 164 lines.
+  CHANGE: This file becomes dead code. Options:
+    A) Delete the file
+    B) Rename to _archive_scores.py for reference
+    C) Leave and add deprecation comment at top
+
+FILE: entry_qualifier/calculations/__init__.py
+  LINE 31-32:
+    CURRENT:
+      calculate_long_score,
+      calculate_short_score,
+    CHANGE: Remove these exports.
+
+
+--- P2: BATCH ANALYZER & MODELS ---
+
+FILE: batch_analyzer/models/trade_context.py
+  LINE 25-26:
+    CURRENT:
+      long_score: Optional[int] = None
+      short_score: Optional[int] = None
+    CHANGE: Remove both fields.
+
+FILE: batch_analyzer/scripts/batch_analyze_v3.py
+  LINE 348: Logging
+    CURRENT:
+      output.log(f"    L_Score={last_bar.long_score}, S_Score={last_bar.short_score}")
+    CHANGE: Replace with structure alignment log:
+      output.log(f"    Structure: M5={last_bar.m5_structure} M15={last_bar.m15_structure} H1={last_bar.h1_structure}")
+
+
+--- P2: TEST UTILITIES ---
+
+FILE: batch_analyzer/test_fetch_trades.py
+  LINE 87-88: SQL SELECT — remove long_score, short_score
+  LINE 160-161: Variable extraction — remove long_s/short_s references
+
+FILE: batch_analyzer/test/run_test_batch.py
+  LINE 198: Logging
+    CURRENT:
+      log(f"    L_Score={last_bar.long_score}, S_Score={last_bar.short_score}")
+    CHANGE: Replace with structure logging (same as batch_analyze_v3.py above).
+
+
+--- P3: DOCUMENTATION (non-blocking) ---
+
+FILE: docs/entry_qualifier_specifications.txt
+  LINE 293:
+    CURRENT:
+      e. Calculate: long_score, short_score (composite)
+    CHANGE: Update to reflect new structure approach.
+
+
+================================================================================
+SUMMARY: CHANGE COUNT BY FILE
+================================================================================
+
+  P1 — Critical Path (6 files):
+    ai_context/prompt_v3.py .................. 5 changes (dataclass, 2 formatters, guidance)
+    batch_analyzer/data/trade_loader_v3.py ... 2 changes (SQL, constructor)
+    batch_analyzer/data/trade_loader.py ...... 2 changes (SQL, constructor)
+    entry_qualifier/ai/compact_prompt.py ..... 1 change  (remove import)
+    entry_qualifier/ai/dual_pass_worker.py ... 1 change  (constructor)
+    entry_qualifier/calculations/__init__.py . 1 change  (remove exports)
+
+  P2 — Batch/Test (4 files):
+    batch_analyzer/models/trade_context.py ... 1 change  (remove fields)
+    batch_analyzer/scripts/batch_analyze_v3.py 1 change  (logging)
+    batch_analyzer/test_fetch_trades.py ...... 2 changes (SQL, variables)
+    batch_analyzer/test/run_test_batch.py .... 1 change  (logging)
+
+  P3 — Dead Code/Docs (2 files):
+    entry_qualifier/calculations/scores.py ... archive or delete
+    docs/entry_qualifier_specifications.txt .. update docs
+
+  TOTAL: 12 files, ~17 individual changes
+
+
+================================================================================
+MIGRATION ORDER (recommended)
+================================================================================
+
+  1. Update M1BarFull dataclass (prompt_v3.py) — remove long_score/short_score
+  2. Update all constructors that build M1BarFull (trade_loader_v3, trade_loader,
+     dual_pass_worker) — remove the two kwargs
+  3. Update SQL queries (trade_loader_v3, trade_loader, test_fetch_trades) —
+     remove long_score/short_score from SELECT
+  4. Update formatters (prompt_v3.py format_m1_bars_table, format_m1_bars_detailed)
+     — remove score columns
+  5. Update direction guidance (prompt_v3.py get_direction_guidance) —
+     replace score guidance with structure alignment guidance
+  6. Clean up imports (compact_prompt.py, calculations/__init__.py)
+  7. Update logging (batch_analyze_v3.py, run_test_batch.py)
+  8. Archive scores.py and update docs

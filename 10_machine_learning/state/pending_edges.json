@@ -1,0 +1,242 @@
+[
+  {
+    "name": "Volume Delta Paradox",
+    "reason": "DEGRADED: stored +13.0pp -> current -2.5pp (p=0.1926)",
+    "action": "REVIEW_FOR_REMOVAL",
+    "test_result": {
+      "current_effect_pp": -2.5,
+      "stored_effect_pp": 13.0,
+      "p_value": 0.19258329301164012,
+      "group_trades": 1022,
+      "period": "2026-01-25 to 2026-02-01"
+    },
+    "added": "2026-02-01T08:41:37.662240",
+    "updated": "2026-02-01T08:50:04.307855"
+  },
+  {
+    "name": "health_tier=STRONG (8-10) (positive edge)",
+    "hypothesis_id": "H001",
+    "reason": "VALIDATED: +18.7pp (p=0.0160, N=47)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "health_tier",
+      "condition": "STRONG (8-10)",
+      "effect_size_pp": 18.7,
+      "confidence": "MEDIUM",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 5.8011,
+      "p_value": 0.016017,
+      "effect_size_pp": 18.7,
+      "group_win_rate": 72.3,
+      "baseline_win_rate": 53.7,
+      "group_trades": 47,
+      "baseline_trades": 4800,
+      "confidence": "MEDIUM",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.322640"
+  },
+  {
+    "name": "health_tier=MODERATE (6-7) (positive edge)",
+    "hypothesis_id": "H002",
+    "reason": "VALIDATED: +9.5pp (p=0.0000, N=996)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "health_tier",
+      "condition": "MODERATE (6-7)",
+      "effect_size_pp": 9.5,
+      "confidence": "HIGH",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 29.6433,
+      "p_value": 0.0,
+      "effect_size_pp": 9.5,
+      "group_win_rate": 63.2,
+      "baseline_win_rate": 53.7,
+      "group_trades": 996,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.399588",
+    "updated": "2026-02-01T08:49:58.558110"
+  },
+  {
+    "name": "m15_structure=BEAR (negative edge)",
+    "hypothesis_id": "H003",
+    "reason": "VALIDATED: -8.6pp (p=0.0000, N=1553)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "m15_structure",
+      "condition": "BEAR",
+      "effect_size_pp": -8.6,
+      "confidence": "HIGH",
+      "action": "SKIP/AVOID"
+    },
+    "test_result": {
+      "chi2": 34.3442,
+      "p_value": 0.0,
+      "effect_size_pp": -8.6,
+      "group_win_rate": 45.1,
+      "baseline_win_rate": 53.7,
+      "group_trades": 1553,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.481526"
+  },
+  {
+    "name": "stop_distance_bucket=TIGHT (<0.12%) (positive edge)",
+    "hypothesis_id": "H004",
+    "reason": "VALIDATED: +7.1pp (p=0.0262, N=275)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "stop_distance_bucket",
+      "condition": "TIGHT (<0.12%)",
+      "effect_size_pp": 7.1,
+      "confidence": "HIGH",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 4.9404,
+      "p_value": 0.026236,
+      "effect_size_pp": 7.1,
+      "group_win_rate": 60.7,
+      "baseline_win_rate": 53.7,
+      "group_trades": 275,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.562537"
+  },
+  {
+    "name": "m15_structure=BULL (positive edge)",
+    "hypothesis_id": "H005",
+    "reason": "VALIDATED: +5.9pp (p=0.0000, N=1574)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "m15_structure",
+      "condition": "BULL",
+      "effect_size_pp": 5.9,
+      "confidence": "HIGH",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 16.5926,
+      "p_value": 4.6e-05,
+      "effect_size_pp": 5.9,
+      "group_win_rate": 59.6,
+      "baseline_win_rate": 53.7,
+      "group_trades": 1574,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.644677"
+  },
+  {
+    "name": "h1_structure=BEAR (positive edge)",
+    "hypothesis_id": "H006",
+    "reason": "VALIDATED: +5.4pp (p=0.0067, N=745)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "h1_structure",
+      "condition": "BEAR",
+      "effect_size_pp": 5.4,
+      "confidence": "HIGH",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 7.3472,
+      "p_value": 0.006717,
+      "effect_size_pp": 5.4,
+      "group_win_rate": 59.1,
+      "baseline_win_rate": 53.7,
+      "group_trades": 745,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.725438"
+  },
+  {
+    "name": "health_tier=WEAK (4-5) (negative edge)",
+    "hypothesis_id": "H007",
+    "reason": "VALIDATED: -3.8pp (p=0.0077, N=1677)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "health_tier",
+      "condition": "WEAK (4-5)",
+      "effect_size_pp": -3.8,
+      "confidence": "HIGH",
+      "action": "SKIP/AVOID"
+    },
+    "test_result": {
+      "chi2": 7.1066,
+      "p_value": 0.00768,
+      "effect_size_pp": -3.8,
+      "group_win_rate": 49.9,
+      "baseline_win_rate": 53.7,
+      "group_trades": 1677,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.807843"
+  },
+  {
+    "name": "sma_alignment=BULL (negative edge)",
+    "hypothesis_id": "H008",
+    "reason": "VALIDATED: -3.8pp (p=0.0029, N=2324)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "sma_alignment",
+      "condition": "BULL",
+      "effect_size_pp": -3.8,
+      "confidence": "HIGH",
+      "action": "SKIP/AVOID"
+    },
+    "test_result": {
+      "chi2": 8.894,
+      "p_value": 0.002861,
+      "effect_size_pp": -3.8,
+      "group_win_rate": 49.9,
+      "baseline_win_rate": 53.7,
+      "group_trades": 2324,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.890231"
+  },
+  {
+    "name": "sma_alignment=BEAR (positive edge)",
+    "hypothesis_id": "H009",
+    "reason": "VALIDATED: +3.6pp (p=0.0041, N=2476)",
+    "action": "APPROVE_FOR_ADDITION",
+    "edge_definition": {
+      "indicator": "sma_alignment",
+      "condition": "BEAR",
+      "effect_size_pp": 3.6,
+      "confidence": "HIGH",
+      "action": "TRADE when active"
+    },
+    "test_result": {
+      "chi2": 8.2297,
+      "p_value": 0.004121,
+      "effect_size_pp": 3.6,
+      "group_win_rate": 57.2,
+      "baseline_win_rate": 53.7,
+      "group_trades": 2476,
+      "baseline_trades": 4800,
+      "confidence": "HIGH",
+      "is_significant": true
+    },
+    "added": "2026-02-01T08:46:25.974858"
+  }
+]

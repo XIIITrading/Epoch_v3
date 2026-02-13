@@ -1,0 +1,4061 @@
+================================================================================
+DOW AI v3.0 PRODUCTION BATCH ANALYZER
+================================================================================
+Analysis Started: 2026-01-28 17:44:19
+Prompt Version: v3.0 (Pass 2 Only)
+Model: claude-sonnet-4-20250514
+
+MODE: PRODUCTION (Single-pass with backtested context)
+  - Uses Pass 2 logic (includes indicator_edges, zone_performance)
+  - Stores results in ai_predictions table
+================================================================================
+
+FILTERS:
+  Limit: 500
+  Ticker: ALL
+  Direction: ALL
+  Model: ALL
+  Date Range: ANY to ANY
+  Reprocess: False
+
+Already in ai_predictions: 520
+Total trades in database: 4590
+
+Loading trades...
+Loaded 500 trades to process (after filtering)
+
+Loading AI context...
+  Loaded: indicator_edges, zone_performance, model_stats
+
+Initializing production analyzer...
+
+================================================================================
+PROCESSING TRADES
+================================================================================
+
+[1/500] AMD_012726_EPCH4_1351
+  AMD SHORT | 2026-01-27 13:51:30
+  Entry: $250.45 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED (our strongest -36pp edge working ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[2/500] AMZN_012726_EPCH2_1350_1
+  AMZN LONG | 2026-01-27 13:50:30
+  Entry: $243.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: Despite the strong H1 alignment edge (+36pp), multiple critical factors are severely unfavorable. Th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[3/500] AMD_012726_EPCH3_1350
+  AMD SHORT | 2026-01-27 13:50:15
+  Entry: $250.42 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags - H1 structure is OPPOSED (our strongest edge shows -36pp ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[4/500] AMZN_012726_EPCH2_1350
+  AMZN LONG | 2026-01-27 13:50:00
+  Entry: $243.42 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is sufficient to overcome the...
+  Saved to ai_predictions
+------------------------------------------------------------
+[5/500] AMZN_012726_EPCH2_1349
+  AMZN LONG | 2026-01-27 13:49:00
+  Entry: $243.42 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (LOW) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which alone makes this trade viable ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[6/500] AMZN_012726_EPCH2_1348_1
+  AMZN LONG | 2026-01-27 13:48:15
+  Entry: $243.44 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned BULL for this LONG trade. Wh...
+  Saved to ai_predictions
+------------------------------------------------------------
+[7/500] AMZN_012726_EPCH2_1348
+  AMZN LONG | 2026-01-27 13:48:00
+  Entry: $243.41 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which significantly outweighs the n...
+  Saved to ai_predictions
+------------------------------------------------------------
+[8/500] AMZN_012726_EPCH2_1341
+  AMZN LONG | 2026-01-27 13:41:30
+  Entry: $243.42 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully active with H1 structure perfectly aligned for LONG direction. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[9/500] AMZN_012726_EPCH1_1331
+  AMZN LONG | 2026-01-27 13:31:45
+  Entry: $243.47 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is firmly in our favor with H1 structure perfectly aligned for this LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[10/500] DIA_012726_EPCH4_1329_1
+  DIA SHORT | 2026-01-27 13:29:45
+  Entry: $489.24 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge (+36pp), multiple critical factors are unfavorable...
+  Saved to ai_predictions
+------------------------------------------------------------
+[11/500] DIA_012726_EPCH4_1329
+  DIA SHORT | 2026-01-27 13:29:15
+  Entry: $489.24 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), multiple negative factors create significant...
+  Saved to ai_predictions
+------------------------------------------------------------
+[12/500] DIA_012726_EPCH4_1325
+  DIA SHORT | 2026-01-27 13:25:15
+  Entry: $489.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest H1 alignment edge (+36pp), multiple unfavorable factors create signific...
+  Saved to ai_predictions
+------------------------------------------------------------
+[13/500] DIA_012726_EPCH4_1324_1
+  DIA SHORT | 2026-01-27 13:24:30
+  Entry: $489.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge (+36pp), multiple critical factors are clearly unf...
+  Saved to ai_predictions
+------------------------------------------------------------
+[14/500] DIA_012726_EPCH4_1324
+  DIA SHORT | 2026-01-27 13:24:15
+  Entry: $489.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge at +36pp, the extremely low range% of 0.018% puts us ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[15/500] DIA_012726_EPCH4_1322_1
+  DIA SHORT | 2026-01-27 13:22:45
+  Entry: $489.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear red flags across multiple key edges. We're in an absorption zone with average...
+  Saved to ai_predictions
+------------------------------------------------------------
+[16/500] DIA_012726_EPCH4_1322
+  DIA SHORT | 2026-01-27 13:22:15
+  Entry: $489.24 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite the H1 alignment providing our strongest edge (+36pp), this setup has multiple clear red fla...
+  Saved to ai_predictions
+------------------------------------------------------------
+[17/500] DIA_012726_EPCH4_1321_1
+  DIA SHORT | 2026-01-27 13:21:45
+  Entry: $489.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully active with H1 structure perfectly aligned for SHORT direction. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[18/500] DIA_012726_EPCH4_1321
+  DIA SHORT | 2026-01-27 13:21:00
+  Entry: $489.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive for taking this t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[19/500] DIA_012726_EPCH4_1320
+  DIA SHORT | 2026-01-27 13:20:30
+  Entry: $489.24 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this SHORT tra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[20/500] SPY_012726_EPCH2_1315
+  SPY LONG | 2026-01-27 13:15:00
+  Entry: $695.52 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone pushes this trade well ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[21/500] AMD_012726_EPCH4_1259_1
+  AMD LONG | 2026-01-27 12:59:45
+  Entry: $251.97 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 structure alignment +36pp), multiple supporting indicators are...
+  Saved to ai_predictions
+------------------------------------------------------------
+[22/500] AMD_012726_EPCH4_1259
+  AMD LONG | 2026-01-27 12:59:30
+  Entry: $251.97 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite multiple unfavorable indicators (low range, poor long score, opposed SMA spread), the H1 str...
+  Saved to ai_predictions
+------------------------------------------------------------
+[23/500] AMD_012726_EPCH4_1258
+  AMD LONG | 2026-01-27 12:58:45
+  Entry: $251.97 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. The H1 structure opposition c...
+  Saved to ai_predictions
+------------------------------------------------------------
+[24/500] AMD_012726_EPCH4_1257
+  AMD LONG | 2026-01-27 12:57:45
+  Entry: $252.06 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite unfavorable supporting indicators (low long score, insufficient range, opposed SMA spread), ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[25/500] DIA_012726_EPCH4_1256_1
+  DIA SHORT | 2026-01-27 12:56:45
+  Entry: $489.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), multiple other factors are clearly unfavorab...
+  Saved to ai_predictions
+------------------------------------------------------------
+[26/500] DIA_012726_EPCH4_1256
+  DIA SHORT | 2026-01-27 12:56:30
+  Entry: $489.24 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge (+36pp), multiple critical factors are clearly unf...
+  Saved to ai_predictions
+------------------------------------------------------------
+[27/500] AVGO_012726_EPCH2_1252
+  AVGO SHORT | 2026-01-27 12:52:45
+  Entry: $333.35 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Multiple unfavorable factors align against this short - H1 structure is opposed (our strongest -36pp...
+  Saved to ai_predictions
+------------------------------------------------------------
+[28/500] DIA_012726_EPCH4_1251
+  DIA SHORT | 2026-01-27 12:51:15
+  Entry: $489.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 structure alignment +36pp), this setup is in the absorption zo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[29/500] DIA_012726_EPCH4_1249
+  DIA SHORT | 2026-01-27 12:49:00
+  Entry: $489.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this SHORT tra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[30/500] DIA_012726_EPCH4_1248
+  DIA SHORT | 2026-01-27 12:48:30
+  Entry: $489.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned bearish for this SHORT trade...
+  Saved to ai_predictions
+------------------------------------------------------------
+[31/500] DIA_012726_EPCH4_1234
+  DIA SHORT | 2026-01-27 12:34:45
+  Entry: $489.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is substantial enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[32/500] AVGO_012726_EPCH2_1233_1
+  AVGO SHORT | 2026-01-27 12:33:30
+  Entry: $333.52 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is opposed (-36pp ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[33/500] AVGO_012726_EPCH2_1233
+  AVGO SHORT | 2026-01-27 12:33:15
+  Entry: $333.39 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest backtested edges. The H1 structure is ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[34/500] AVGO_012726_EPCH2_1227_1
+  AVGO SHORT | 2026-01-27 12:27:15
+  Entry: $333.36 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags working against it. The H1 BULL structure directly opposes o...
+  Saved to ai_predictions
+------------------------------------------------------------
+[35/500] AVGO_012726_EPCH2_1227
+  AVGO SHORT | 2026-01-27 12:27:00
+  Entry: $333.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is opposed (-36pp ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[36/500] AVGO_012726_EPCH2_1226
+  AVGO SHORT | 2026-01-27 12:26:45
+  Entry: $333.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[37/500] AMD_012726_EPCH4_1225
+  AMD LONG | 2026-01-27 12:25:15
+  Entry: $252.04 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[38/500] AMD_012726_EPCH4_1222
+  AMD LONG | 2026-01-27 12:22:45
+  Entry: $252.01 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone makes this trade statis...
+  Saved to ai_predictions
+------------------------------------------------------------
+[39/500] SPY_012726_EPCH2_1219
+  SPY LONG | 2026-01-27 12:19:15
+  Entry: $695.51 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: Despite the strong H1 alignment edge, this setup shows clear red flags with extremely low range (0.0...
+  Saved to ai_predictions
+------------------------------------------------------------
+[40/500] DIA_012726_EPCH4_1219
+  DIA SHORT | 2026-01-27 12:19:00
+  Entry: $489.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is significant enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[41/500] SPY_012726_EPCH2_1218_1
+  SPY LONG | 2026-01-27 12:18:30
+  Entry: $695.50 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[42/500] SPY_012726_EPCH2_1218
+  SPY LONG | 2026-01-27 12:18:15
+  Entry: $695.45 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: Despite weak supporting indicators, the H1 structure is BULL-aligned with our LONG direction, provid...
+  Saved to ai_predictions
+------------------------------------------------------------
+[43/500] SPY_012726_EPCH2_1217_1
+  SPY LONG | 2026-01-27 12:17:15
+  Entry: $695.45 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is substantial eno...
+  Saved to ai_predictions
+------------------------------------------------------------
+[44/500] SPY_012726_EPCH2_1217
+  SPY LONG | 2026-01-27 12:17:00
+  Entry: $695.45 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor an...
+  Saved to ai_predictions
+------------------------------------------------------------
+[45/500] DIA_012726_EPCH4_1217
+  DIA SHORT | 2026-01-27 12:17:00
+  Entry: $489.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge with H1 structure alignment (+36pp), the extremely low range (0.02...
+  Saved to ai_predictions
+------------------------------------------------------------
+[46/500] PLTR_012726_EPCH2_1159
+  PLTR SHORT | 2026-01-27 11:59:00
+  Entry: $167.00 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple clear red flags that override the PRIMARY zone qualification. Most critica...
+  Saved to ai_predictions
+------------------------------------------------------------
+[47/500] AMZN_012726_EPCH2_1157
+  AMZN SHORT | 2026-01-27 11:57:30
+  Entry: $242.65 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is BULL (opposed...
+  Saved to ai_predictions
+------------------------------------------------------------
+[48/500] PLTR_012726_EPCH2_1155
+  PLTR SHORT | 2026-01-27 11:55:15
+  Entry: $166.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 Structure alignment) is clearly favorable, providing a +36pp boost to our win...
+  Saved to ai_predictions
+------------------------------------------------------------
+[49/500] PLTR_012726_EPCH1_1155
+  PLTR SHORT | 2026-01-27 11:55:00
+  Entry: $166.97 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is working in our favor with H1 structure ALIGNED for this SHORT trade. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[50/500] PLTR_012726_EPCH2_1149
+  PLTR LONG | 2026-01-27 11:49:00
+  Entry: $167.84 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[51/500] AMD_012726_EPCH4_1148
+  AMD LONG | 2026-01-27 11:48:00
+  Entry: $251.97 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone justifies the trade des...
+  Saved to ai_predictions
+------------------------------------------------------------
+[52/500] AMD_012726_EPCH4_1147
+  AMD LONG | 2026-01-27 11:47:45
+  Entry: $252.02 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, significantly outweighing the negat...
+  Saved to ai_predictions
+------------------------------------------------------------
+[53/500] AMD_012726_EPCH4_1146
+  AMD LONG | 2026-01-27 11:46:00
+  Entry: $252.04 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which significantly outweighs the o...
+  Saved to ai_predictions
+------------------------------------------------------------
+[54/500] AMD_012726_EPCH4_1145
+  AMD LONG | 2026-01-27 11:45:15
+  Entry: $251.98 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite multiple unfavorable supporting indicators (low long score, range just below threshold, oppo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[55/500] DIA_012726_EPCH2_1143
+  DIA SHORT | 2026-01-27 11:43:00
+  Entry: $491.41 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), multiple significant red flags override this...
+  Saved to ai_predictions
+------------------------------------------------------------
+[56/500] DIA_012726_EPCH2_1141
+  DIA SHORT | 2026-01-27 11:41:00
+  Entry: $491.42 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite having our strongest edge (H1 structure alignment worth +36pp), this setup shows clear absor...
+  Saved to ai_predictions
+------------------------------------------------------------
+[57/500] DIA_012726_EPCH2_1139
+  DIA SHORT | 2026-01-27 11:39:15
+  Entry: $491.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite having our strongest edge (H1 BEAR aligned with SHORT for +36pp), the setup shows critical w...
+  Saved to ai_predictions
+------------------------------------------------------------
+[58/500] DIA_012726_EPCH2_1137
+  DIA SHORT | 2026-01-27 11:37:00
+  Entry: $491.44 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this SHORT. Wh...
+  Saved to ai_predictions
+------------------------------------------------------------
+[59/500] META_012726_EPCH4_1127
+  META SHORT | 2026-01-27 11:27:30
+  Entry: $671.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge at +36pp, this setup falls into the absorption zone w...
+  Saved to ai_predictions
+------------------------------------------------------------
+[60/500] META_012726_EPCH2_1127
+  META SHORT | 2026-01-27 11:27:30
+  Entry: $671.19 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this SHORT tra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[61/500] PLTR_012726_EPCH2_1126_1
+  PLTR LONG | 2026-01-27 11:26:45
+  Entry: $167.84 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple unfavorable factors stacked against it. The H1 structure is OPPOSED (our str...
+  Saved to ai_predictions
+------------------------------------------------------------
+[62/500] META_012726_EPCH4_1126
+  META SHORT | 2026-01-27 11:26:00
+  Entry: $671.12 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully aligned with H1 BEAR structure supporting our SHORT direction. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[63/500] META_012726_EPCH2_1126
+  META SHORT | 2026-01-27 11:26:00
+  Entry: $671.12 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge, this setup shows classic absorption patterns with...
+  Saved to ai_predictions
+------------------------------------------------------------
+[64/500] PLTR_012726_EPCH2_1126
+  PLTR LONG | 2026-01-27 11:26:00
+  Entry: $167.89 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[65/500] META_012726_EPCH4_1125
+  META SHORT | 2026-01-27 11:25:30
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 structure alignment providing our strongest edge (+36pp), this setup shows critical weakn...
+  Saved to ai_predictions
+------------------------------------------------------------
+[66/500] META_012726_EPCH2_1125
+  META SHORT | 2026-01-27 11:25:30
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp) being aligned for SHORT, we have two signific...
+  Saved to ai_predictions
+------------------------------------------------------------
+[67/500] PLTR_012726_EPCH2_1123
+  PLTR LONG | 2026-01-27 11:23:15
+  Entry: $167.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[68/500] PLTR_012726_EPCH2_1122
+  PLTR LONG | 2026-01-27 11:22:30
+  Entry: $167.87 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negative factors - H1 structure is OPPOSED to our LONG direction (los...
+  Saved to ai_predictions
+------------------------------------------------------------
+[69/500] PLTR_012726_EPCH2_1121_1
+  PLTR LONG | 2026-01-27 11:21:30
+  Entry: $167.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: While H1 structure is opposed (-36pp edge) and we're in an absorption zone with low range, the SMA s...
+  Saved to ai_predictions
+------------------------------------------------------------
+[70/500] PLTR_012726_EPCH2_1121
+  PLTR LONG | 2026-01-27 11:21:00
+  Entry: $167.87 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that significantly reduce our edge. The H1 structure is OPPO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[71/500] PLTR_012726_EPCH2_1120
+  PLTR LONG | 2026-01-27 11:20:30
+  Entry: $167.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags aligned against it. H1 structure is OPPOSED to our LONG direction ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[72/500] PLTR_012726_EPCH2_1116
+  PLTR LONG | 2026-01-27 11:16:45
+  Entry: $167.87 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple unfavorable factors stacked against it. The H1 structure is OPPOSED (our str...
+  Saved to ai_predictions
+------------------------------------------------------------
+[73/500] META_012726_EPCH4_1116
+  META SHORT | 2026-01-27 11:16:15
+  Entry: $671.27 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[74/500] META_012726_EPCH2_1116
+  META SHORT | 2026-01-27 11:16:15
+  Entry: $671.27 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is substantial eno...
+  Saved to ai_predictions
+------------------------------------------------------------
+[75/500] AVGO_012726_EPCH2_1114
+  AVGO SHORT | 2026-01-27 11:14:15
+  Entry: $333.38 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[76/500] META_012726_EPCH2_1113
+  META SHORT | 2026-01-27 11:13:45
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple unfavorable factors stacked against it. The H1 structure is OPPOSED (our str...
+  Saved to ai_predictions
+------------------------------------------------------------
+[77/500] AVGO_012726_EPCH2_1113
+  AVGO SHORT | 2026-01-27 11:13:45
+  Entry: $333.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Multiple unfavorable factors align against this short - H1 structure is bullish (opposed to our shor...
+  Saved to ai_predictions
+------------------------------------------------------------
+[78/500] META_012726_EPCH4_1113
+  META SHORT | 2026-01-27 11:13:45
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has clear unfavorable conditions across multiple key edges. H1 structure is OPPOSED (our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[79/500] META_012726_EPCH2_1111
+  META SHORT | 2026-01-27 11:11:30
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is opposed (-36pp ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[80/500] META_012726_EPCH4_1111
+  META SHORT | 2026-01-27 11:11:30
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[81/500] META_012726_EPCH4_1106_2
+  META SHORT | 2026-01-27 11:06:45
+  Entry: $671.44 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[82/500] META_012726_EPCH2_1106_2
+  META SHORT | 2026-01-27 11:06:45
+  Entry: $671.44 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our st...
+  Saved to ai_predictions
+------------------------------------------------------------
+[83/500] META_012726_EPCH2_1106_1
+  META SHORT | 2026-01-27 11:06:30
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BEAR which shou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[84/500] META_012726_EPCH4_1106_1
+  META SHORT | 2026-01-27 11:06:30
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. The H1 structure is OPPOSED (ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[85/500] META_012726_EPCH2_1106
+  META SHORT | 2026-01-27 11:06:15
+  Entry: $671.47 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which significantly outweighs the n...
+  Saved to ai_predictions
+------------------------------------------------------------
+[86/500] META_012726_EPCH4_1106
+  META SHORT | 2026-01-27 11:06:15
+  Entry: $671.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against our strongest edges. The H1 BEAR structure i...
+  Saved to ai_predictions
+------------------------------------------------------------
+[87/500] META_012726_EPCH2_1105_1
+  META SHORT | 2026-01-27 11:05:15
+  Entry: $671.44 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. Most critically, the H1 structu...
+  Saved to ai_predictions
+------------------------------------------------------------
+[88/500] META_012726_EPCH4_1105_1
+  META SHORT | 2026-01-27 11:05:15
+  Entry: $671.44 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[89/500] META_012726_EPCH4_1105
+  META SHORT | 2026-01-27 11:05:00
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive for taking this t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[90/500] META_012726_EPCH2_1105
+  META SHORT | 2026-01-27 11:05:00
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 BEAR structure is perfectly aligned with our SHORT direction, giving us the strongest +36pp e...
+  Saved to ai_predictions
+------------------------------------------------------------
+[91/500] META_012726_EPCH2_1103_1
+  META SHORT | 2026-01-27 11:03:15
+  Entry: $671.31 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. The H1 structure opposition cos...
+  Saved to ai_predictions
+------------------------------------------------------------
+[92/500] META_012726_EPCH4_1103_1
+  META SHORT | 2026-01-27 11:03:15
+  Entry: $671.31 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is working in our favor with H1 structure ALIGNED for this short. While t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[93/500] META_012726_EPCH2_1103
+  META SHORT | 2026-01-27 11:03:00
+  Entry: $671.31 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup violates multiple key edges simultaneously. Most critically, we're in an absorption zone ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[94/500] META_012726_EPCH4_1103
+  META SHORT | 2026-01-27 11:03:00
+  Entry: $671.31 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[95/500] DIA_012726_EPCH4_1055
+  DIA LONG | 2026-01-27 10:55:00
+  Entry: $489.94 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags that clearly overcome our positive baseline expectancy. H1 structu...
+  Saved to ai_predictions
+------------------------------------------------------------
+[96/500] PLTR_012726_EPCH2_1049_1
+  PLTR LONG | 2026-01-27 10:49:30
+  Entry: $167.86 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Multiple critical factors are clearly unfavorable - H1 structure is OPPOSED (BEAR for LONG trade), e...
+  Saved to ai_predictions
+------------------------------------------------------------
+[97/500] PLTR_012726_EPCH2_1049
+  PLTR LONG | 2026-01-27 10:49:00
+  Entry: $167.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags with H1 structure opposed to our LONG direction (losing our stro...
+  Saved to ai_predictions
+------------------------------------------------------------
+[98/500] PLTR_012726_EPCH2_1048
+  PLTR LONG | 2026-01-27 10:48:15
+  Entry: $167.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposition on our strongest edge - H1 structure is BEAR for a LONG trade, cos...
+  Saved to ai_predictions
+------------------------------------------------------------
+[99/500] DIA_012726_EPCH4_1046
+  DIA LONG | 2026-01-27 10:46:45
+  Entry: $490.01 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple significant red flags despite being pre-qualified. H1 structure is OPPOSED t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[100/500] DIA_012726_EPCH3_1046
+  DIA LONG | 2026-01-27 10:46:15
+  Entry: $489.89 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[101/500] PLTR_012726_EPCH2_1044
+  PLTR LONG | 2026-01-27 10:44:45
+  Entry: $167.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[102/500] META_012726_EPCH4_1042
+  META SHORT | 2026-01-27 10:42:45
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags that overwhelm the positive expectancy. The H1 structure i...
+  Saved to ai_predictions
+------------------------------------------------------------
+[103/500] META_012726_EPCH2_1042
+  META SHORT | 2026-01-27 10:42:45
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Multiple strong negative signals align against this SHORT setup. H1 structure is OPPOSED (our strong...
+  Saved to ai_predictions
+------------------------------------------------------------
+[104/500] SPY_012726_EPCH2_1037
+  SPY LONG | 2026-01-27 10:37:45
+  Entry: $695.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the primary driver for taki...
+  Saved to ai_predictions
+------------------------------------------------------------
+[105/500] META_012726_EPCH2_1037
+  META SHORT | 2026-01-27 10:37:15
+  Entry: $671.44 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple critical red flags that override the pre-qualification. The H1 structure sho...
+  Saved to ai_predictions
+------------------------------------------------------------
+[106/500] META_012726_EPCH4_1037
+  META SHORT | 2026-01-27 10:37:15
+  Entry: $671.44 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative edge - H1 structure is OPPOSED to our SHORT direction (should ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[107/500] SPY_012726_EPCH2_1036_1
+  SPY LONG | 2026-01-27 10:36:45
+  Entry: $695.52 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has clear red flags that override the positive H1 alignment. The average range of 0.028% ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[108/500] SPY_012726_EPCH2_1036
+  SPY LONG | 2026-01-27 10:36:30
+  Entry: $695.47 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this LONG trad...
+  Saved to ai_predictions
+------------------------------------------------------------
+[109/500] SPY_012726_EPCH1_1036
+  SPY LONG | 2026-01-27 10:36:15
+  Entry: $695.53 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and alone justifie...
+  Saved to ai_predictions
+------------------------------------------------------------
+[110/500] META_012726_EPCH4_1035
+  META SHORT | 2026-01-27 10:35:45
+  Entry: $670.90 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure provides our strongest edge at +36pp being perfectly aligned BEAR for this SHORT se...
+  Saved to ai_predictions
+------------------------------------------------------------
+[111/500] META_012726_EPCH2_1035
+  META SHORT | 2026-01-27 10:35:45
+  Entry: $670.90 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, significantly boosting win probabil...
+  Saved to ai_predictions
+------------------------------------------------------------
+[112/500] AMZN_012726_EPCH2_1034_1
+  AMZN SHORT | 2026-01-27 10:34:30
+  Entry: $242.45 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative edge with H1 BULL structure opposing the SHORT direction (-36p...
+  Saved to ai_predictions
+------------------------------------------------------------
+[113/500] AMZN_012726_EPCH2_1034
+  AMZN SHORT | 2026-01-27 10:34:15
+  Entry: $242.62 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative edge - H1 structure is BULL (opposed to SHORT direction), whic...
+  Saved to ai_predictions
+------------------------------------------------------------
+[114/500] AMZN_012726_EPCH2_1033
+  AMZN SHORT | 2026-01-27 10:33:00
+  Entry: $242.59 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The strongest edge (H1 Structure) is clearly opposed with BULL structure against our SHORT direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[115/500] META_012726_EPCH2_1033
+  META SHORT | 2026-01-27 10:33:00
+  Entry: $671.42 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[116/500] META_012726_EPCH4_1033
+  META SHORT | 2026-01-27 10:33:00
+  Entry: $671.42 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), multiple critical factors are clearly unfavo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[117/500] AMZN_012726_EPCH2_1032
+  AMZN SHORT | 2026-01-27 10:32:45
+  Entry: $242.60 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This is a textbook example of when NOT to trade - we have our strongest negative edge (-36pp) with H...
+  Saved to ai_predictions
+------------------------------------------------------------
+[118/500] DIA_012726_EPCH4_1027
+  DIA SHORT | 2026-01-27 10:27:30
+  Entry: $489.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure provides our strongest edge at +36pp being BEAR-aligned with our SHORT direction. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[119/500] DIA_012726_EPCH4_1025
+  DIA SHORT | 2026-01-27 10:25:00
+  Entry: $489.13 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup fails our strongest edge criterion - H1 structure is OPPOSED when it should be ALIGNED fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[120/500] META_012726_EPCH4_1021
+  META SHORT | 2026-01-27 10:21:45
+  Entry: $671.29 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup violates our strongest edge - H1 structure is OPPOSED giving us a -36pp disadvantage from...
+  Saved to ai_predictions
+------------------------------------------------------------
+[121/500] DIA_012726_EPCH4_1021_1
+  DIA SHORT | 2026-01-27 10:21:45
+  Entry: $489.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is perfectly aligned BEAR for our SHORT trade, providing our strongest statistical ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[122/500] META_012726_EPCH2_1021
+  META SHORT | 2026-01-27 10:21:45
+  Entry: $671.29 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup violates our strongest edge - H1 structure is BEAR which ALIGNS with our SHORT direction ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[123/500] DIA_012726_EPCH4_1021
+  DIA SHORT | 2026-01-27 10:21:00
+  Entry: $489.16 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure provides our strongest edge at +36pp being perfectly aligned with the SHORT directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[124/500] DIA_012726_EPCH4_1020
+  DIA SHORT | 2026-01-27 10:20:15
+  Entry: $489.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure perfectly aligned BEAR for our SHORT directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[125/500] DIA_012726_EPCH4_1019
+  DIA SHORT | 2026-01-27 10:19:00
+  Entry: $489.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge, the average range of 0.05% puts this firmly in th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[126/500] DIA_012726_EPCH4_1016
+  DIA SHORT | 2026-01-27 10:16:15
+  Entry: $489.15 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive for this trade. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[127/500] AMD_012726_EPCH2_1012
+  AMD SHORT | 2026-01-27 10:12:30
+  Entry: $255.17 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: This is a clear case where our strongest edge (+36pp H1 Structure) is completely opposed - we're try...
+  Saved to ai_predictions
+------------------------------------------------------------
+[128/500] AMD_012726_EPCH2_1011
+  AMD SHORT | 2026-01-27 10:11:15
+  Entry: $255.00 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags that stack against us. H1 structure is BULL (opposed to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[129/500] DIA_012726_EPCH4_1005
+  DIA SHORT | 2026-01-27 10:05:45
+  Entry: $489.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure provides our strongest edge at +36pp by being perfectly aligned with the SHORT dire...
+  Saved to ai_predictions
+------------------------------------------------------------
+[130/500] DIA_012726_EPCH3_1005
+  DIA SHORT | 2026-01-27 10:05:30
+  Entry: $489.25 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), making this trade statist...
+  Saved to ai_predictions
+------------------------------------------------------------
+[131/500] SPY_012726_EPCH2_1005_1
+  SPY SHORT | 2026-01-27 10:05:30
+  Entry: $694.65 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[132/500] SPY_012726_EPCH2_1005
+  SPY SHORT | 2026-01-27 10:05:15
+  Entry: $694.74 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Multiple critical red flags align against this short setup. H1 structure is BULL (opposed to our SHO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[133/500] DIA_012726_EPCH4_1004_2
+  DIA LONG | 2026-01-27 10:04:30
+  Entry: $489.92 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags - H1 structure is OPPOSED to our LONG direction (removing ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[134/500] DIA_012726_EPCH4_1004_1
+  DIA LONG | 2026-01-27 10:04:15
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposing forces across all major indicators. H1 structure is BEAR (opposed to...
+  Saved to ai_predictions
+------------------------------------------------------------
+[135/500] DIA_012726_EPCH4_1004
+  DIA LONG | 2026-01-27 10:04:00
+  Entry: $489.87 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[136/500] DIA_012726_EPCH4_1003
+  DIA LONG | 2026-01-27 10:03:30
+  Entry: $489.91 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear unfavorable factors - H1 structure is OPPOSED to our LONG direction ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[137/500] PLTR_012726_EPCH1_1002
+  PLTR LONG | 2026-01-27 10:02:00
+  Entry: $167.84 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 being opposed to our LONG direction, the setup shows strong SMA spread alignment (+0.46 a...
+  Saved to ai_predictions
+------------------------------------------------------------
+[138/500] AMD_012726_EPCH4_1001
+  AMD LONG | 2026-01-27 10:01:15
+  Entry: $252.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure fully aligned for LONG direction. SMA spread...
+  Saved to ai_predictions
+------------------------------------------------------------
+[139/500] META_012726_EPCH4_1000_2
+  META SHORT | 2026-01-27 10:00:30
+  Entry: $670.94 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly favorable with H1 BEAR structure perfectly aligned for this SH...
+  Saved to ai_predictions
+------------------------------------------------------------
+[140/500] META_012726_EPCH2_1000_2
+  META SHORT | 2026-01-27 10:00:30
+  Entry: $670.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (H1 Structure alignment) is fully favorable, providing our most significant win r...
+  Saved to ai_predictions
+------------------------------------------------------------
+[141/500] META_012726_EPCH4_1000_1
+  META SHORT | 2026-01-27 10:00:15
+  Entry: $671.35 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure perfectly aligned for this SHORT setup. Whil...
+  Saved to ai_predictions
+------------------------------------------------------------
+[142/500] META_012726_EPCH2_1000_1
+  META SHORT | 2026-01-27 10:00:15
+  Entry: $671.35 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully satisfied with H1 structure perfectly aligned for SHORT. Average...
+  Saved to ai_predictions
+------------------------------------------------------------
+[143/500] META_012726_EPCH2_1000
+  META SHORT | 2026-01-27 10:00:00
+  Entry: $671.39 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which significantly outweighs the n...
+  Saved to ai_predictions
+------------------------------------------------------------
+[144/500] META_012726_EPCH4_1000
+  META SHORT | 2026-01-27 10:00:00
+  Entry: $671.39 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 structure alignment), multiple critical factors are unfavorabl...
+  Saved to ai_predictions
+------------------------------------------------------------
+[145/500] META_012726_EPCH2_0959_1
+  META SHORT | 2026-01-27 09:59:45
+  Entry: $671.05 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite the powerful H1 alignment (+36pp edge), multiple factors create concerning headwinds. The av...
+  Saved to ai_predictions
+------------------------------------------------------------
+[146/500] META_012726_EPCH4_0959_1
+  META SHORT | 2026-01-27 09:59:45
+  Entry: $671.05 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive for taking this t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[147/500] META_012726_EPCH4_0959
+  META SHORT | 2026-01-27 09:59:30
+  Entry: $671.45 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite the strongest H1 structure edge being aligned (+36pp), multiple critical factors are clearly...
+  Saved to ai_predictions
+------------------------------------------------------------
+[148/500] META_012726_EPCH2_0959
+  META SHORT | 2026-01-27 09:59:30
+  Entry: $671.45 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), multiple unfavorable factors create signific...
+  Saved to ai_predictions
+------------------------------------------------------------
+[149/500] META_012726_EPCH4_0957
+  META SHORT | 2026-01-27 09:57:15
+  Entry: $671.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negatives that clearly overcome our baseline edge. H1 structure is OP...
+  Saved to ai_predictions
+------------------------------------------------------------
+[150/500] META_012726_EPCH2_0957
+  META SHORT | 2026-01-27 09:57:15
+  Entry: $671.43 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (H1 Structure +36pp) is actually aligned since H1 BEAR supports our SHORT directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[151/500] AMD_012726_EPCH4_0951
+  AMD LONG | 2026-01-27 09:51:30
+  Entry: $252.40 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for LONG. SMA spre...
+  Saved to ai_predictions
+------------------------------------------------------------
+[152/500] SPY_012726_EPCH2_0950_1
+  SPY SHORT | 2026-01-27 09:50:45
+  Entry: $694.76 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that stack against us. The H1 structure is BULL (opposed to ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[153/500] SPY_012726_EPCH2_0950
+  SPY SHORT | 2026-01-27 09:50:30
+  Entry: $694.71 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. The H1 structure is opposed (ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[154/500] QQQ_012726_EPCH1_0950
+  QQQ LONG | 2026-01-27 09:50:15
+  Entry: $629.09 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure BULL aligned with our LONG direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[155/500] AMD_012726_EPCH3_0950
+  AMD LONG | 2026-01-27 09:50:15
+  Entry: $252.13 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is massive and ove...
+  Saved to ai_predictions
+------------------------------------------------------------
+[156/500] QQQ_012726_EPCH3_0950
+  QQQ LONG | 2026-01-27 09:50:15
+  Entry: $629.09 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully present with H1 structure aligned BULL for this LONG trade. Whil...
+  Saved to ai_predictions
+------------------------------------------------------------
+[157/500] AVGO_012726_EPCH4_0947
+  AVGO LONG | 2026-01-27 09:47:30
+  Entry: $327.82 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which alone makes this tr...
+  Saved to ai_predictions
+------------------------------------------------------------
+[158/500] AMD_012726_EPCH4_0944
+  AMD SHORT | 2026-01-27 09:44:45
+  Entry: $250.45 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup faces our strongest negative edge - H1 structure is BULL (opposed to SHORT direction), wh...
+  Saved to ai_predictions
+------------------------------------------------------------
+[159/500] QQQ_012726_EPCH2_0944
+  QQQ SHORT | 2026-01-27 09:44:15
+  Entry: $628.05 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags against our strongest edges. H1 structure is BULL (opposed to SHOR...
+  Saved to ai_predictions
+------------------------------------------------------------
+[160/500] QQQ_012726_EPCH4_0944
+  QQQ SHORT | 2026-01-27 09:44:15
+  Entry: $628.05 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[161/500] QQQ_012726_EPCH4_0943
+  QQQ SHORT | 2026-01-27 09:43:30
+  Entry: $628.11 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. The H1 structure is BULL (oppos...
+  Saved to ai_predictions
+------------------------------------------------------------
+[162/500] QQQ_012726_EPCH2_0943
+  QQQ SHORT | 2026-01-27 09:43:30
+  Entry: $628.11 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags that align against our strongest edges. H1 structure is BULL (oppo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[163/500] AMD_012726_EPCH4_0943
+  AMD SHORT | 2026-01-27 09:43:00
+  Entry: $250.14 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL, directly opposed to our SHORT direction, which removes our strongest edge ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[164/500] AMD_012726_EPCH4_0942_1
+  AMD SHORT | 2026-01-27 09:42:45
+  Entry: $250.50 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup faces the strongest negative edge in our system - H1 structure is OPPOSED to our SHORT di...
+  Saved to ai_predictions
+------------------------------------------------------------
+[165/500] AMD_012726_EPCH4_0942
+  AMD SHORT | 2026-01-27 09:42:30
+  Entry: $250.33 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL which is directly opposed to our SHORT direction, creating our strongest ne...
+  Saved to ai_predictions
+------------------------------------------------------------
+[166/500] PLTR_012726_EPCH2_0942
+  PLTR SHORT | 2026-01-27 09:42:00
+  Entry: $166.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is actually ALIGNED with our SHORT direction (BEAR H1 supports SHORT), providing ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[167/500] PLTR_012726_EPCH2_0941_2
+  PLTR SHORT | 2026-01-27 09:41:45
+  Entry: $166.95 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: While H1 structure is opposed (our strongest edge working against us at -36pp), the setup has decent...
+  Saved to ai_predictions
+------------------------------------------------------------
+[168/500] PLTR_012726_EPCH2_0941_1
+  PLTR SHORT | 2026-01-27 09:41:30
+  Entry: $166.96 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has the strongest negative edge working against it - H1 Structure is OPPOSED to our SHORT...
+  Saved to ai_predictions
+------------------------------------------------------------
+[169/500] PLTR_012726_EPCH2_0941
+  PLTR SHORT | 2026-01-27 09:41:15
+  Entry: $166.82 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our SHORT direction (we want BEAR H1 for SHORT, and we have it, so th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[170/500] QQQ_012726_EPCH2_0940_1
+  QQQ SHORT | 2026-01-27 09:40:45
+  Entry: $628.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that overcome the pre-qualification. H1 structure is BULL (o...
+  Saved to ai_predictions
+------------------------------------------------------------
+[171/500] PLTR_012726_EPCH2_0940
+  PLTR SHORT | 2026-01-27 09:40:45
+  Entry: $166.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our SHORT direction, which historically costs us our strongest edge (...
+  Saved to ai_predictions
+------------------------------------------------------------
+[172/500] QQQ_012726_EPCH4_0940_1
+  QQQ SHORT | 2026-01-27 09:40:45
+  Entry: $628.13 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our st...
+  Saved to ai_predictions
+------------------------------------------------------------
+[173/500] QQQ_012726_EPCH4_0940
+  QQQ SHORT | 2026-01-27 09:40:15
+  Entry: $628.06 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Multiple critical factors are unfavorable - H1 structure is OPPOSED to our SHORT direction (losing o...
+  Saved to ai_predictions
+------------------------------------------------------------
+[174/500] DIA_012726_EPCH4_0940_1
+  DIA LONG | 2026-01-27 09:40:15
+  Entry: $489.94 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags - H1 structure is OPPOSED to our LONG direction (removing ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[175/500] QQQ_012726_EPCH2_0940
+  QQQ SHORT | 2026-01-27 09:40:15
+  Entry: $628.06 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags stacked against it. The H1 structure is OPPOSED (our strongest neg...
+  Saved to ai_predictions
+------------------------------------------------------------
+[176/500] DIA_012726_EPCH4_0940
+  DIA LONG | 2026-01-27 09:40:00
+  Entry: $489.92 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED to our LONG direction (our stronge...
+  Saved to ai_predictions
+------------------------------------------------------------
+[177/500] AMZN_012726_EPCH4_0939
+  AMZN LONG | 2026-01-27 09:39:00
+  Entry: $238.57 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple unfavorable factors converging. H1 structure is OPPOSED (our strongest -36...
+  Saved to ai_predictions
+------------------------------------------------------------
+[178/500] AMZN_012726_EPCH4_0938
+  AMZN LONG | 2026-01-27 09:38:45
+  Entry: $238.34 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear unfavorable factors working against it. The H1 structure is OPPOSED to...
+  Saved to ai_predictions
+------------------------------------------------------------
+[179/500] AVGO_012726_EPCH4_0937
+  AVGO LONG | 2026-01-27 09:37:30
+  Entry: $327.65 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor. T...
+  Saved to ai_predictions
+------------------------------------------------------------
+[180/500] MU_012726_EPCH4_0937
+  MU LONG | 2026-01-27 09:37:00
+  Entry: $401.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is the primary decision facto...
+  Saved to ai_predictions
+------------------------------------------------------------
+[181/500] MU_012726_EPCH2_0937
+  MU LONG | 2026-01-27 09:37:00
+  Entry: $401.18 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: The H1 structure is perfectly aligned (BULL for LONG), giving us our strongest +36pp edge. The avera...
+  Saved to ai_predictions
+------------------------------------------------------------
+[182/500] MU_012726_EPCH2_0936
+  MU LONG | 2026-01-27 09:36:45
+  Entry: $400.67 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone makes this a compelling...
+  Saved to ai_predictions
+------------------------------------------------------------
+[183/500] AVGO_012726_EPCH4_0936
+  AVGO LONG | 2026-01-27 09:36:45
+  Entry: $327.29 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 Structure alignment) is strongly favorable with +36pp improvement to win rate...
+  Saved to ai_predictions
+------------------------------------------------------------
+[184/500] MU_012726_EPCH4_0936
+  MU LONG | 2026-01-27 09:36:45
+  Entry: $400.67 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp above baseline, which alone makes th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[185/500] META_012726_EPCH4_0936
+  META SHORT | 2026-01-27 09:36:00
+  Entry: $671.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 BEAR structure perfectly aligned for a SHORT (+36pp advan...
+  Saved to ai_predictions
+------------------------------------------------------------
+[186/500] QQQ_012726_EPCH3_0936
+  QQQ SHORT | 2026-01-27 09:36:00
+  Entry: $627.87 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is BULL (opposed to our SHORT), putting us ag...
+  Saved to ai_predictions
+------------------------------------------------------------
+[187/500] QQQ_012726_EPCH1_0936
+  QQQ SHORT | 2026-01-27 09:36:00
+  Entry: $627.87 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our +3...
+  Saved to ai_predictions
+------------------------------------------------------------
+[188/500] META_012726_EPCH2_0936
+  META SHORT | 2026-01-27 09:36:00
+  Entry: $671.38 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, and the average range of 0.304% sho...
+  Saved to ai_predictions
+------------------------------------------------------------
+[189/500] PLTR_012726_EPCH2_0935
+  PLTR SHORT | 2026-01-27 09:35:30
+  Entry: $166.77 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup has our strongest edge with H1 structure perfectly aligned (+36pp advantage), supported b...
+  Saved to ai_predictions
+------------------------------------------------------------
+[190/500] AMD_012726_EPCH4_0935
+  AMD SHORT | 2026-01-27 09:35:30
+  Entry: $250.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear warning signs with H1 structure opposed to our SHORT direction (strongest -36...
+  Saved to ai_predictions
+------------------------------------------------------------
+[191/500] META_012726_EPCH3_0935
+  META SHORT | 2026-01-27 09:35:00
+  Entry: $671.41 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is perfectly ALIGNED (BEAR for SHORT), giving us our strongest +36pp edge. The aver...
+  Saved to ai_predictions
+------------------------------------------------------------
+[192/500] META_012726_EPCH1_0935
+  META SHORT | 2026-01-27 09:35:00
+  Entry: $671.41 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: While H1 structure is opposed (our strongest edge working against us), the recent high volatility (0...
+  Saved to ai_predictions
+------------------------------------------------------------
+[193/500] AMD_012726_EPCH4_0934
+  AMD SHORT | 2026-01-27 09:34:30
+  Entry: $250.09 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows CLEAR unfavorable conditions across multiple key indicators. H1 structure is OPPOSE...
+  Saved to ai_predictions
+------------------------------------------------------------
+[194/500] AMD_012726_EPCH3_0934
+  AMD SHORT | 2026-01-27 09:34:00
+  Entry: $250.41 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative edge - H1 structure is OPPOSED to our SHORT direction (BULL vs...
+  Saved to ai_predictions
+------------------------------------------------------------
+[195/500] PLTR_012726_EPCH1_0932
+  PLTR SHORT | 2026-01-27 09:32:45
+  Entry: $166.82 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear unfavorable factors. H1 structure is OPPOSED to our SHORT direction, e...
+  Saved to ai_predictions
+------------------------------------------------------------
+[196/500] DIA_012726_EPCH4_0932_1
+  DIA LONG | 2026-01-27 09:32:30
+  Entry: $490.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags converging - H1 structure is opposed to our LONG direction (stro...
+  Saved to ai_predictions
+------------------------------------------------------------
+[197/500] DIA_012726_EPCH4_0932
+  DIA LONG | 2026-01-27 09:32:15
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Multiple significant red flags align against this long setup. H1 structure is OPPOSED (our strongest...
+  Saved to ai_predictions
+------------------------------------------------------------
+[198/500] AMD_012726_EPCH4_0932
+  AMD LONG | 2026-01-27 09:32:00
+  Entry: $252.02 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, making this favorable despite the l...
+  Saved to ai_predictions
+------------------------------------------------------------
+[199/500] PLTR_012726_EPCH2_0931_1
+  PLTR LONG | 2026-01-27 09:31:30
+  Entry: $167.84 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple strong negative factors - H1 structure is OPPOSED (our strongest edge at +...
+  Saved to ai_predictions
+------------------------------------------------------------
+[200/500] META_012726_EPCH4_0931_1
+  META LONG | 2026-01-27 09:31:30
+  Entry: $674.69 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: While H1 structure is opposed (our strongest edge working against us) and long score is low, the set...
+  Saved to ai_predictions
+------------------------------------------------------------
+[201/500] META_012726_EPCH2_0931_1
+  META LONG | 2026-01-27 09:31:30
+  Entry: $674.69 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our LONG direction (our strongest edge at +36pp is working against us...
+  Saved to ai_predictions
+------------------------------------------------------------
+[202/500] PLTR_012726_EPCH2_0931
+  PLTR LONG | 2026-01-27 09:31:15
+  Entry: $167.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable conditions with H1 structure OPPOSED to our LONG direction (lo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[203/500] META_012726_EPCH2_0931
+  META LONG | 2026-01-27 09:31:00
+  Entry: $674.93 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags converging - H1 structure is opposed to our LONG direction (missin...
+  Saved to ai_predictions
+------------------------------------------------------------
+[204/500] AMD_012726_EPCH4_0931
+  AMD LONG | 2026-01-27 09:31:00
+  Entry: $252.50 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup has our strongest edge with H1 structure fully aligned (+36pp), supported by good range m...
+  Saved to ai_predictions
+------------------------------------------------------------
+[205/500] QQQ_012726_EPCH2_0931
+  QQQ LONG | 2026-01-27 09:31:00
+  Entry: $629.21 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[206/500] QQQ_012726_EPCH4_0931
+  QQQ LONG | 2026-01-27 09:31:00
+  Entry: $629.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the primary decision factor...
+  Saved to ai_predictions
+------------------------------------------------------------
+[207/500] META_012726_EPCH4_0931
+  META LONG | 2026-01-27 09:31:00
+  Entry: $674.93 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our LONG direction (strongest negative edge at -36pp), and this is co...
+  Saved to ai_predictions
+------------------------------------------------------------
+[208/500] GOOGL_012726_EPCH2_0930
+  GOOGL LONG | 2026-01-27 09:30:45
+  Entry: $334.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 Structure alignment provides our strongest edge at +36pp, which is the most critical factor. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[209/500] GOOGL_012726_EPCH4_0930
+  GOOGL LONG | 2026-01-27 09:30:45
+  Entry: $334.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is substantial and overrides ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[210/500] META_012726_EPCH4_0930_1
+  META LONG | 2026-01-27 09:30:45
+  Entry: $674.10 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags that clearly stack against it. The H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[211/500] META_012726_EPCH2_0930_1
+  META LONG | 2026-01-27 09:30:45
+  Entry: $674.10 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our positive expectancy baseline. The H1 struc...
+  Saved to ai_predictions
+------------------------------------------------------------
+[212/500] AMD_012726_EPCH4_0930_2
+  AMD LONG | 2026-01-27 09:30:30
+  Entry: $252.25 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is firmly in our favor with H1 structure fully aligned BULL for this LONG...
+  Saved to ai_predictions
+------------------------------------------------------------
+[213/500] META_012726_EPCH4_0930
+  META LONG | 2026-01-27 09:30:15
+  Entry: $674.17 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed (-36pp edge) and low long score indicating weak momentum, the set...
+  Saved to ai_predictions
+------------------------------------------------------------
+[214/500] META_012726_EPCH2_0930
+  META LONG | 2026-01-27 09:30:15
+  Entry: $674.17 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable factors converging: H1 structure is opposed to our LONG direct...
+  Saved to ai_predictions
+------------------------------------------------------------
+[215/500] AMD_012726_EPCH4_0930_1
+  AMD LONG | 2026-01-27 09:30:15
+  Entry: $252.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with perfect H1 structure alignment across all timefra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[216/500] TSLA_012726_EPCH4_0930
+  TSLA SHORT | 2026-01-27 09:30:00
+  Entry: $435.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[217/500] AMD_012726_EPCH4_0930
+  AMD LONG | 2026-01-27 09:30:00
+  Entry: $251.98 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned bullish for our long positio...
+  Saved to ai_predictions
+------------------------------------------------------------
+[218/500] AAPL_012726_EPCH4_0930
+  AAPL LONG | 2026-01-27 09:30:00
+  Entry: $259.80 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: ** The H1 structure alignment provides our strongest edge at +36pp, which is the most critical facto...
+  Saved to ai_predictions
+------------------------------------------------------------
+[219/500] AAPL_012626_EPCH2_1529_1
+  AAPL SHORT | 2026-01-26 15:29:30
+  Entry: $255.66 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear unfavorable factors that override our positive expectancy baseline. H1...
+  Saved to ai_predictions
+------------------------------------------------------------
+[220/500] AAPL_012626_EPCH2_1529
+  AAPL SHORT | 2026-01-26 15:29:00
+  Entry: $255.66 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup faces the strongest negative edge - H1 structure is BULL (opposed to our SHORT direction)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[221/500] AAPL_012626_EPCH2_1528_1
+  AAPL SHORT | 2026-01-26 15:28:15
+  Entry: $255.67 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple red flags that clearly signal unfavorable conditions. The H1 structure is OP...
+  Saved to ai_predictions
+------------------------------------------------------------
+[222/500] AAPL_012626_EPCH2_1528
+  AAPL SHORT | 2026-01-26 15:28:00
+  Entry: $255.66 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple significant red flags that clearly override the positive expectancy. The H1 ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[223/500] AAPL_012626_EPCH2_1527
+  AAPL SHORT | 2026-01-26 15:27:45
+  Entry: $255.66 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: This setup faces the strongest negative edge (-36pp) with H1 structure directly opposed to our SHORT...
+  Saved to ai_predictions
+------------------------------------------------------------
+[224/500] AAPL_012626_EPCH2_1525
+  AAPL SHORT | 2026-01-26 15:25:00
+  Entry: $255.64 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: This setup faces the strongest negative edge - H1 structure is BULL (opposed to our SHORT direction)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[225/500] AAPL_012626_EPCH2_1522_1
+  AAPL SHORT | 2026-01-26 15:22:45
+  Entry: $255.61 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup hits two major red flags - we're shorting into opposed H1 structure (losing our strongest...
+  Saved to ai_predictions
+------------------------------------------------------------
+[226/500] AAPL_012626_EPCH2_1522
+  AAPL SHORT | 2026-01-26 15:22:30
+  Entry: $255.67 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple unfavorable factors stacked against it. The H1 structure is OPPOSED to our S...
+  Saved to ai_predictions
+------------------------------------------------------------
+[227/500] PLTR_012626_EPCH2_1521_2
+  PLTR LONG | 2026-01-26 15:21:45
+  Entry: $167.95 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear unfavorable factors that significantly reduce win probability. The H1 ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[228/500] PLTR_012626_EPCH2_1521_1
+  PLTR LONG | 2026-01-26 15:21:15
+  Entry: $167.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED to our LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[229/500] PLTR_012626_EPCH2_1521
+  PLTR LONG | 2026-01-26 15:21:00
+  Entry: $167.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear unfavorable conditions across ALL major edges. H1 structure is OPPOSED to our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[230/500] AAPL_012626_EPCH1_1520
+  AAPL SHORT | 2026-01-26 15:20:00
+  Entry: $255.64 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[231/500] MU_012626_EPCH4_1519
+  MU LONG | 2026-01-26 15:19:00
+  Entry: $391.50 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite weak momentum and opposing SMA spread, the H1 BULL structure provides our strongest edge at ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[232/500] MU_012626_EPCH4_1518
+  MU LONG | 2026-01-26 15:18:00
+  Entry: $391.53 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which alone makes this trade viable ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[233/500] PLTR_012626_EPCH2_1509
+  PLTR LONG | 2026-01-26 15:09:15
+  Entry: $167.90 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags that override the positive expectancy. H1 structure is OPPO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[234/500] TSLA_012626_EPCH2_1505
+  TSLA SHORT | 2026-01-26 15:05:00
+  Entry: $435.78 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, making this trade favorable despite...
+  Saved to ai_predictions
+------------------------------------------------------------
+[235/500] TSLA_012626_EPCH1_1504
+  TSLA SHORT | 2026-01-26 15:04:00
+  Entry: $435.77 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 structure alignment) is clearly favorable with BEAR structure supporting our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[236/500] AAPL_012626_EPCH2_1454_1
+  AAPL LONG | 2026-01-26 14:54:30
+  Entry: $256.54 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure fully aligned for this LONG trade. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[237/500] AAPL_012626_EPCH2_1454
+  AAPL LONG | 2026-01-26 14:54:15
+  Entry: $256.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for LONG direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[238/500] AAPL_012626_EPCH2_1453
+  AAPL LONG | 2026-01-26 14:53:45
+  Entry: $256.53 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully active with H1 structure perfectly aligned for this LONG trade. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[239/500] AAPL_012626_EPCH1_1453
+  AAPL LONG | 2026-01-26 14:53:30
+  Entry: $256.49 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 structure alignment +36pp), this setup falls into the absorpti...
+  Saved to ai_predictions
+------------------------------------------------------------
+[240/500] PLTR_012626_EPCH2_1446
+  PLTR LONG | 2026-01-26 14:46:30
+  Entry: $167.91 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which is the primary deci...
+  Saved to ai_predictions
+------------------------------------------------------------
+[241/500] AVGO_012626_EPCH4_1437
+  AVGO LONG | 2026-01-26 14:37:00
+  Entry: $327.26 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags that clearly stack against us. The H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[242/500] AVGO_012626_EPCH4_1435
+  AVGO LONG | 2026-01-26 14:35:00
+  Entry: $327.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposition on our strongest edge - H1 structure is BEAR against our LONG dire...
+  Saved to ai_predictions
+------------------------------------------------------------
+[243/500] AVGO_012626_EPCH4_1433
+  AVGO LONG | 2026-01-26 14:33:30
+  Entry: $327.29 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED (our stronge...
+  Saved to ai_predictions
+------------------------------------------------------------
+[244/500] AVGO_012626_EPCH4_1432_1
+  AVGO LONG | 2026-01-26 14:32:30
+  Entry: $327.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags that override our baseline positive expectancy. H1 structu...
+  Saved to ai_predictions
+------------------------------------------------------------
+[245/500] AVGO_012626_EPCH4_1432
+  AVGO LONG | 2026-01-26 14:32:15
+  Entry: $327.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags that stack against our strongest edges. H1 structure is OP...
+  Saved to ai_predictions
+------------------------------------------------------------
+[246/500] TSLA_012626_EPCH2_1411
+  TSLA LONG | 2026-01-26 14:11:15
+  Entry: $438.29 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED to our LONG direction (missing our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[247/500] TSLA_012626_EPCH2_1407
+  TSLA LONG | 2026-01-26 14:07:00
+  Entry: $438.07 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags that override our positive expectancy baseline. H1 structure is ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[248/500] MU_012626_EPCH4_1405
+  MU LONG | 2026-01-26 14:05:00
+  Entry: $391.48 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), multiple other factors are clearly unfavorab...
+  Saved to ai_predictions
+------------------------------------------------------------
+[249/500] MU_012626_EPCH4_1404_1
+  MU LONG | 2026-01-26 14:04:45
+  Entry: $391.41 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), multiple other factors are clearly unfavorab...
+  Saved to ai_predictions
+------------------------------------------------------------
+[250/500] MU_012626_EPCH4_1404
+  MU LONG | 2026-01-26 14:04:15
+  Entry: $391.35 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 BULL structure alignment provides our strongest backtested edge (+36pp), which is significant...
+  Saved to ai_predictions
+------------------------------------------------------------
+[251/500] MU_012626_EPCH4_1403_1
+  MU LONG | 2026-01-26 14:03:15
+  Entry: $391.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite weak momentum signals (low long score, small ranges, opposed SMA spread), the H1 structure a...
+  Saved to ai_predictions
+------------------------------------------------------------
+[252/500] MU_012626_EPCH4_1403
+  MU LONG | 2026-01-26 14:03:00
+  Entry: $391.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone brings us well above br...
+  Saved to ai_predictions
+------------------------------------------------------------
+[253/500] MU_012626_EPCH4_1357
+  MU LONG | 2026-01-26 13:57:00
+  Entry: $391.39 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned BULL for this LONG...
+  Saved to ai_predictions
+------------------------------------------------------------
+[254/500] MU_012626_EPCH4_1354
+  MU LONG | 2026-01-26 13:54:00
+  Entry: $391.36 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 structure alignment providing our strongest edge, this setup has two critical red flags: ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[255/500] MU_012626_EPCH4_1353_2
+  MU LONG | 2026-01-26 13:53:45
+  Entry: $391.37 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), we're in an absorption zone with average ran...
+  Saved to ai_predictions
+------------------------------------------------------------
+[256/500] MU_012626_EPCH4_1353_1
+  MU LONG | 2026-01-26 13:53:30
+  Entry: $391.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure provides our strongest edge (+36pp), the setup shows concerning weakness in momen...
+  Saved to ai_predictions
+------------------------------------------------------------
+[257/500] MU_012626_EPCH4_1353
+  MU LONG | 2026-01-26 13:53:00
+  Entry: $391.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), this setup shows clear absorption characteri...
+  Saved to ai_predictions
+------------------------------------------------------------
+[258/500] MU_012626_EPCH4_1352
+  MU LONG | 2026-01-26 13:52:30
+  Entry: $391.41 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: While H1 structure alignment provides our strongest edge (+36pp), the extremely low range% of 0.073%...
+  Saved to ai_predictions
+------------------------------------------------------------
+[259/500] TSLA_012626_EPCH2_1345
+  TSLA LONG | 2026-01-26 13:45:15
+  Entry: $438.09 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[260/500] TSLA_012626_EPCH2_1344
+  TSLA LONG | 2026-01-26 13:44:15
+  Entry: $438.07 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negative indicators stacked against it. The H1 structure is OPPOSED t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[261/500] MU_012626_EPCH4_1343
+  MU LONG | 2026-01-26 13:43:45
+  Entry: $391.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL-aligned with our LONG direction, providing our strongest backtested edge (+...
+  Saved to ai_predictions
+------------------------------------------------------------
+[262/500] TSLA_012626_EPCH2_1343
+  TSLA LONG | 2026-01-26 13:43:00
+  Entry: $438.04 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[263/500] TSLA_012626_EPCH2_1341_1
+  TSLA LONG | 2026-01-26 13:41:15
+  Entry: $438.04 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[264/500] TSLA_012626_EPCH2_1341
+  TSLA LONG | 2026-01-26 13:41:00
+  Entry: $438.17 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags that stack against our favor. H1 structure is OPPOSED (our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[265/500] TSLA_012626_EPCH2_1340_1
+  TSLA LONG | 2026-01-26 13:40:45
+  Entry: $438.06 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that stack against us. The H1 structure is OPPOSED to our LO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[266/500] TSLA_012626_EPCH2_1340
+  TSLA LONG | 2026-01-26 13:40:00
+  Entry: $438.11 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[267/500] MU_012626_EPCH4_1339
+  MU LONG | 2026-01-26 13:39:45
+  Entry: $391.52 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Multiple negative factors align against this long trade - H1 structure is opposed (our strongest -36...
+  Saved to ai_predictions
+------------------------------------------------------------
+[268/500] MU_012626_EPCH4_1338_1
+  MU LONG | 2026-01-26 13:38:45
+  Entry: $391.43 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most critical factor fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[269/500] MU_012626_EPCH4_1338
+  MU LONG | 2026-01-26 13:38:30
+  Entry: $391.39 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which significantly outw...
+  Saved to ai_predictions
+------------------------------------------------------------
+[270/500] AMD_012626_EPCH4_1337
+  AMD SHORT | 2026-01-26 13:37:00
+  Entry: $253.83 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: While H1 structure provides our strongest edge (+36pp) by being aligned with the SHORT, multiple oth...
+  Saved to ai_predictions
+------------------------------------------------------------
+[271/500] AMD_012626_EPCH4_1334
+  AMD SHORT | 2026-01-26 13:34:45
+  Entry: $254.06 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [+]
+  Actual: WIN
+  Reasoning: While H1 structure is opposed (-36pp edge working against us) and SMA spread is misaligned, this is ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[272/500] AVGO_012626_EPCH4_1319
+  AVGO LONG | 2026-01-26 13:19:15
+  Entry: $327.32 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 structure fully aligned (+36pp advantage), supported by g...
+  Saved to ai_predictions
+------------------------------------------------------------
+[273/500] AVGO_012626_EPCH4_1318
+  AVGO LONG | 2026-01-26 13:18:45
+  Entry: $327.29 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully satisfied with H1 structure aligned BULL for this LONG trade. Av...
+  Saved to ai_predictions
+------------------------------------------------------------
+[274/500] MU_012626_EPCH4_1317
+  MU LONG | 2026-01-26 13:17:30
+  Entry: $391.62 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is significant eno...
+  Saved to ai_predictions
+------------------------------------------------------------
+[275/500] TSLA_012626_EPCH2_1311
+  TSLA LONG | 2026-01-26 13:11:15
+  Entry: $438.05 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED to our LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[276/500] TSLA_012626_EPCH2_1309
+  TSLA LONG | 2026-01-26 13:09:45
+  Entry: $438.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags working against our strongest edges. H1 structure is OPPOS...
+  Saved to ai_predictions
+------------------------------------------------------------
+[277/500] TSLA_012626_EPCH2_1306
+  TSLA LONG | 2026-01-26 13:06:15
+  Entry: $438.19 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[278/500] TSLA_012626_EPCH2_1305
+  TSLA LONG | 2026-01-26 13:05:00
+  Entry: $438.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[279/500] TSLA_012626_EPCH2_1303
+  TSLA LONG | 2026-01-26 13:03:45
+  Entry: $438.07 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our st...
+  Saved to ai_predictions
+------------------------------------------------------------
+[280/500] AVGO_012626_EPCH4_1301
+  AVGO LONG | 2026-01-26 13:01:00
+  Entry: $327.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive despite other unf...
+  Saved to ai_predictions
+------------------------------------------------------------
+[281/500] TSLA_012626_EPCH2_1300_2
+  TSLA LONG | 2026-01-26 13:00:45
+  Entry: $438.09 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[282/500] AVGO_012626_EPCH4_1300_1
+  AVGO LONG | 2026-01-26 13:00:45
+  Entry: $327.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which significantly outw...
+  Saved to ai_predictions
+------------------------------------------------------------
+[283/500] AVGO_012626_EPCH4_1300
+  AVGO LONG | 2026-01-26 13:00:30
+  Entry: $327.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure just flipped BULL which provides our strongest edge (+36pp), creating alignment for...
+  Saved to ai_predictions
+------------------------------------------------------------
+[284/500] TSLA_012626_EPCH2_1300_1
+  TSLA LONG | 2026-01-26 13:00:30
+  Entry: $438.06 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override the positive expectancy. The H1 structure is O...
+  Saved to ai_predictions
+------------------------------------------------------------
+[285/500] TSLA_012626_EPCH2_1300
+  TSLA LONG | 2026-01-26 13:00:15
+  Entry: $438.06 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[286/500] AVGO_012626_EPCH4_1258
+  AVGO LONG | 2026-01-26 12:58:00
+  Entry: $327.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags that override the pre-qualification. H1 structure is OPPOS...
+  Saved to ai_predictions
+------------------------------------------------------------
+[287/500] AVGO_012626_EPCH4_1256
+  AVGO LONG | 2026-01-26 12:56:15
+  Entry: $327.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED to our LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[288/500] AVGO_012626_EPCH4_1253
+  AVGO LONG | 2026-01-26 12:53:00
+  Entry: $327.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable conditions aligning against us. The H1 structure is OPPOSED (o...
+  Saved to ai_predictions
+------------------------------------------------------------
+[289/500] AVGO_012626_EPCH4_1251
+  AVGO LONG | 2026-01-26 12:51:15
+  Entry: $327.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple significant red flags that clearly override the positive expectancy. The H1 ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[290/500] AVGO_012626_EPCH4_1247
+  AVGO LONG | 2026-01-26 12:47:15
+  Entry: $327.32 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that outweigh our baseline edge. H1 structure is OPPOSED to ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[291/500] AVGO_012626_EPCH4_1246_2
+  AVGO LONG | 2026-01-26 12:46:45
+  Entry: $327.25 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED to our LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[292/500] AVGO_012626_EPCH4_1246_1
+  AVGO LONG | 2026-01-26 12:46:30
+  Entry: $327.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that overcome our positive expectancy baseline. The H1 struc...
+  Saved to ai_predictions
+------------------------------------------------------------
+[293/500] AVGO_012626_EPCH4_1246
+  AVGO LONG | 2026-01-26 12:46:00
+  Entry: $327.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our positive expectancy baseline. The H1 struc...
+  Saved to ai_predictions
+------------------------------------------------------------
+[294/500] AVGO_012626_EPCH4_1236
+  AVGO LONG | 2026-01-26 12:36:30
+  Entry: $327.25 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that align against our strongest edges. H1 structure is OPPO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[295/500] AVGO_012626_EPCH4_1232
+  AVGO LONG | 2026-01-26 12:32:00
+  Entry: $327.25 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[296/500] AVGO_012626_EPCH4_1231
+  AVGO LONG | 2026-01-26 12:31:15
+  Entry: $327.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear red flags across all major edges. H1 structure is OPPOSED to our LONG directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[297/500] MU_012626_EPCH4_1218
+  MU LONG | 2026-01-26 12:18:15
+  Entry: $392.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure ALIGNED for the LONG direction. Rang...
+  Saved to ai_predictions
+------------------------------------------------------------
+[298/500] AVGO_012626_EPCH4_1216
+  AVGO LONG | 2026-01-26 12:16:45
+  Entry: $327.30 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The strongest edge (H1 Structure) is opposed to our LONG direction, which normally carries a -36pp p...
+  Saved to ai_predictions
+------------------------------------------------------------
+[299/500] AVGO_012626_EPCH4_1215
+  AVGO LONG | 2026-01-26 12:15:45
+  Entry: $327.31 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our LONG direction (our strongest edge shows -36pp when misaligned), ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[300/500] MU_012626_EPCH4_1215
+  MU LONG | 2026-01-26 12:15:45
+  Entry: $391.35 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this LONG trad...
+  Saved to ai_predictions
+------------------------------------------------------------
+[301/500] MU_012626_EPCH4_1214
+  MU LONG | 2026-01-26 12:14:15
+  Entry: $391.42 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this LONG trad...
+  Saved to ai_predictions
+------------------------------------------------------------
+[302/500] AVGO_012626_EPCH4_1210_2
+  AVGO LONG | 2026-01-26 12:10:30
+  Entry: $327.36 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags despite the pre-qualification. H1 structure is OPPOSED to our LO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[303/500] AVGO_012626_EPCH4_1210_1
+  AVGO LONG | 2026-01-26 12:10:15
+  Entry: $327.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While we have adequate range and favorable SMA spread alignment, the H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[304/500] AVGO_012626_EPCH4_1210
+  AVGO LONG | 2026-01-26 12:10:00
+  Entry: $327.19 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: H1 structure is OPPOSED to our LONG direction (our strongest -36pp edge working against us), combine...
+  Saved to ai_predictions
+------------------------------------------------------------
+[305/500] AVGO_012626_EPCH4_1202
+  AVGO LONG | 2026-01-26 12:02:30
+  Entry: $327.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED (BEAR...
+  Saved to ai_predictions
+------------------------------------------------------------
+[306/500] TSLA_012626_EPCH2_1149
+  TSLA LONG | 2026-01-26 11:49:00
+  Entry: $438.14 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. The H1 structure is OPPOSED (our stronge...
+  Saved to ai_predictions
+------------------------------------------------------------
+[307/500] TSLA_012626_EPCH2_1148
+  TSLA LONG | 2026-01-26 11:48:45
+  Entry: $438.03 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags working against it. H1 structure is OPPOSED to our LONG dire...
+  Saved to ai_predictions
+------------------------------------------------------------
+[308/500] AVGO_012626_EPCH3_1146
+  AVGO LONG | 2026-01-26 11:46:45
+  Entry: $327.31 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed (our strongest negative signal at -36pp), the setup shows strong ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[309/500] AVGO_012626_EPCH4_1137
+  AVGO SHORT | 2026-01-26 11:37:15
+  Entry: $325.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[310/500] AVGO_012626_EPCH4_1136
+  AVGO SHORT | 2026-01-26 11:36:15
+  Entry: $325.01 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for SHORT. Despite...
+  Saved to ai_predictions
+------------------------------------------------------------
+[311/500] AVGO_012626_EPCH4_1135
+  AVGO SHORT | 2026-01-26 11:35:45
+  Entry: $325.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure fully aligned for SHORT direction. A...
+  Saved to ai_predictions
+------------------------------------------------------------
+[312/500] AVGO_012626_EPCH4_1123
+  AVGO SHORT | 2026-01-26 11:23:30
+  Entry: $324.61 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is triggered with H1 structure perfectly aligned for this SHORT setup. Ra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[313/500] SPY_012626_EPCH2_1121
+  SPY LONG | 2026-01-26 11:21:30
+  Entry: $692.64 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite having the strongest H1 alignment edge (+36pp), this setup shows clear warning signs that ov...
+  Saved to ai_predictions
+------------------------------------------------------------
+[314/500] QQQ_012626_EPCH2_1121_1
+  QQQ LONG | 2026-01-26 11:21:30
+  Entry: $626.22 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone puts this trade well ab...
+  Saved to ai_predictions
+------------------------------------------------------------
+[315/500] QQQ_012626_EPCH2_1121
+  QQQ LONG | 2026-01-26 11:21:15
+  Entry: $625.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge, this setup shows clear absorption characteristics...
+  Saved to ai_predictions
+------------------------------------------------------------
+[316/500] DIA_012626_EPCH2_1121
+  DIA LONG | 2026-01-26 11:21:15
+  Entry: $492.15 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is substantial eno...
+  Saved to ai_predictions
+------------------------------------------------------------
+[317/500] DIA_012626_EPCH2_1120
+  DIA LONG | 2026-01-26 11:20:15
+  Entry: $492.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: While H1 structure provides our strongest edge (+36pp), the price action shows clear absorption patt...
+  Saved to ai_predictions
+------------------------------------------------------------
+[318/500] SPY_012626_EPCH2_1119
+  SPY LONG | 2026-01-26 11:19:45
+  Entry: $692.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Multiple unfavorable factors align against this setup. The average range of 0.028% is far below our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[319/500] QQQ_012626_EPCH2_1119
+  QQQ LONG | 2026-01-26 11:19:45
+  Entry: $625.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges - H1 structure is opposed to our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[320/500] DIA_012626_EPCH2_1117_2
+  DIA LONG | 2026-01-26 11:17:30
+  Entry: $492.17 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which significantly outw...
+  Saved to ai_predictions
+------------------------------------------------------------
+[321/500] DIA_012626_EPCH2_1117_1
+  DIA LONG | 2026-01-26 11:17:15
+  Entry: $492.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is the most critical factor. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[322/500] DIA_012626_EPCH2_1117
+  DIA LONG | 2026-01-26 11:17:00
+  Entry: $492.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: While H1 structure provides our strongest edge (+36pp), this setup has two critical weaknesses: extr...
+  Saved to ai_predictions
+------------------------------------------------------------
+[323/500] DIA_012626_EPCH2_1115
+  DIA LONG | 2026-01-26 11:15:45
+  Entry: $492.18 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is significant enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[324/500] DIA_012626_EPCH2_1111
+  DIA LONG | 2026-01-26 11:11:15
+  Entry: $492.18 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which alone makes this tr...
+  Saved to ai_predictions
+------------------------------------------------------------
+[325/500] AVGO_012626_EPCH4_1110
+  AVGO SHORT | 2026-01-26 11:10:15
+  Entry: $325.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure fully aligned for SHORT. While the short sco...
+  Saved to ai_predictions
+------------------------------------------------------------
+[326/500] AVGO_012626_EPCH4_1109
+  AVGO SHORT | 2026-01-26 11:09:30
+  Entry: $324.98 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully activated with H1 structure BEAR aligning with our SHORT directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[327/500] AVGO_012626_EPCH4_1108_1
+  AVGO SHORT | 2026-01-26 11:08:15
+  Entry: $325.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the primary favorable facto...
+  Saved to ai_predictions
+------------------------------------------------------------
+[328/500] AVGO_012626_EPCH4_1108
+  AVGO SHORT | 2026-01-26 11:08:00
+  Entry: $325.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully aligned with H1 structure supporting the SHORT direction. Averag...
+  Saved to ai_predictions
+------------------------------------------------------------
+[329/500] TSLA_012626_EPCH2_1107_1
+  TSLA LONG | 2026-01-26 11:07:45
+  Entry: $438.11 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that significantly reduce our edge. The H1 structure is OPPO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[330/500] TSLA_012626_EPCH2_1107
+  TSLA LONG | 2026-01-26 11:07:30
+  Entry: $438.03 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[331/500] DIA_012626_EPCH2_1107
+  DIA LONG | 2026-01-26 11:07:15
+  Entry: $492.14 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is substantial enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[332/500] AVGO_012626_EPCH4_1105
+  AVGO SHORT | 2026-01-26 11:05:00
+  Entry: $325.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is perfectly aligned BEAR for this SHORT, giving us our strongest edge (+36pp). Des...
+  Saved to ai_predictions
+------------------------------------------------------------
+[333/500] AVGO_012626_EPCH4_1104
+  AVGO SHORT | 2026-01-26 11:04:45
+  Entry: $325.13 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which significantly outweighs the op...
+  Saved to ai_predictions
+------------------------------------------------------------
+[334/500] MU_012626_EPCH4_1104
+  MU LONG | 2026-01-26 11:04:15
+  Entry: $391.36 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Multiple unfavorable factors align against this trade. The long score is very low at 2.0 average ove...
+  Saved to ai_predictions
+------------------------------------------------------------
+[335/500] AVGO_012626_EPCH4_1103_1
+  AVGO SHORT | 2026-01-26 11:03:45
+  Entry: $325.16 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is perfectly aligned with our SHORT direction, providing our strongest edge at +36p...
+  Saved to ai_predictions
+------------------------------------------------------------
+[336/500] AVGO_012626_EPCH4_1103
+  AVGO SHORT | 2026-01-26 11:03:30
+  Entry: $325.00 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is perfectly aligned BEAR for this SHORT, giving us our strongest +36pp edge which ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[337/500] AMD_012626_EPCH4_1100
+  AMD SHORT | 2026-01-26 11:00:45
+  Entry: $254.01 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 Structure +36pp) is completely opposed - we have BEAR structure for a SHORT t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[338/500] AVGO_012626_EPCH4_1054
+  AVGO SHORT | 2026-01-26 10:54:00
+  Entry: $325.21 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags against our SHORT direction. H1 structure is BULL (opposed ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[339/500] AVGO_012626_EPCH4_1053_1
+  AVGO SHORT | 2026-01-26 10:53:45
+  Entry: $325.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is BULL (opposed...
+  Saved to ai_predictions
+------------------------------------------------------------
+[340/500] AVGO_012626_EPCH4_1053
+  AVGO SHORT | 2026-01-26 10:53:00
+  Entry: $325.13 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags. H1 structure is BULL (opposed to our SHORT), creating a -...
+  Saved to ai_predictions
+------------------------------------------------------------
+[341/500] AVGO_012626_EPCH4_1052
+  AVGO SHORT | 2026-01-26 10:52:45
+  Entry: $325.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed to our SHORT direction (our strongest edge showing -36pp), the se...
+  Saved to ai_predictions
+------------------------------------------------------------
+[342/500] TSLA_012626_EPCH2_1050
+  TSLA LONG | 2026-01-26 10:50:15
+  Entry: $438.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags against our strongest edges. The H1 structure is OPPOSED to...
+  Saved to ai_predictions
+------------------------------------------------------------
+[343/500] MU_012626_EPCH4_1045
+  MU LONG | 2026-01-26 10:45:45
+  Entry: $391.49 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure aligned BULL for this LONG trade. Average ra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[344/500] SPY_012626_EPCH2_1045_1
+  SPY LONG | 2026-01-26 10:45:30
+  Entry: $692.58 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which is significant enou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[345/500] SPY_012626_EPCH2_1045
+  SPY LONG | 2026-01-26 10:45:15
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 Structure alignment provides our strongest edge at +36pp, which is significant enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[346/500] SPY_012626_EPCH2_1042_1
+  SPY LONG | 2026-01-26 10:42:30
+  Entry: $692.63 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[347/500] SPY_012626_EPCH2_1042
+  SPY LONG | 2026-01-26 10:42:00
+  Entry: $692.51 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite the strongest H1 alignment edge being present (+36pp), multiple critical factors are clearly...
+  Saved to ai_predictions
+------------------------------------------------------------
+[348/500] QQQ_012626_EPCH2_1039
+  QQQ LONG | 2026-01-26 10:39:15
+  Entry: $626.06 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which significantly outwe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[349/500] TSLA_012626_EPCH2_1038
+  TSLA LONG | 2026-01-26 10:38:15
+  Entry: $438.08 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup violates our strongest edge with H1 structure completely opposed to the LONG direction (-...
+  Saved to ai_predictions
+------------------------------------------------------------
+[350/500] TSLA_012626_EPCH2_1037
+  TSLA LONG | 2026-01-26 10:37:30
+  Entry: $438.29 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negative factors working against it. The H1 structure is OPPOSED (our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[351/500] QQQ_012626_EPCH2_1036
+  QQQ LONG | 2026-01-26 10:36:00
+  Entry: $625.94 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite the strong H1 alignment (+36pp edge), multiple critical factors are unfavorable. The average...
+  Saved to ai_predictions
+------------------------------------------------------------
+[352/500] QQQ_012626_EPCH2_1033
+  QQQ LONG | 2026-01-26 10:33:15
+  Entry: $625.95 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the primary decision factor...
+  Saved to ai_predictions
+------------------------------------------------------------
+[353/500] TSLA_012626_EPCH2_1033_1
+  TSLA LONG | 2026-01-26 10:33:15
+  Entry: $438.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposition across our strongest edges - H1 structure is BEAR (opposed to LONG...
+  Saved to ai_predictions
+------------------------------------------------------------
+[354/500] TSLA_012626_EPCH2_1033
+  TSLA LONG | 2026-01-26 10:33:00
+  Entry: $438.05 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposition across multiple key indicators. H1 structure is BEAR (opposed to L...
+  Saved to ai_predictions
+------------------------------------------------------------
+[355/500] TSLA_012626_EPCH2_1032
+  TSLA LONG | 2026-01-26 10:32:45
+  Entry: $438.04 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (BEAR f...
+  Saved to ai_predictions
+------------------------------------------------------------
+[356/500] SPY_012626_EPCH2_1032
+  SPY LONG | 2026-01-26 10:32:00
+  Entry: $692.58 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest backtested edge (H1 Structure alignment +36pp) is clearly favorable, which alone provi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[357/500] SPY_012626_EPCH2_1031_1
+  SPY LONG | 2026-01-26 10:31:30
+  Entry: $692.51 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), this setup shows concerning absorption zone ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[358/500] SPY_012626_EPCH2_1031
+  SPY LONG | 2026-01-26 10:31:00
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for LONG. While th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[359/500] SPY_012626_EPCH2_1030_1
+  SPY LONG | 2026-01-26 10:30:30
+  Entry: $692.55 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is the most important factor f...
+  Saved to ai_predictions
+------------------------------------------------------------
+[360/500] SPY_012626_EPCH2_1030
+  SPY LONG | 2026-01-26 10:30:15
+  Entry: $692.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), and the widening SMA spre...
+  Saved to ai_predictions
+------------------------------------------------------------
+[361/500] TSLA_012626_EPCH2_1029_1
+  TSLA LONG | 2026-01-26 10:29:30
+  Entry: $438.10 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: H1 structure is OPPOSED to our LONG direction (our strongest -36pp edge working against us), and the...
+  Saved to ai_predictions
+------------------------------------------------------------
+[362/500] TSLA_012626_EPCH2_1029
+  TSLA LONG | 2026-01-26 10:29:15
+  Entry: $438.05 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negative indicators. The H1 structure is OPPOSED (our strongest edge ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[363/500] TSLA_012626_EPCH2_1028
+  TSLA LONG | 2026-01-26 10:28:30
+  Entry: $438.11 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is OPPOSED to our LONG direction (BEAR vs BULL needed), which eliminates our strong...
+  Saved to ai_predictions
+------------------------------------------------------------
+[364/500] QQQ_012626_EPCH2_1026
+  QQQ LONG | 2026-01-26 10:26:15
+  Entry: $625.95 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is decisive for th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[365/500] MU_012626_EPCH4_1023_2
+  MU LONG | 2026-01-26 10:23:45
+  Entry: $391.77 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this LONG setu...
+  Saved to ai_predictions
+------------------------------------------------------------
+[366/500] MU_012626_EPCH4_1023_1
+  MU LONG | 2026-01-26 10:23:30
+  Entry: $391.44 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which more than compensa...
+  Saved to ai_predictions
+------------------------------------------------------------
+[367/500] MU_012626_EPCH4_1023
+  MU LONG | 2026-01-26 10:23:15
+  Entry: $391.35 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is decisive for taking this t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[368/500] MU_012626_EPCH4_1022
+  MU LONG | 2026-01-26 10:22:45
+  Entry: $391.46 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which significantly outwe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[369/500] QQQ_012626_EPCH1_1019
+  QQQ LONG | 2026-01-26 10:19:30
+  Entry: $626.04 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 Structure provides our strongest edge at +36pp since it's perfectly aligned (BULL for LONG). ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[370/500] SPY_012626_EPCH2_1014_1
+  SPY LONG | 2026-01-26 10:14:15
+  Entry: $692.51 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: Despite the strong H1 alignment edge, this setup is in an absorption zone with average range of only...
+  Saved to ai_predictions
+------------------------------------------------------------
+[371/500] SPY_012626_EPCH2_1014
+  SPY LONG | 2026-01-26 10:14:00
+  Entry: $692.52 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overcomes othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[372/500] SPY_012626_EPCH2_1013_1
+  SPY LONG | 2026-01-26 10:13:45
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 Structure alignment provides our strongest edge at +36pp, which significantly outweighs the n...
+  Saved to ai_predictions
+------------------------------------------------------------
+[373/500] SPY_012626_EPCH2_1013
+  SPY LONG | 2026-01-26 10:13:15
+  Entry: $692.52 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (LOW) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), which is decisive despite other unfa...
+  Saved to ai_predictions
+------------------------------------------------------------
+[374/500] MU_012626_EPCH2_1012
+  MU SHORT | 2026-01-26 10:12:00
+  Entry: $396.32 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple red flags - H1 structure is BULL (opposed to our SHORT direction, losing our...
+  Saved to ai_predictions
+------------------------------------------------------------
+[375/500] QQQ_012626_EPCH2_1012
+  QQQ SHORT | 2026-01-26 10:12:00
+  Entry: $624.71 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags that significantly reduce our win probability. The H1 structure ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[376/500] AMZN_012626_EPCH4_1011
+  AMZN LONG | 2026-01-26 10:11:15
+  Entry: $238.36 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: Despite H1 alignment providing our strongest edge (+36pp), multiple critical factors are clearly unf...
+  Saved to ai_predictions
+------------------------------------------------------------
+[377/500] MU_012626_EPCH2_1011
+  MU SHORT | 2026-01-26 10:11:00
+  Entry: $397.21 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Multiple key indicators are opposed to the SHORT direction - H1 structure is bullish (our strongest ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[378/500] QQQ_012626_EPCH2_1010
+  QQQ SHORT | 2026-01-26 10:10:15
+  Entry: $624.60 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[379/500] MU_012626_EPCH2_1010
+  MU SHORT | 2026-01-26 10:10:15
+  Entry: $397.00 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple strong negative factors: H1 structure is BULL (opposed to our SHORT direct...
+  Saved to ai_predictions
+------------------------------------------------------------
+[380/500] MU_012626_EPCH2_1006
+  MU SHORT | 2026-01-26 10:06:00
+  Entry: $396.83 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple strong negative indicators working against it. The H1 structure is BULL (opp...
+  Saved to ai_predictions
+------------------------------------------------------------
+[381/500] AMZN_012626_EPCH4_1000_2
+  AMZN LONG | 2026-01-26 10:00:45
+  Entry: $238.42 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully activated with H1 structure perfectly aligned for LONG direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[382/500] MU_012626_EPCH2_1000
+  MU SHORT | 2026-01-26 10:00:45
+  Entry: $396.13 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Multiple key indicators are unfavorable - H1 structure is bullish (opposed to our short direction, m...
+  Saved to ai_predictions
+------------------------------------------------------------
+[383/500] AMZN_012626_EPCH4_1000_1
+  AMZN LONG | 2026-01-26 10:00:30
+  Entry: $238.36 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, and the average range of...
+  Saved to ai_predictions
+------------------------------------------------------------
+[384/500] AMZN_012626_EPCH4_1000
+  AMZN LONG | 2026-01-26 10:00:15
+  Entry: $238.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly favorable with H1 structure BULL aligned with our LONG directi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[385/500] AVGO_012626_EPCH4_1000
+  AVGO SHORT | 2026-01-26 10:00:00
+  Entry: $325.08 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags against our strongest edges. H1 structure is BULL (opposed to SHOR...
+  Saved to ai_predictions
+------------------------------------------------------------
+[386/500] AMD_012626_EPCH4_1000
+  AMD SHORT | 2026-01-26 10:00:00
+  Entry: $253.93 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest backtested edge (+36pp) is fully active with H1 structure BEAR aligning with our SHORT...
+  Saved to ai_predictions
+------------------------------------------------------------
+[387/500] AVGO_012626_EPCH3_0959
+  AVGO SHORT | 2026-01-26 09:59:45
+  Entry: $325.22 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags against our SHORT position. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[388/500] AMD_012626_EPCH4_0959
+  AMD SHORT | 2026-01-26 09:59:15
+  Entry: $254.14 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for this SHORT tra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[389/500] GOOG_012626_EPCH4_0958
+  GOOG LONG | 2026-01-26 09:58:45
+  Entry: $330.92 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), and both range and SMA spread condit...
+  Saved to ai_predictions
+------------------------------------------------------------
+[390/500] SPY_012626_EPCH2_0958
+  SPY LONG | 2026-01-26 09:58:00
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly in our favor with H1 structure BULL aligned for this LONG trad...
+  Saved to ai_predictions
+------------------------------------------------------------
+[391/500] MU_012626_EPCH4_0958
+  MU LONG | 2026-01-26 09:58:00
+  Entry: $391.58 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is fully active with H1 structure BULL aligned with our LONG direction. S...
+  Saved to ai_predictions
+------------------------------------------------------------
+[392/500] GOOG_012626_EPCH3_0957
+  GOOG LONG | 2026-01-26 09:57:45
+  Entry: $330.86 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned BULL for this LONG trade. Pr...
+  Saved to ai_predictions
+------------------------------------------------------------
+[393/500] SPY_012626_EPCH2_0957_1
+  SPY LONG | 2026-01-26 09:57:45
+  Entry: $692.57 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure is perfectly aligned (BULL for LONG), giving us our strongest backtested edge of +3...
+  Saved to ai_predictions
+------------------------------------------------------------
+[394/500] MU_012626_EPCH4_0957_1
+  MU LONG | 2026-01-26 09:57:45
+  Entry: $392.00 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which alone justifies th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[395/500] MU_012626_EPCH4_0957
+  MU LONG | 2026-01-26 09:57:30
+  Entry: $391.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is firing with H1 structure perfectly aligned for this LONG trade. Despit...
+  Saved to ai_predictions
+------------------------------------------------------------
+[396/500] SPY_012626_EPCH2_0957
+  SPY LONG | 2026-01-26 09:57:00
+  Entry: $692.50 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure ALIGNED for this LONG trade. While w...
+  Saved to ai_predictions
+------------------------------------------------------------
+[397/500] META_012626_EPCH4_0956
+  META LONG | 2026-01-26 09:56:45
+  Entry: $666.49 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully present with H1 structure perfectly aligned BULL for this LONG s...
+  Saved to ai_predictions
+------------------------------------------------------------
+[398/500] META_012626_EPCH2_0956
+  META LONG | 2026-01-26 09:56:45
+  Entry: $666.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge at +36pp, which is significant eno...
+  Saved to ai_predictions
+------------------------------------------------------------
+[399/500] SPY_012626_EPCH2_0956_1
+  SPY LONG | 2026-01-26 09:56:30
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure BULL aligned with our LONG direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[400/500] SPY_012626_EPCH2_0956
+  SPY LONG | 2026-01-26 09:56:15
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure provides our strongest edge at +36pp being perfectly aligned with this LONG trade. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[401/500] AVGO_012626_EPCH4_0956
+  AVGO LONG | 2026-01-26 09:56:00
+  Entry: $327.33 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge is clearly present - H1 structure is BULL aligned with our LONG direction, provid...
+  Saved to ai_predictions
+------------------------------------------------------------
+[402/500] AMZN_012626_EPCH4_0954
+  AMZN LONG | 2026-01-26 09:54:30
+  Entry: $238.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly favorable with H1 structure ALIGNED for this LONG trade. Avera...
+  Saved to ai_predictions
+------------------------------------------------------------
+[403/500] META_012626_EPCH2_0954
+  META LONG | 2026-01-26 09:54:30
+  Entry: $666.26 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure ALIGNED for this LONG trade. While t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[404/500] META_012626_EPCH4_0954
+  META LONG | 2026-01-26 09:54:30
+  Entry: $666.26 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is firmly in our favor with H1 structure aligned BULL for this LONG trade...
+  Saved to ai_predictions
+------------------------------------------------------------
+[405/500] MU_012626_EPCH4_0954
+  MU LONG | 2026-01-26 09:54:00
+  Entry: $391.67 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 bullish structure alignment provides our strongest edge at +36pp, which alone makes this a fa...
+  Saved to ai_predictions
+------------------------------------------------------------
+[406/500] SPY_012626_EPCH2_0953
+  SPY LONG | 2026-01-26 09:53:45
+  Entry: $692.59 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned BULL for this LONG trade. Wh...
+  Saved to ai_predictions
+------------------------------------------------------------
+[407/500] MU_012626_EPCH4_0953
+  MU LONG | 2026-01-26 09:53:30
+  Entry: $392.00 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure aligned BULL for this LONG trade. De...
+  Saved to ai_predictions
+------------------------------------------------------------
+[408/500] SPY_012626_EPCH2_0952
+  SPY LONG | 2026-01-26 09:52:45
+  Entry: $692.57 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure fully aligned for this LONG trade. W...
+  Saved to ai_predictions
+------------------------------------------------------------
+[409/500] QQQ_012626_EPCH2_0951_1
+  QQQ SHORT | 2026-01-26 09:51:45
+  Entry: $624.75 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags - H1 structure is BULL (opposed to our SHORT), we're in abs...
+  Saved to ai_predictions
+------------------------------------------------------------
+[410/500] QQQ_012626_EPCH2_0951
+  QQQ SHORT | 2026-01-26 09:51:30
+  Entry: $624.66 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our baseline edge. H1 structure is OPPOSED (ou...
+  Saved to ai_predictions
+------------------------------------------------------------
+[411/500] AVGO_012626_EPCH4_0951
+  AVGO LONG | 2026-01-26 09:51:30
+  Entry: $327.62 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: ** This setup hits our strongest edge with H1 structure perfectly aligned for LONG (+36pp advantage)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[412/500] META_012626_EPCH2_0951_1
+  META LONG | 2026-01-26 09:51:15
+  Entry: $666.48 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The most powerful edge (+36pp) is strongly in our favor with H1 structure aligned BULL for this LONG...
+  Saved to ai_predictions
+------------------------------------------------------------
+[413/500] META_012626_EPCH4_0951_1
+  META LONG | 2026-01-26 09:51:15
+  Entry: $666.48 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 Structure alignment) is clearly favorable, providing our most significant +36...
+  Saved to ai_predictions
+------------------------------------------------------------
+[414/500] AMZN_012626_EPCH4_0951_1
+  AMZN LONG | 2026-01-26 09:51:15
+  Entry: $238.57 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 Structure alignment provides our strongest edge (+36pp), which is the most critical factor fo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[415/500] META_012626_EPCH2_0951
+  META LONG | 2026-01-26 09:51:00
+  Entry: $666.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure is perfectly aligned (BULL for LONG), giving us our strongest +36pp edge. Range is ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[416/500] META_012626_EPCH4_0951
+  META LONG | 2026-01-26 09:51:00
+  Entry: $666.20 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: H1 structure alignment provides our strongest edge (+36pp), and the setup benefits from good range m...
+  Saved to ai_predictions
+------------------------------------------------------------
+[417/500] AMZN_012626_EPCH4_0951
+  AMZN LONG | 2026-01-26 09:51:00
+  Entry: $238.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is present with H1 structure aligned BULL for this LONG trade. Average ra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[418/500] QQQ_012626_EPCH2_0950
+  QQQ SHORT | 2026-01-26 09:50:30
+  Entry: $624.63 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[419/500] AVGO_012626_EPCH4_0950_1
+  AVGO LONG | 2026-01-26 09:50:15
+  Entry: $327.39 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup has our strongest statistical edge with H1 structure fully aligned for a +36pp boost to w...
+  Saved to ai_predictions
+------------------------------------------------------------
+[420/500] AVGO_012626_EPCH4_0950
+  AVGO LONG | 2026-01-26 09:50:00
+  Entry: $327.27 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 structure ALIGNED (+36pp improvement), supported by good ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[421/500] TSLA_012626_EPCH2_0950
+  TSLA LONG | 2026-01-26 09:50:00
+  Entry: $438.27 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple unfavorable factors aligned against it. H1 structure is OPPOSED to our LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[422/500] GOOG_012626_EPCH4_0949_1
+  GOOG SHORT | 2026-01-26 09:49:45
+  Entry: $329.45 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The strongest edge (H1 Structure) is clearly opposed with BULL structure against our SHORT direction...
+  Saved to ai_predictions
+------------------------------------------------------------
+[423/500] GOOG_012626_EPCH4_0949
+  GOOG SHORT | 2026-01-26 09:49:30
+  Entry: $329.46 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Multiple strong negative factors align against this SHORT setup. H1 structure is BULL (opposed to SH...
+  Saved to ai_predictions
+------------------------------------------------------------
+[424/500] QQQ_012626_EPCH2_0949
+  QQQ SHORT | 2026-01-26 09:49:30
+  Entry: $624.60 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[425/500] QQQ_012626_EPCH2_0948_1
+  QQQ SHORT | 2026-01-26 09:48:30
+  Entry: $624.71 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong negative factors aligned against it. The H1 structure is BULL (oppose...
+  Saved to ai_predictions
+------------------------------------------------------------
+[426/500] QQQ_012626_EPCH2_0948
+  QQQ SHORT | 2026-01-26 09:48:15
+  Entry: $624.71 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 bullish structure directly opposes our SHORT (our stron...
+  Saved to ai_predictions
+------------------------------------------------------------
+[427/500] MU_012626_EPCH4_0948
+  MU LONG | 2026-01-26 09:48:00
+  Entry: $391.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 BULL structure alignment provides our strongest edge (+36pp), which alone makes this trade fa...
+  Saved to ai_predictions
+------------------------------------------------------------
+[428/500] AVGO_012626_EPCH4_0947_1
+  AVGO LONG | 2026-01-26 09:47:30
+  Entry: $327.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned (+36pp advantage). The consis...
+  Saved to ai_predictions
+------------------------------------------------------------
+[429/500] QQQ_012626_EPCH2_0947
+  QQQ SHORT | 2026-01-26 09:47:15
+  Entry: $624.73 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is BULL (opposed...
+  Saved to ai_predictions
+------------------------------------------------------------
+[430/500] AVGO_012626_EPCH4_0947
+  AVGO LONG | 2026-01-26 09:47:15
+  Entry: $327.18 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 structure fully aligned (+36pp boost), supported by good ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[431/500] AMZN_012626_EPCH4_0947
+  AMZN LONG | 2026-01-26 09:47:00
+  Entry: $238.46 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (H1 Structure alignment) is firmly in our favor with +36pp improvement, which is ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[432/500] GOOG_012626_EPCH4_0947
+  GOOG SHORT | 2026-01-26 09:47:00
+  Entry: $329.44 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable conditions converging. H1 structure is OPPOSED (our strongest ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[433/500] SPY_012626_EPCH2_0946
+  SPY LONG | 2026-01-26 09:46:45
+  Entry: $692.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is firmly in our favor with H1 structure ALIGNED BULL for this LONG setup...
+  Saved to ai_predictions
+------------------------------------------------------------
+[434/500] AVGO_012626_EPCH4_0946
+  AVGO LONG | 2026-01-26 09:46:45
+  Entry: $327.56 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup hits our strongest edge with H1 structure fully aligned for LONG (+36pp advantage). The a...
+  Saved to ai_predictions
+------------------------------------------------------------
+[435/500] SPY_012626_EPCH1_0946
+  SPY LONG | 2026-01-26 09:46:30
+  Entry: $692.48 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure is BULL-aligned with our LONG direction, providing our strongest edge (+36pp improv...
+  Saved to ai_predictions
+------------------------------------------------------------
+[436/500] AMD_012626_EPCH4_0945_2
+  AMD SHORT | 2026-01-26 09:45:45
+  Entry: $253.92 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge (+36pp), giving this setup solid potential de...
+  Saved to ai_predictions
+------------------------------------------------------------
+[437/500] AMD_012626_EPCH4_0945_1
+  AMD SHORT | 2026-01-26 09:45:15
+  Entry: $253.75 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for SHORT directio...
+  Saved to ai_predictions
+------------------------------------------------------------
+[438/500] AMD_012626_EPCH4_0945
+  AMD SHORT | 2026-01-26 09:45:00
+  Entry: $254.13 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully present with H1 structure perfectly aligned for this SHORT setup...
+  Saved to ai_predictions
+------------------------------------------------------------
+[439/500] META_012626_EPCH2_0945
+  META LONG | 2026-01-26 09:45:00
+  Entry: $666.76 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure ALIGNED for this LONG trade. While t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[440/500] META_012626_EPCH4_0945
+  META LONG | 2026-01-26 09:45:00
+  Entry: $666.76 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is fully engaged with H1 structure perfectly aligned for LONG direction. ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[441/500] AVGO_012626_EPCH4_0945
+  AVGO LONG | 2026-01-26 09:45:00
+  Entry: $327.68 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup has our strongest backtested edge with H1 structure fully aligned (+36pp improvement). Th...
+  Saved to ai_predictions
+------------------------------------------------------------
+[442/500] META_012626_EPCH4_0944
+  META LONG | 2026-01-26 09:44:45
+  Entry: $666.38 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), and we have good range/mo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[443/500] META_012626_EPCH2_0944
+  META LONG | 2026-01-26 09:44:45
+  Entry: $666.38 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which alone makes this trade mathem...
+  Saved to ai_predictions
+------------------------------------------------------------
+[444/500] QQQ_012626_EPCH2_0944
+  QQQ SHORT | 2026-01-26 09:44:30
+  Entry: $624.72 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is BULL (opposed t...
+  Saved to ai_predictions
+------------------------------------------------------------
+[445/500] AVGO_012626_EPCH3_0944
+  AVGO LONG | 2026-01-26 09:44:15
+  Entry: $327.30 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: This setup exhibits our strongest edge with H1 structure perfectly aligned (+36pp advantage), which ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[446/500] TSLA_012626_EPCH2_0944
+  TSLA LONG | 2026-01-26 09:44:00
+  Entry: $438.24 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple unfavorable factors stacked against it. The H1 structure is OPPOSED to our L...
+  Saved to ai_predictions
+------------------------------------------------------------
+[447/500] AMD_012626_EPCH4_0942
+  AMD SHORT | 2026-01-26 09:42:00
+  Entry: $253.72 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp boost). The ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[448/500] META_012626_EPCH4_0942
+  META LONG | 2026-01-26 09:42:00
+  Entry: $666.10 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 bullish structure alignment provides our strongest edge at +36pp, which is substantial enough...
+  Saved to ai_predictions
+------------------------------------------------------------
+[449/500] QQQ_012626_EPCH2_0942
+  QQQ SHORT | 2026-01-26 09:42:00
+  Entry: $624.32 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has clear red flags across all major edges. H1 structure is BULL (opposed to SHORT), crea...
+  Saved to ai_predictions
+------------------------------------------------------------
+[450/500] META_012626_EPCH2_0942
+  META LONG | 2026-01-26 09:42:00
+  Entry: $666.10 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is present with H1 structure aligned bullish for this LONG trade. Good ra...
+  Saved to ai_predictions
+------------------------------------------------------------
+[451/500] MU_012626_EPCH4_0941
+  MU SHORT | 2026-01-26 09:41:45
+  Entry: $387.03 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed (our strongest edge showing unfavorable), the setup has solid sup...
+  Saved to ai_predictions
+------------------------------------------------------------
+[452/500] AMD_012626_EPCH4_0941_1
+  AMD SHORT | 2026-01-26 09:41:45
+  Entry: $254.05 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp improvement)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[453/500] GOOG_012626_EPCH4_0941
+  GOOG SHORT | 2026-01-26 09:41:30
+  Entry: $329.41 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags against our SHORT direction. H1 structure is BULL (opposed ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[454/500] AMD_012626_EPCH4_0941
+  AMD SHORT | 2026-01-26 09:41:15
+  Entry: $253.82 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup has our strongest edge with H1 structure fully aligned (+36pp improvement). The consisten...
+  Saved to ai_predictions
+------------------------------------------------------------
+[455/500] META_012626_EPCH4_0940
+  META LONG | 2026-01-26 09:40:30
+  Entry: $666.61 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is present with H1 structure aligned bullish for this LONG trade. The ave...
+  Saved to ai_predictions
+------------------------------------------------------------
+[456/500] META_012626_EPCH2_0940
+  META LONG | 2026-01-26 09:40:30
+  Entry: $666.61 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is present with H1 structure fully aligned BULL for this LONG trade. Rang...
+  Saved to ai_predictions
+------------------------------------------------------------
+[457/500] META_012626_EPCH1_0938
+  META LONG | 2026-01-26 09:38:45
+  Entry: $666.30 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, creating a compelling setup despite...
+  Saved to ai_predictions
+------------------------------------------------------------
+[458/500] META_012626_EPCH3_0938
+  META LONG | 2026-01-26 09:38:45
+  Entry: $666.30 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is highly significant for thi...
+  Saved to ai_predictions
+------------------------------------------------------------
+[459/500] AMD_012626_EPCH4_0938
+  AMD SHORT | 2026-01-26 09:38:30
+  Entry: $253.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup shows excellent alignment with our strongest edge - H1 structure is BEAR which gives us a...
+  Saved to ai_predictions
+------------------------------------------------------------
+[460/500] MU_012626_EPCH3_0938
+  MU SHORT | 2026-01-26 09:38:30
+  Entry: $385.78 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed (our strongest edge working against us), multiple supporting fact...
+  Saved to ai_predictions
+------------------------------------------------------------
+[461/500] AMD_012626_EPCH4_0937_1
+  AMD SHORT | 2026-01-26 09:37:15
+  Entry: $254.08 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp improvement)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[462/500] AVGO_012626_EPCH4_0937
+  AVGO SHORT | 2026-01-26 09:37:00
+  Entry: $324.68 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has ALL major indicators working against it - H1 structure is BULL (opposed to our SHORT)...
+  Saved to ai_predictions
+------------------------------------------------------------
+[463/500] AMD_012626_EPCH4_0937
+  AMD SHORT | 2026-01-26 09:37:00
+  Entry: $254.06 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp edge). All s...
+  Saved to ai_predictions
+------------------------------------------------------------
+[464/500] AMD_012626_EPCH4_0936
+  AMD SHORT | 2026-01-26 09:36:45
+  Entry: $254.02 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp advantage). ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[465/500] AVGO_012626_EPCH4_0936_1
+  AVGO SHORT | 2026-01-26 09:36:45
+  Entry: $325.23 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposition across all major indicators - H1 structure is BULL (opposed to SHO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[466/500] GOOG_012626_EPCH4_0936
+  GOOG SHORT | 2026-01-26 09:36:30
+  Entry: $329.22 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL (opposed to our SHORT direction), which removes our strongest +36pp edge an...
+  Saved to ai_predictions
+------------------------------------------------------------
+[467/500] MU_012626_EPCH3_0936
+  MU LONG | 2026-01-26 09:36:15
+  Entry: $391.38 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL and aligned with our LONG direction, giving us our strongest edge at +36pp ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[468/500] AVGO_012626_EPCH4_0936
+  AVGO SHORT | 2026-01-26 09:36:15
+  Entry: $325.08 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative edge working against us - H1 structure is BULL (opposed to SHO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[469/500] META_012626_EPCH2_0936
+  META SHORT | 2026-01-26 09:36:00
+  Entry: $662.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable conditions - H1 structure is BULL (opposed to our SHORT direct...
+  Saved to ai_predictions
+------------------------------------------------------------
+[470/500] META_012626_EPCH4_0936
+  META SHORT | 2026-01-26 09:36:00
+  Entry: $662.85 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: While this is a pre-qualified setup, we have our strongest edge (H1 structure +36pp) working against...
+  Saved to ai_predictions
+------------------------------------------------------------
+[471/500] GOOG_012626_EPCH4_0935
+  GOOG SHORT | 2026-01-26 09:35:30
+  Entry: $329.45 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows clear opposing signals on our strongest edges. H1 structure is BULL (opposed to SHO...
+  Saved to ai_predictions
+------------------------------------------------------------
+[472/500] SPY_012626_EPCH2_0935
+  SPY SHORT | 2026-01-26 09:35:15
+  Entry: $691.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is BULL (opposed...
+  Saved to ai_predictions
+------------------------------------------------------------
+[473/500] META_012626_EPCH4_0934
+  META SHORT | 2026-01-26 09:34:15
+  Entry: $662.92 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple strong red flags against our backtested edges. H1 structure is BULL (opposed...
+  Saved to ai_predictions
+------------------------------------------------------------
+[474/500] META_012626_EPCH2_0934
+  META SHORT | 2026-01-26 09:34:15
+  Entry: $662.92 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is BULL (opposed to SHORT direction), elimina...
+  Saved to ai_predictions
+------------------------------------------------------------
+[475/500] AMD_012626_EPCH4_0933
+  AMD SHORT | 2026-01-26 09:33:45
+  Entry: $253.75 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp boost). The ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[476/500] GOOG_012626_EPCH4_0933
+  GOOG SHORT | 2026-01-26 09:33:15
+  Entry: $329.40 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has our strongest negative indicator - H1 structure is BULL (opposed to SHORT direction),...
+  Saved to ai_predictions
+------------------------------------------------------------
+[477/500] AMD_012626_EPCH3_0933
+  AMD SHORT | 2026-01-26 09:33:15
+  Entry: $253.94 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure perfectly aligned for SHORT (+36pp advantage). ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[478/500] MU_012626_EPCH4_0933
+  MU SHORT | 2026-01-26 09:33:15
+  Entry: $386.52 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: Despite H1 structure being opposed (our strongest edge working against us), the massive sell-off fro...
+  Saved to ai_predictions
+------------------------------------------------------------
+[479/500] DIA_012626_EPCH2_0933
+  DIA LONG | 2026-01-26 09:33:00
+  Entry: $492.22 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, and the average range of 0.136% exc...
+  Saved to ai_predictions
+------------------------------------------------------------
+[480/500] MU_012626_EPCH3_0932
+  MU SHORT | 2026-01-26 09:32:45
+  Entry: $387.21 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: The H1 structure is BULL which is directly opposed to our SHORT direction, creating our strongest ne...
+  Saved to ai_predictions
+------------------------------------------------------------
+[481/500] META_012626_EPCH4_0931
+  META LONG | 2026-01-26 09:31:30
+  Entry: $666.49 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for LONG. Despite ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[482/500] META_012626_EPCH2_0931
+  META LONG | 2026-01-26 09:31:30
+  Entry: $666.49 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is present with H1 structure aligned bullish for this LONG trade. Range% ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[483/500] ORCL_012626_EPCH2_0931
+  ORCL LONG | 2026-01-26 09:31:15
+  Entry: $179.14 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure fully aligned for LONG (+36pp improvement), sup...
+  Saved to ai_predictions
+------------------------------------------------------------
+[484/500] ORCL_012626_EPCH4_0931
+  ORCL LONG | 2026-01-26 09:31:15
+  Entry: $179.14 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest edge with H1 structure fully aligned (+36pp boost). The average range ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[485/500] QQQ_012626_EPCH4_0931
+  QQQ LONG | 2026-01-26 09:31:00
+  Entry: $622.73 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [-]
+  Actual: WIN
+  Reasoning: Despite H1 structure alignment providing our strongest edge (+36pp), this setup shows clear absorpti...
+  Saved to ai_predictions
+------------------------------------------------------------
+[486/500] DIA_012626_EPCH1_0931
+  DIA LONG | 2026-01-26 09:31:00
+  Entry: $492.73 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure fully aligned bullish for this LONG ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[487/500] AMD_012626_EPCH4_0930
+  AMD LONG | 2026-01-26 09:30:45
+  Entry: $256.46 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple unfavorable factors aligned against us. H1 structure is OPPOSED to our LON...
+  Saved to ai_predictions
+------------------------------------------------------------
+[488/500] ORCL_012626_EPCH4_0930
+  ORCL LONG | 2026-01-26 09:30:00
+  Entry: $179.40 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup hits our strongest backtested edge with H1 structure perfectly aligned for LONG (+36pp ad...
+  Saved to ai_predictions
+------------------------------------------------------------
+[489/500] ORCL_012626_EPCH2_0930
+  ORCL LONG | 2026-01-26 09:30:00
+  Entry: $179.40 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (HIGH) [+]
+  Actual: WIN
+  Reasoning: This setup has our strongest edge fully aligned - H1 bullish structure gives us +36pp advantage on a...
+  Saved to ai_predictions
+------------------------------------------------------------
+[490/500] META_012626_EPCH3_0930
+  META LONG | 2026-01-26 09:30:00
+  Entry: $669.38 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is significant enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[491/500] META_012626_EPCH1_0930
+  META LONG | 2026-01-26 09:30:00
+  Entry: $669.38 | Model: EPCH1 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is substantial and overrides ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[492/500] AMD_012226_EPCH2_1526
+  AMD LONG | 2026-01-22 15:26:30
+  Entry: $253.20 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), which is the primary fact...
+  Saved to ai_predictions
+------------------------------------------------------------
+[493/500] GOOGL_012226_EPCH4_1524
+  GOOGL LONG | 2026-01-22 15:24:00
+  Entry: $330.59 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our positive expectancy baseline. The H1 struc...
+  Saved to ai_predictions
+------------------------------------------------------------
+[494/500] AMD_012226_EPCH2_1523
+  AMD LONG | 2026-01-22 15:23:30
+  Entry: $253.22 | Model: EPCH2 | Zone: PRIMARY
+  Decision: TRADE (MEDIUM) [+]
+  Actual: WIN
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is enormous and compensates f...
+  Saved to ai_predictions
+------------------------------------------------------------
+[495/500] GOOGL_012226_EPCH4_1515
+  GOOGL LONG | 2026-01-22 15:15:00
+  Entry: $330.68 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite the powerful H1 alignment edge (+36pp), multiple critical factors are clearly unfavorable - ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[496/500] GOOGL_012226_EPCH4_1512
+  GOOGL LONG | 2026-01-22 15:12:00
+  Entry: $330.58 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup exhibits multiple clear red flags that override the pre-qualification. The H1 structure i...
+  Saved to ai_predictions
+------------------------------------------------------------
+[497/500] GOOGL_012226_EPCH4_1511
+  GOOGL LONG | 2026-01-22 15:11:30
+  Entry: $330.59 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 structure alignment providing our strongest edge, this setup shows multiple clear red fla...
+  Saved to ai_predictions
+------------------------------------------------------------
+[498/500] GOOGL_012226_EPCH4_1508
+  GOOGL LONG | 2026-01-22 15:08:00
+  Entry: $330.58 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is significant enough to over...
+  Saved to ai_predictions
+------------------------------------------------------------
+[499/500] GOOGL_012226_EPCH4_1507_1
+  GOOGL LONG | 2026-01-22 15:07:45
+  Entry: $330.60 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (LOW) [-]
+  Actual: LOSS
+  Reasoning: Despite multiple unfavorable supporting indicators (low long score, minimal range suggesting absorpt...
+  Saved to ai_predictions
+------------------------------------------------------------
+[500/500] GOOGL_012226_EPCH4_1507
+  GOOGL LONG | 2026-01-22 15:07:15
+  Entry: $330.65 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite having our strongest edge (H1 alignment +36pp), this setup shows multiple red flags that ove...
+  Saved to ai_predictions
+------------------------------------------------------------
+
+================================================================================
+SUMMARY
+================================================================================
+
+Trades Analyzed: 500
+Errors: 0
+Actual Win Rate: 149/500 (29.8%)
+
+PASS 2 PERFORMANCE:
+  TRADE Calls: 239 (47.8%)
+  Correct Predictions: 320
+  Accuracy: 64.0%
+
+API USAGE:
+  Input tokens: 1,025,800
+  Output tokens: 100,884
+  Estimated cost: $4.5907
+
+================================================================================
+Analysis Started:  2026-01-28 17:44:19
+Analysis Finished: 2026-01-28 18:53:31
+Duration: 1:09:12.162559
+================================================================================
+END OF REPORT
+================================================================================

@@ -1,0 +1,29 @@
+{
+  "export_timestamp": "2026-02-01T07:29:33.587404",
+  "data_source": "trades_m5_r_win",
+  "report_date": "2026-01-30",
+  "last_30_days": {
+    "trades": 4800,
+    "win_rate": 53.7,
+    "total_r": 3579.38,
+    "avg_r": 0.746,
+    "std_r": 1.886
+  },
+  "last_7_days": {
+    "trades": 2307,
+    "win_rate": 51.1,
+    "total_r": 1239.9,
+    "avg_r": 0.537,
+    "std_r": 1.713
+  },
+  "canonical_win_condition": {
+    "table": "trades_m5_r_win",
+    "stop_type": "m5_atr",
+    "atr_period": 14,
+    "atr_multiplier": 1.1,
+    "trigger": "close",
+    "win_field": "is_winner",
+    "outcome_field": "outcome"
+  },
+  "validated_edges_count": 3
+}

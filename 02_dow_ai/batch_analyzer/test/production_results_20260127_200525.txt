@@ -1,0 +1,221 @@
+================================================================================
+DOW AI v3.0 PRODUCTION BATCH ANALYZER
+================================================================================
+Analysis Started: 2026-01-27 20:05:25
+Prompt Version: v3.0 (Pass 2 Only)
+Model: claude-sonnet-4-20250514
+
+MODE: PRODUCTION (Single-pass with backtested context)
+  - Uses Pass 2 logic (includes indicator_edges, zone_performance)
+  - Stores results in ai_predictions table
+================================================================================
+
+FILTERS:
+  Limit: 20
+  Ticker: ALL
+  Direction: ALL
+  Model: ALL
+  Date Range: ANY to ANY
+  Reprocess: False
+
+Already in ai_predictions: 0
+Total trades in database: 4135
+
+Loading trades...
+Loaded 20 trades to process (after filtering)
+
+Loading AI context...
+  Loaded: indicator_edges, zone_performance, model_stats
+
+Initializing production analyzer...
+
+================================================================================
+PROCESSING TRADES
+================================================================================
+
+[1/20] AMD_012726_EPCH4_1526
+  AMD LONG | 2026-01-27 15:26:45
+  Entry: $252.05 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 structure alignment providing our strongest edge (+36pp), we're in an absorption zone wit...
+  Saved to ai_predictions
+------------------------------------------------------------
+[2/20] META_012726_EPCH4_1526
+  META LONG | 2026-01-27 15:26:30
+  Entry: $673.85 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags stacked against it. The H1 structure is OPPOSED to our LONG direct...
+  Saved to ai_predictions
+------------------------------------------------------------
+[3/20] META_012726_EPCH2_1526
+  META LONG | 2026-01-27 15:26:30
+  Entry: $673.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[4/20] AMD_012726_EPCH4_1524
+  AMD LONG | 2026-01-27 15:24:15
+  Entry: $252.03 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure fully aligned for LONG. While the lo...
+  Saved to ai_predictions
+------------------------------------------------------------
+[5/20] DIA_012726_EPCH4_1524
+  DIA LONG | 2026-01-27 15:24:15
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple strong negative factors aligned against it. H1 structure is OPPOSED (our str...
+  Saved to ai_predictions
+------------------------------------------------------------
+[6/20] AMD_012726_EPCH4_1523
+  AMD LONG | 2026-01-27 15:23:00
+  Entry: $251.98 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 structure alignment providing our strongest edge (+36pp), the average range of 0.11% puts...
+  Saved to ai_predictions
+------------------------------------------------------------
+[7/20] AMD_012726_EPCH4_1521
+  AMD LONG | 2026-01-27 15:21:45
+  Entry: $252.04 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is the most critical factor f...
+  Saved to ai_predictions
+------------------------------------------------------------
+[8/20] AMD_012726_EPCH3_1520
+  AMD LONG | 2026-01-27 15:20:15
+  Entry: $252.13 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and overrides othe...
+  Saved to ai_predictions
+------------------------------------------------------------
+[9/20] META_012726_EPCH4_1518_1
+  META LONG | 2026-01-27 15:18:45
+  Entry: $673.90 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear unfavorable factors. H1 structure is OPPOSED to our LONG direction (st...
+  Saved to ai_predictions
+------------------------------------------------------------
+[10/20] META_012726_EPCH2_1518_1
+  META LONG | 2026-01-27 15:18:45
+  Entry: $673.90 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED (our strongest -36pp edge working ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[11/20] META_012726_EPCH2_1518
+  META LONG | 2026-01-27 15:18:00
+  Entry: $673.93 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags against our strongest edges. H1 structure is OPPOSED to our LONG...
+  Saved to ai_predictions
+------------------------------------------------------------
+[12/20] META_012726_EPCH4_1518
+  META LONG | 2026-01-27 15:18:00
+  Entry: $673.93 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our baseline edge. H1 structure is OPPOSED to ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[13/20] META_012726_EPCH1_1517
+  META LONG | 2026-01-27 15:17:45
+  Entry: $673.94 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple significant red flags that clearly override the positive expectancy. H1 stru...
+  Saved to ai_predictions
+------------------------------------------------------------
+[14/20] META_012726_EPCH3_1517
+  META LONG | 2026-01-27 15:17:45
+  Entry: $673.94 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our default trade bias. The H1 structure is OP...
+  Saved to ai_predictions
+------------------------------------------------------------
+[15/20] DIA_012726_EPCH4_1509
+  DIA LONG | 2026-01-27 15:09:15
+  Entry: $489.89 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. The H1 structure is OPPOSED to ...
+  Saved to ai_predictions
+------------------------------------------------------------
+[16/20] DIA_012726_EPCH4_1503
+  DIA LONG | 2026-01-27 15:03:00
+  Entry: $489.89 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple clear red flags that override the pre-qualification. H1 structure is OPPOS...
+  Saved to ai_predictions
+------------------------------------------------------------
+[17/20] DIA_012726_EPCH4_1502
+  DIA LONG | 2026-01-27 15:02:30
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED to our LONG direction (eliminating...
+  Saved to ai_predictions
+------------------------------------------------------------
+[18/20] DIA_012726_EPCH4_1501
+  DIA LONG | 2026-01-27 15:01:30
+  Entry: $489.88 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags that override the positive expectancy. The H1 structure is O...
+  Saved to ai_predictions
+------------------------------------------------------------
+[19/20] AMD_012726_EPCH4_1501_1
+  AMD SHORT | 2026-01-27 15:01:15
+  Entry: $250.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple significant red flags that clearly override our positive expectancy baseline...
+  Saved to ai_predictions
+------------------------------------------------------------
+[20/20] AMD_012726_EPCH4_1501
+  AMD SHORT | 2026-01-27 15:01:00
+  Entry: $250.50 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our default trade bias. The H1 structure is OP...
+  Saved to ai_predictions
+------------------------------------------------------------
+
+================================================================================
+SUMMARY
+================================================================================
+
+Trades Analyzed: 20
+Errors: 0
+Actual Win Rate: 5/20 (25.0%)
+
+PASS 2 PERFORMANCE:
+  TRADE Calls: 3 (15.0%)
+  Correct Predictions: 12
+  Accuracy: 60.0%
+
+API USAGE:
+  Input tokens: 41,035
+  Output tokens: 3,939
+  Estimated cost: $0.1822
+
+================================================================================
+Analysis Started:  2026-01-27 20:05:25
+Analysis Finished: 2026-01-27 20:08:03
+Duration: 0:02:38.188678
+================================================================================
+END OF REPORT
+================================================================================

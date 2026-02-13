@@ -1,0 +1,492 @@
+[
+  {
+    "timestamp": "2026-02-01T08:41:37.662240",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Absorption Zone Skip' degraded: -17.0pp \u2192 +7.1pp",
+    "details": {
+      "edge": "Absorption Zone Skip",
+      "status": "DEGRADED",
+      "stored_effect_pp": -17.0,
+      "current_effect_pp": 7.1,
+      "group_win_rate": 60.7,
+      "baseline_win_rate": 53.7,
+      "group_trades": 275,
+      "baseline_trades": 4800,
+      "chi2": 4.9404117122254,
+      "p_value": 0.026235786642072774,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:41:37.663241",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Volume Delta Paradox' degraded: +13.0pp \u2192 -2.0pp",
+    "details": {
+      "edge": "Volume Delta Paradox",
+      "status": "DEGRADED",
+      "stored_effect_pp": 13.0,
+      "current_effect_pp": -2.0,
+      "group_win_rate": 51.7,
+      "baseline_win_rate": 53.7,
+      "group_trades": 2139,
+      "baseline_trades": 4800,
+      "chi2": 2.3130406763398823,
+      "p_value": 0.12829286644210472,
+      "confidence": "HIGH",
+      "is_significant": "False",
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:42:25.304416",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Absorption Zone Skip' degraded: -17.0pp -> +7.1pp",
+    "details": {
+      "edge": "Absorption Zone Skip",
+      "status": "DEGRADED",
+      "stored_effect_pp": -17.0,
+      "current_effect_pp": 7.1,
+      "group_win_rate": 60.7,
+      "baseline_win_rate": 53.7,
+      "group_trades": 275,
+      "baseline_trades": 4800,
+      "chi2": 4.9404117122254,
+      "p_value": 0.026235786642072774,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:42:25.305421",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Volume Delta Paradox' degraded: +13.0pp -> -2.0pp",
+    "details": {
+      "edge": "Volume Delta Paradox",
+      "status": "DEGRADED",
+      "stored_effect_pp": 13.0,
+      "current_effect_pp": -2.0,
+      "group_win_rate": 51.7,
+      "baseline_win_rate": 53.7,
+      "group_trades": 2139,
+      "baseline_trades": 4800,
+      "chi2": 2.3130406763398823,
+      "p_value": 0.12829286644210472,
+      "confidence": "HIGH",
+      "is_significant": "False",
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.227024",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H001: health_tier=STRONG (8-10) (positive edge) (+18.7pp, p=0.0160)",
+    "details": {
+      "hypothesis_id": "H001",
+      "indicator": "health_tier",
+      "condition": "STRONG (8-10)",
+      "description": "Health score tier (STRONG/MODERATE/WEAK/CRITICAL)",
+      "effect_pp": 18.7,
+      "win_rate": 72.3,
+      "baseline_wr": 53.7,
+      "trades": 47,
+      "wins": 34,
+      "p_value": 0.016,
+      "confidence": "MEDIUM",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.228024",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H002: health_tier=MODERATE (6-7) (positive edge) (+9.5pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H002",
+      "indicator": "health_tier",
+      "condition": "MODERATE (6-7)",
+      "description": "Health score tier (STRONG/MODERATE/WEAK/CRITICAL)",
+      "effect_pp": 9.5,
+      "win_rate": 63.2,
+      "baseline_wr": 53.7,
+      "trades": 996,
+      "wins": 629,
+      "p_value": 0.0,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.229528",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H003: m15_structure=BEAR (negative edge) (-8.6pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H003",
+      "indicator": "m15_structure",
+      "condition": "BEAR",
+      "description": "M15 timeframe market structure",
+      "effect_pp": -8.6,
+      "win_rate": 45.1,
+      "baseline_wr": 53.7,
+      "trades": 1553,
+      "wins": 700,
+      "p_value": 0.0,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.230532",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H004: stop_distance_bucket=TIGHT (<0.12%) (positive edge) (+7.1pp, p=0.0262)",
+    "details": {
+      "hypothesis_id": "H004",
+      "indicator": "stop_distance_bucket",
+      "condition": "TIGHT (<0.12%)",
+      "description": "Stop distance as % of price (proxy for zone tightness)",
+      "effect_pp": 7.1,
+      "win_rate": 60.7,
+      "baseline_wr": 53.7,
+      "trades": 275,
+      "wins": 167,
+      "p_value": 0.0262,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.232532",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H005: m15_structure=BULL (positive edge) (+5.9pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H005",
+      "indicator": "m15_structure",
+      "condition": "BULL",
+      "description": "M15 timeframe market structure",
+      "effect_pp": 5.9,
+      "win_rate": 59.6,
+      "baseline_wr": 53.7,
+      "trades": 1574,
+      "wins": 938,
+      "p_value": 0.0,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.233532",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H006: h1_structure=BEAR (positive edge) (+5.4pp, p=0.0067)",
+    "details": {
+      "hypothesis_id": "H006",
+      "indicator": "h1_structure",
+      "condition": "BEAR",
+      "description": "H1 timeframe market structure",
+      "effect_pp": 5.4,
+      "win_rate": 59.1,
+      "baseline_wr": 53.7,
+      "trades": 745,
+      "wins": 440,
+      "p_value": 0.0067,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.235738",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H007: health_tier=WEAK (4-5) (negative edge) (-3.8pp, p=0.0077)",
+    "details": {
+      "hypothesis_id": "H007",
+      "indicator": "health_tier",
+      "condition": "WEAK (4-5)",
+      "description": "Health score tier (STRONG/MODERATE/WEAK/CRITICAL)",
+      "effect_pp": -3.8,
+      "win_rate": 49.9,
+      "baseline_wr": 53.7,
+      "trades": 1677,
+      "wins": 836,
+      "p_value": 0.0077,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.237736",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H008: sma_alignment=BULL (negative edge) (-3.8pp, p=0.0029)",
+    "details": {
+      "hypothesis_id": "H008",
+      "indicator": "sma_alignment",
+      "condition": "BULL",
+      "description": "SMA9/SMA21 alignment classification",
+      "effect_pp": -3.8,
+      "win_rate": 49.9,
+      "baseline_wr": 53.7,
+      "trades": 2324,
+      "wins": 1159,
+      "p_value": 0.0029,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.239240",
+    "type": "HYPOTHESIS_PROPOSED",
+    "message": "New hypothesis H009: sma_alignment=BEAR (positive edge) (+3.6pp, p=0.0041)",
+    "details": {
+      "hypothesis_id": "H009",
+      "indicator": "sma_alignment",
+      "condition": "BEAR",
+      "description": "SMA9/SMA21 alignment classification",
+      "effect_pp": 3.6,
+      "win_rate": 57.2,
+      "baseline_wr": 53.7,
+      "trades": 2476,
+      "wins": 1417,
+      "p_value": 0.0041,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-02 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.321639",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H001 VALIDATED: health_tier=STRONG (8-10) (positive edge) (effect=+18.7pp, p=0.0160)",
+    "details": {
+      "hypothesis_id": "H001",
+      "test_result": {
+        "chi2": 5.8011,
+        "p_value": 0.016017,
+        "effect_size_pp": 18.7,
+        "group_win_rate": 72.3,
+        "baseline_win_rate": 53.7,
+        "group_trades": 47,
+        "baseline_trades": 4800,
+        "confidence": "MEDIUM",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.398083",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H002 VALIDATED: health_tier=MODERATE (6-7) (positive edge) (effect=+9.5pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H002",
+      "test_result": {
+        "chi2": 29.6433,
+        "p_value": 0.0,
+        "effect_size_pp": 9.5,
+        "group_win_rate": 63.2,
+        "baseline_win_rate": 53.7,
+        "group_trades": 996,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.480526",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H003 VALIDATED: m15_structure=BEAR (negative edge) (effect=-8.6pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H003",
+      "test_result": {
+        "chi2": 34.3442,
+        "p_value": 0.0,
+        "effect_size_pp": -8.6,
+        "group_win_rate": 45.1,
+        "baseline_win_rate": 53.7,
+        "group_trades": 1553,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.561537",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H004 VALIDATED: stop_distance_bucket=TIGHT (<0.12%) (positive edge) (effect=+7.1pp, p=0.0262)",
+    "details": {
+      "hypothesis_id": "H004",
+      "test_result": {
+        "chi2": 4.9404,
+        "p_value": 0.026236,
+        "effect_size_pp": 7.1,
+        "group_win_rate": 60.7,
+        "baseline_win_rate": 53.7,
+        "group_trades": 275,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.643680",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H005 VALIDATED: m15_structure=BULL (positive edge) (effect=+5.9pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H005",
+      "test_result": {
+        "chi2": 16.5926,
+        "p_value": 4.6e-05,
+        "effect_size_pp": 5.9,
+        "group_win_rate": 59.6,
+        "baseline_win_rate": 53.7,
+        "group_trades": 1574,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.722929",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H006 VALIDATED: h1_structure=BEAR (positive edge) (effect=+5.4pp, p=0.0067)",
+    "details": {
+      "hypothesis_id": "H006",
+      "test_result": {
+        "chi2": 7.3472,
+        "p_value": 0.006717,
+        "effect_size_pp": 5.4,
+        "group_win_rate": 59.1,
+        "baseline_win_rate": 53.7,
+        "group_trades": 745,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.806843",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H007 VALIDATED: health_tier=WEAK (4-5) (negative edge) (effect=-3.8pp, p=0.0077)",
+    "details": {
+      "hypothesis_id": "H007",
+      "test_result": {
+        "chi2": 7.1066,
+        "p_value": 0.00768,
+        "effect_size_pp": -3.8,
+        "group_win_rate": 49.9,
+        "baseline_win_rate": 53.7,
+        "group_trades": 1677,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.889232",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H008 VALIDATED: sma_alignment=BULL (negative edge) (effect=-3.8pp, p=0.0029)",
+    "details": {
+      "hypothesis_id": "H008",
+      "test_result": {
+        "chi2": 8.894,
+        "p_value": 0.002861,
+        "effect_size_pp": -3.8,
+        "group_win_rate": 49.9,
+        "baseline_win_rate": 53.7,
+        "group_trades": 2324,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:46:25.973356",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H009 VALIDATED: sma_alignment=BEAR (positive edge) (effect=+3.6pp, p=0.0041)",
+    "details": {
+      "hypothesis_id": "H009",
+      "test_result": {
+        "chi2": 8.2297,
+        "p_value": 0.004121,
+        "effect_size_pp": 3.6,
+        "group_win_rate": 57.2,
+        "baseline_win_rate": 53.7,
+        "group_trades": 2476,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:49:58.557110",
+    "type": "HYPOTHESIS_VALIDATED",
+    "message": "H002 VALIDATED: health_tier=MODERATE (6-7) (positive edge) (effect=+9.5pp, p=0.0000)",
+    "details": {
+      "hypothesis_id": "H002",
+      "test_result": {
+        "chi2": 29.6433,
+        "p_value": 0.0,
+        "effect_size_pp": 9.5,
+        "group_win_rate": 63.2,
+        "baseline_win_rate": 53.7,
+        "group_trades": 996,
+        "baseline_trades": 4800,
+        "confidence": "HIGH",
+        "is_significant": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:50:04.306855",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Absorption Zone Skip' degraded: -17.0pp -> +9.7pp",
+    "details": {
+      "edge": "Absorption Zone Skip",
+      "status": "DEGRADED",
+      "stored_effect_pp": -17.0,
+      "current_effect_pp": 9.7,
+      "group_win_rate": 60.9,
+      "baseline_win_rate": 51.1,
+      "group_trades": 258,
+      "baseline_trades": 2307,
+      "chi2": 8.37193492414112,
+      "p_value": 0.0038105968866439174,
+      "confidence": "HIGH",
+      "is_significant": true,
+      "period": "2026-01-25 to 2026-02-01"
+    }
+  },
+  {
+    "timestamp": "2026-02-01T08:50:04.309513",
+    "type": "EDGE_DEGRADED",
+    "message": "Edge 'Volume Delta Paradox' degraded: +13.0pp -> -2.5pp",
+    "details": {
+      "edge": "Volume Delta Paradox",
+      "status": "DEGRADED",
+      "stored_effect_pp": 13.0,
+      "current_effect_pp": -2.5,
+      "group_win_rate": 48.6,
+      "baseline_win_rate": 51.1,
+      "group_trades": 1022,
+      "baseline_trades": 2307,
+      "chi2": 1.6977438791112605,
+      "p_value": 0.19258329301164012,
+      "confidence": "HIGH",
+      "is_significant": "False",
+      "period": "2026-01-25 to 2026-02-01"
+    }
+  }
+]

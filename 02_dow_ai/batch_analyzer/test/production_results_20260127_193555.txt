@@ -1,0 +1,208 @@
+================================================================================
+DOW AI v3.0 PRODUCTION BATCH ANALYZER
+================================================================================
+Analysis Started: 2026-01-27 19:35:55
+Prompt Version: v3.0 (Pass 2 Only)
+Model: claude-sonnet-4-20250514
+
+MODE: PRODUCTION (Single-pass with backtested context)
+  - Uses Pass 2 logic (includes indicator_edges, zone_performance)
+  - Stores results in ai_predictions table
+================================================================================
+
+FILTERS:
+  Limit: 20
+  Ticker: ALL
+  Direction: ALL
+  Model: ALL
+  Date Range: ANY to ANY
+  Reprocess: False
+
+Already in ai_predictions: 0
+Total trades in database: 4135
+
+Loading trades...
+Loaded 20 trades to process (after filtering)
+
+Loading AI context...
+  Loaded: indicator_edges, zone_performance, model_stats
+
+Initializing production analyzer...
+
+================================================================================
+PROCESSING TRADES
+================================================================================
+
+[1/20] AMD_012726_EPCH4_1526
+  AMD LONG | 2026-01-27 15:26:45
+  Entry: $252.05 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (MEDIUM) [+]
+  Actual: LOSS
+  Reasoning: Despite H1 alignment providing our strongest edge, the combination of very low range (0.088% - in ab...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[2/20] META_012726_EPCH4_1526
+  META LONG | 2026-01-27 15:26:30
+  Entry: $673.85 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our default-to-trade stance. The H1 structure ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[3/20] META_012726_EPCH2_1526
+  META LONG | 2026-01-27 15:26:30
+  Entry: $673.85 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear unfavorable conditions. H1 structure is OPPOSED to our LONG directio...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[4/20] AMD_012726_EPCH4_1524
+  AMD LONG | 2026-01-27 15:24:15
+  Entry: $252.03 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp above baseline, giving this trade so...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[5/20] DIA_012726_EPCH4_1524
+  DIA LONG | 2026-01-27 15:24:15
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple clear red flags - H1 structure is OPPOSED to our LONG direction (losing ou...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[6/20] AMD_012726_EPCH4_1523
+  AMD LONG | 2026-01-27 15:23:00
+  Entry: $251.98 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest backtested edge (+36pp), making this trade favorab...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[7/20] AMD_012726_EPCH4_1521
+  AMD LONG | 2026-01-27 15:21:45
+  Entry: $252.04 | Model: EPCH4 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The H1 structure alignment provides our strongest edge at +36pp, which is massive and alone justifie...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[8/20] AMD_012726_EPCH3_1520
+  AMD LONG | 2026-01-27 15:20:15
+  Entry: $252.13 | Model: EPCH3 | Zone: SECONDARY
+  Decision: TRADE (MEDIUM) [-]
+  Actual: LOSS
+  Reasoning: The strongest edge (+36pp) is clearly present with H1 structure perfectly aligned for LONG direction...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[9/20] META_012726_EPCH4_1518_1
+  META LONG | 2026-01-27 15:18:45
+  Entry: $673.90 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[10/20] META_012726_EPCH2_1518_1
+  META LONG | 2026-01-27 15:18:45
+  Entry: $673.90 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple red flags that override the pre-qualification. H1 structure is OPPOSED to ou...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[11/20] META_012726_EPCH2_1518
+  META LONG | 2026-01-27 15:18:00
+  Entry: $673.93 | Model: EPCH2 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags. H1 structure is OPPOSED to our LONG direction (missing our ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[12/20] META_012726_EPCH4_1518
+  META LONG | 2026-01-27 15:18:00
+  Entry: $673.93 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags that override our positive expectancy baseline. H1 structure...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[13/20] META_012726_EPCH1_1517
+  META LONG | 2026-01-27 15:17:45
+  Entry: $673.94 | Model: EPCH1 | Zone: PRIMARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple red flags despite being pre-qualified. The H1 structure is OPPOSED to our ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[14/20] META_012726_EPCH3_1517
+  META LONG | 2026-01-27 15:17:45
+  Entry: $673.94 | Model: EPCH3 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags against our strongest edges. H1 structure is OPPOSED to ou...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[15/20] DIA_012726_EPCH4_1509
+  DIA LONG | 2026-01-27 15:09:15
+  Entry: $489.89 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED to our LONG direction (losing our ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[16/20] DIA_012726_EPCH4_1503
+  DIA LONG | 2026-01-27 15:03:00
+  Entry: $489.89 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED to our ...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[17/20] DIA_012726_EPCH4_1502
+  DIA LONG | 2026-01-27 15:02:30
+  Entry: $489.86 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup has multiple clear red flags - H1 structure is OPPOSED to our LONG direction (removing ou...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[18/20] DIA_012726_EPCH4_1501
+  DIA LONG | 2026-01-27 15:01:30
+  Entry: $489.88 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [-]
+  Actual: WIN
+  Reasoning: This setup shows multiple clear red flags that align against our strongest edges. H1 structure is OP...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[19/20] AMD_012726_EPCH4_1501_1
+  AMD SHORT | 2026-01-27 15:01:15
+  Entry: $250.47 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup has multiple clear red flags against our strongest edges. H1 structure is OPPOSED (our st...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+[20/20] AMD_012726_EPCH4_1501
+  AMD SHORT | 2026-01-27 15:01:00
+  Entry: $250.50 | Model: EPCH4 | Zone: SECONDARY
+  Decision: NO_TRADE (HIGH) [+]
+  Actual: LOSS
+  Reasoning: This setup shows multiple clear red flags - H1 structure is OPPOSED to our SHORT direction (removing...
+  ERROR: AIPrediction.__init__() missing 1 required positional argument: 'trade_id'
+------------------------------------------------------------
+
+================================================================================
+SUMMARY
+================================================================================
+
+
+================================================================================
+Analysis Started:  2026-01-27 19:35:55
+Analysis Finished: 2026-01-27 19:37:59
+Duration: 0:02:03.587454
+================================================================================
+END OF REPORT
+================================================================================

@@ -1,0 +1,42 @@
+{
+  "last_updated": "2026-02-01T13:27:07.074600",
+  "baseline": {
+    "total_trades": 4800,
+    "win_rate": 53.7,
+    "avg_r": 0.746,
+    "std_r": 1.886,
+    "period_start": "2026-01-05",
+    "period_end": "2026-01-30"
+  },
+  "edge_health": {
+    "H1 Structure NEUTRAL": {
+      "status": "INCONCLUSIVE",
+      "current_effect_pp": -1.4,
+      "stored_effect_pp": 36.0,
+      "p_value": 0.4118,
+      "group_trades": 1506,
+      "confidence": "HIGH",
+      "validated": "2026-02-01T08:50:04.304851"
+    },
+    "Absorption Zone Skip": {
+      "status": "DEGRADED",
+      "current_effect_pp": 9.7,
+      "stored_effect_pp": -17.0,
+      "p_value": 0.0038,
+      "group_trades": 258,
+      "confidence": "HIGH",
+      "validated": "2026-02-01T08:50:04.304851"
+    },
+    "Volume Delta Paradox": {
+      "status": "DEGRADED",
+      "current_effect_pp": -2.5,
+      "stored_effect_pp": 13.0,
+      "p_value": 0.1926,
+      "group_trades": 1022,
+      "confidence": "HIGH",
+      "validated": "2026-02-01T08:50:04.304851"
+    }
+  },
+  "drift_alerts": [],
+  "last_cycle": null
+}

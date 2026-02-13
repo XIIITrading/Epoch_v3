@@ -1,0 +1,18 @@
+{
+  "processed_ids": [
+    "HOOD_121625_EPCH4_1005",
+    "ORCL_121625_EPCH2_0941",
+    "AMZN_121625_EPCH2_1113",
+    "AMZN_121625_EPCH2_1432",
+    "CRM_121725_EPCH2_1144",
+    "TSLA_121825_EPCH3_0943",
+    "MU_121825_EPCH4_1217",
+    "CRM_121925_EPCH2_0936",
+    "MU_122225_EPCH2_0954",
+    "MU_123025_EPCH2_0952",
+    "PLTR_010626_EPCH2_1305"
+  ],
+  "last_run": "2026-01-27T06:44:37.876782",
+  "last_processed": 50,
+  "last_accuracy": 50.0
+}

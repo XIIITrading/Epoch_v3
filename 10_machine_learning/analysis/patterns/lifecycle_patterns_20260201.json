@@ -1,0 +1,2757 @@
+{
+  "generated": "2026-02-01T13:54:26.449785",
+  "patterns": {
+    "rampup_candle_range_pct|VOLATILE": {
+      "total": 641,
+      "wins": 373,
+      "win_rate": 58.19
+    },
+    "rampup_vol_delta|INCREASING": {
+      "total": 1812,
+      "wins": 1019,
+      "win_rate": 56.24
+    },
+    "rampup_health_score|FLAT": {
+      "total": 4619,
+      "wins": 2482,
+      "win_rate": 53.73
+    },
+    "rampup_long_score|FLAT": {
+      "total": 3855,
+      "wins": 2099,
+      "win_rate": 54.45
+    },
+    "rampup_short_score|FLAT": {
+      "total": 3770,
+      "wins": 2082,
+      "win_rate": 55.23
+    },
+    "entry_candle_range_pct|EXPLOSIVE": {
+      "total": 1818,
+      "wins": 1040,
+      "win_rate": 57.21
+    },
+    "entry_vol_delta|STRONG_BUY": {
+      "total": 1641,
+      "wins": 900,
+      "win_rate": 54.84
+    },
+    "entry_cvd_slope|MILD_RISING": {
+      "total": 1961,
+      "wins": 1045,
+      "win_rate": 53.29
+    },
+    "entry_health_score|WEAK": {
+      "total": 1744,
+      "wins": 966,
+      "win_rate": 55.39
+    },
+    "entry_long_score|LOW": {
+      "total": 3052,
+      "wins": 1630,
+      "win_rate": 53.41
+    },
+    "entry_short_score|LOW": {
+      "total": 3734,
+      "wins": 2000,
+      "win_rate": 53.56
+    },
+    "entry_m1_structure|NEUTRAL": {
+      "total": 531,
+      "wins": 321,
+      "win_rate": 60.45
+    },
+    "entry_m5_structure|BULL": {
+      "total": 3032,
+      "wins": 1668,
+      "win_rate": 55.01
+    },
+    "entry_m15_structure|BULL": {
+      "total": 2887,
+      "wins": 1689,
+      "win_rate": 58.5
+    },
+    "entry_h1_structure|BULL": {
+      "total": 2668,
+      "wins": 1465,
+      "win_rate": 54.91
+    },
+    "entry_h4_structure|BULL": {
+      "total": 3377,
+      "wins": 1787,
+      "win_rate": 52.92
+    },
+    "post_candle_range_pct|INCREASING": {
+      "total": 1282,
+      "wins": 709,
+      "win_rate": 55.3
+    },
+    "post_vol_delta|INC_THEN_DEC": {
+      "total": 728,
+      "wins": 383,
+      "win_rate": 52.61
+    },
+    "post_vol_roc|INC_THEN_DEC": {
+      "total": 862,
+      "wins": 454,
+      "win_rate": 52.67
+    },
+    "post_cvd_slope|INCREASING": {
+      "total": 2541,
+      "wins": 1366,
+      "win_rate": 53.76
+    },
+    "post_sma_spread|DECREASING": {
+      "total": 2599,
+      "wins": 1397,
+      "win_rate": 53.75
+    },
+    "post_sma_momentum_ratio|DEC_THEN_INC": {
+      "total": 471,
+      "wins": 263,
+      "win_rate": 55.84
+    },
+    "post_health_score|FLAT": {
+      "total": 4844,
+      "wins": 2590,
+      "win_rate": 53.47
+    },
+    "post_long_score|FLAT": {
+      "total": 3719,
+      "wins": 1994,
+      "win_rate": 53.62
+    },
+    "post_short_score|FLAT": {
+      "total": 3686,
+      "wins": 2038,
+      "win_rate": 55.29
+    },
+    "flip_vol_delta|FLIP_TO_POSITIVE": {
+      "total": 33,
+      "wins": 18,
+      "win_rate": 54.55
+    },
+    "flip_cvd_slope|FLIP_TO_POSITIVE": {
+      "total": 795,
+      "wins": 452,
+      "win_rate": 56.86
+    },
+    "m5_health_trend|DECREASING": {
+      "total": 76,
+      "wins": 13,
+      "win_rate": 17.11
+    },
+    "LONG_rampup_candle_range_pct|VOLATILE": {
+      "total": 292,
+      "wins": 149,
+      "win_rate": 51.03
+    },
+    "LONG_rampup_vol_delta|INCREASING": {
+      "total": 891,
+      "wins": 472,
+      "win_rate": 52.97
+    },
+    "LONG_rampup_health_score|FLAT": {
+      "total": 2236,
+      "wins": 1179,
+      "win_rate": 52.73
+    },
+    "LONG_rampup_long_score|FLAT": {
+      "total": 1892,
+      "wins": 1026,
+      "win_rate": 54.23
+    },
+    "LONG_rampup_short_score|FLAT": {
+      "total": 1780,
+      "wins": 971,
+      "win_rate": 54.55
+    },
+    "rampup_candle_range_pct|DECREASING": {
+      "total": 1868,
+      "wins": 921,
+      "win_rate": 49.3
+    },
+    "rampup_vol_delta|DECREASING": {
+      "total": 1739,
+      "wins": 873,
+      "win_rate": 50.2
+    },
+    "rampup_cvd_slope|INCREASING": {
+      "total": 2463,
+      "wins": 1327,
+      "win_rate": 53.88
+    },
+    "entry_candle_range_pct|EXPANDING": {
+      "total": 1247,
+      "wins": 650,
+      "win_rate": 52.13
+    },
+    "entry_vol_delta|MILD_BUY": {
+      "total": 1286,
+      "wins": 673,
+      "win_rate": 52.33
+    },
+    "entry_vol_roc|LOW": {
+      "total": 3381,
+      "wins": 1804,
+      "win_rate": 53.36
+    },
+    "entry_cvd_slope|STRONG_RISING": {
+      "total": 1109,
+      "wins": 574,
+      "win_rate": 51.76
+    },
+    "entry_sma_spread|WIDE_BULL": {
+      "total": 1816,
+      "wins": 960,
+      "win_rate": 52.86
+    },
+    "entry_health_score|MODERATE": {
+      "total": 1808,
+      "wins": 941,
+      "win_rate": 52.05
+    },
+    "post_vol_delta|DECREASING": {
+      "total": 1827,
+      "wins": 1023,
+      "win_rate": 55.99
+    },
+    "post_vol_roc|DECREASING": {
+      "total": 1201,
+      "wins": 625,
+      "win_rate": 52.04
+    },
+    "post_cvd_slope|DECREASING": {
+      "total": 2531,
+      "wins": 1396,
+      "win_rate": 55.16
+    },
+    "LONG_rampup_candle_range_pct|DECREASING": {
+      "total": 870,
+      "wins": 430,
+      "win_rate": 49.43
+    },
+    "LONG_rampup_vol_delta|DECREASING": {
+      "total": 790,
+      "wins": 413,
+      "win_rate": 52.28
+    },
+    "LONG_rampup_cvd_slope|INCREASING": {
+      "total": 1170,
+      "wins": 596,
+      "win_rate": 50.94
+    },
+    "rampup_vol_roc|INC_THEN_DEC": {
+      "total": 862,
+      "wins": 504,
+      "win_rate": 58.47
+    },
+    "rampup_cvd_slope|DECREASING": {
+      "total": 2511,
+      "wins": 1348,
+      "win_rate": 53.68
+    },
+    "rampup_sma_spread|DECREASING": {
+      "total": 2569,
+      "wins": 1419,
+      "win_rate": 55.24
+    },
+    "entry_vol_delta|MILD_SELL": {
+      "total": 1168,
+      "wins": 645,
+      "win_rate": 55.22
+    },
+    "post_candle_range_pct|DECREASING": {
+      "total": 1280,
+      "wins": 728,
+      "win_rate": 56.88
+    },
+    "post_vol_delta|FLAT": {
+      "total": 384,
+      "wins": 196,
+      "win_rate": 51.04
+    },
+    "post_vol_roc|INCREASING": {
+      "total": 1516,
+      "wins": 792,
+      "win_rate": 52.24
+    },
+    "post_sma_momentum_ratio|INCREASING": {
+      "total": 2590,
+      "wins": 1424,
+      "win_rate": 54.98
+    },
+    "flip_vol_delta|MULTIPLE_FLIPS": {
+      "total": 5846,
+      "wins": 3155,
+      "win_rate": 53.97
+    },
+    "flip_sma_spread|NO_FLIP": {
+      "total": 724,
+      "wins": 418,
+      "win_rate": 57.73
+    },
+    "m5_health_trend|INC_THEN_DEC": {
+      "total": 722,
+      "wins": 387,
+      "win_rate": 53.6
+    },
+    "SHORT_rampup_candle_range_pct|DECREASING": {
+      "total": 998,
+      "wins": 491,
+      "win_rate": 49.2
+    },
+    "SHORT_rampup_vol_delta|DECREASING": {
+      "total": 949,
+      "wins": 460,
+      "win_rate": 48.47
+    },
+    "SHORT_rampup_vol_roc|INC_THEN_DEC": {
+      "total": 442,
+      "wins": 284,
+      "win_rate": 64.25
+    },
+    "SHORT_rampup_cvd_slope|DECREASING": {
+      "total": 1283,
+      "wins": 693,
+      "win_rate": 54.01
+    },
+    "SHORT_rampup_sma_spread|DECREASING": {
+      "total": 1339,
+      "wins": 779,
+      "win_rate": 58.18
+    },
+    "SHORT_rampup_health_score|FLAT": {
+      "total": 2383,
+      "wins": 1303,
+      "win_rate": 54.68
+    },
+    "SHORT_rampup_long_score|FLAT": {
+      "total": 1963,
+      "wins": 1073,
+      "win_rate": 54.66
+    },
+    "SHORT_rampup_short_score|FLAT": {
+      "total": 1990,
+      "wins": 1111,
+      "win_rate": 55.83
+    },
+    "rampup_short_score|INC_THEN_DEC": {
+      "total": 881,
+      "wins": 486,
+      "win_rate": 55.16
+    },
+    "entry_sma_spread|NARROW_BULL": {
+      "total": 959,
+      "wins": 508,
+      "win_rate": 52.97
+    },
+    "entry_sma_momentum_ratio|FLAT": {
+      "total": 2784,
+      "wins": 1518,
+      "win_rate": 54.53
+    },
+    "entry_sma_momentum_label|NARROWING": {
+      "total": 2635,
+      "wins": 1438,
+      "win_rate": 54.57
+    },
+    "post_candle_range_pct|INC_THEN_DEC": {
+      "total": 862,
+      "wins": 450,
+      "win_rate": 52.2
+    },
+    "post_vol_roc|DEC_THEN_INC": {
+      "total": 1259,
+      "wins": 755,
+      "win_rate": 59.97
+    },
+    "post_cvd_slope|DEC_THEN_INC": {
+      "total": 357,
+      "wins": 158,
+      "win_rate": 44.26
+    },
+    "post_sma_momentum_ratio|INC_THEN_DEC": {
+      "total": 477,
+      "wins": 244,
+      "win_rate": 51.15
+    },
+    "LONG_rampup_vol_roc|INC_THEN_DEC": {
+      "total": 420,
+      "wins": 220,
+      "win_rate": 52.38
+    },
+    "LONG_rampup_cvd_slope|DECREASING": {
+      "total": 1228,
+      "wins": 655,
+      "win_rate": 53.34
+    },
+    "LONG_rampup_sma_spread|DECREASING": {
+      "total": 1230,
+      "wins": 640,
+      "win_rate": 52.03
+    },
+    "LONG_rampup_short_score|INC_THEN_DEC": {
+      "total": 446,
+      "wins": 232,
+      "win_rate": 52.02
+    },
+    "SHORT_rampup_vol_delta|INCREASING": {
+      "total": 921,
+      "wins": 547,
+      "win_rate": 59.39
+    },
+    "SHORT_rampup_short_score|INC_THEN_DEC": {
+      "total": 435,
+      "wins": 254,
+      "win_rate": 58.39
+    },
+    "rampup_candle_range_pct|INCREASING": {
+      "total": 1005,
+      "wins": 530,
+      "win_rate": 52.74
+    },
+    "rampup_vol_roc|DEC_THEN_INC": {
+      "total": 932,
+      "wins": 498,
+      "win_rate": 53.43
+    },
+    "rampup_cvd_slope|VOLATILE": {
+      "total": 64,
+      "wins": 31,
+      "win_rate": 48.44
+    },
+    "rampup_sma_momentum_ratio|DECREASING": {
+      "total": 2356,
+      "wins": 1312,
+      "win_rate": 55.69
+    },
+    "rampup_long_score|DEC_THEN_INC": {
+      "total": 617,
+      "wins": 327,
+      "win_rate": 53.0
+    },
+    "rampup_short_score|INCREASING": {
+      "total": 67,
+      "wins": 42,
+      "win_rate": 62.69
+    },
+    "entry_vol_roc|MODERATE": {
+      "total": 1074,
+      "wins": 579,
+      "win_rate": 53.91
+    },
+    "entry_short_score|MODERATE": {
+      "total": 350,
+      "wins": 194,
+      "win_rate": 55.43
+    },
+    "post_sma_spread|INC_THEN_DEC": {
+      "total": 328,
+      "wins": 189,
+      "win_rate": 57.62
+    },
+    "post_long_score|INC_THEN_DEC": {
+      "total": 690,
+      "wins": 380,
+      "win_rate": 55.07
+    },
+    "post_short_score|INC_THEN_DEC": {
+      "total": 671,
+      "wins": 329,
+      "win_rate": 49.03
+    },
+    "flip_sma_spread|FLIP_TO_NEGATIVE": {
+      "total": 1243,
+      "wins": 642,
+      "win_rate": 51.65
+    },
+    "LONG_rampup_candle_range_pct|INCREASING": {
+      "total": 502,
+      "wins": 257,
+      "win_rate": 51.2
+    },
+    "LONG_rampup_vol_roc|DEC_THEN_INC": {
+      "total": 443,
+      "wins": 242,
+      "win_rate": 54.63
+    },
+    "LONG_rampup_cvd_slope|VOLATILE": {
+      "total": 19,
+      "wins": 8,
+      "win_rate": 42.11
+    },
+    "LONG_rampup_sma_momentum_ratio|DECREASING": {
+      "total": 1105,
+      "wins": 580,
+      "win_rate": 52.49
+    },
+    "LONG_rampup_long_score|DEC_THEN_INC": {
+      "total": 253,
+      "wins": 129,
+      "win_rate": 50.99
+    },
+    "LONG_rampup_short_score|INCREASING": {
+      "total": 43,
+      "wins": 24,
+      "win_rate": 55.81
+    },
+    "SHORT_rampup_candle_range_pct|INCREASING": {
+      "total": 503,
+      "wins": 273,
+      "win_rate": 54.27
+    },
+    "SHORT_rampup_vol_roc|DEC_THEN_INC": {
+      "total": 489,
+      "wins": 256,
+      "win_rate": 52.35
+    },
+    "SHORT_rampup_cvd_slope|VOLATILE": {
+      "total": 45,
+      "wins": 23,
+      "win_rate": 51.11
+    },
+    "SHORT_rampup_sma_momentum_ratio|DECREASING": {
+      "total": 1251,
+      "wins": 732,
+      "win_rate": 58.51
+    },
+    "SHORT_rampup_long_score|DEC_THEN_INC": {
+      "total": 364,
+      "wins": 198,
+      "win_rate": 54.4
+    },
+    "SHORT_rampup_short_score|INCREASING": {
+      "total": 24,
+      "wins": 18,
+      "win_rate": 75.0
+    },
+    "rampup_vol_delta|DEC_THEN_INC": {
+      "total": 727,
+      "wins": 419,
+      "win_rate": 57.63
+    },
+    "rampup_vol_roc|VOLATILE": {
+      "total": 566,
+      "wins": 315,
+      "win_rate": 55.65
+    },
+    "rampup_sma_spread|INCREASING": {
+      "total": 2598,
+      "wins": 1370,
+      "win_rate": 52.73
+    },
+    "rampup_sma_momentum_ratio|INCREASING": {
+      "total": 2471,
+      "wins": 1297,
+      "win_rate": 52.49
+    },
+    "entry_vol_roc|ELEVATED": {
+      "total": 518,
+      "wins": 278,
+      "win_rate": 53.67
+    },
+    "post_candle_range_pct|VOLATILE": {
+      "total": 632,
+      "wins": 311,
+      "win_rate": 49.21
+    },
+    "post_vol_delta|VOLATILE": {
+      "total": 358,
+      "wins": 172,
+      "win_rate": 48.04
+    },
+    "flip_sma_spread|MULTIPLE_FLIPS": {
+      "total": 2875,
+      "wins": 1543,
+      "win_rate": 53.67
+    },
+    "LONG_rampup_vol_delta|DEC_THEN_INC": {
+      "total": 345,
+      "wins": 187,
+      "win_rate": 54.2
+    },
+    "LONG_rampup_vol_roc|VOLATILE": {
+      "total": 267,
+      "wins": 146,
+      "win_rate": 54.68
+    },
+    "LONG_rampup_sma_spread|INCREASING": {
+      "total": 1244,
+      "wins": 648,
+      "win_rate": 52.09
+    },
+    "LONG_rampup_sma_momentum_ratio|INCREASING": {
+      "total": 1161,
+      "wins": 592,
+      "win_rate": 50.99
+    },
+    "rampup_candle_range_pct|DEC_THEN_INC": {
+      "total": 973,
+      "wins": 523,
+      "win_rate": 53.75
+    },
+    "rampup_sma_spread|INC_THEN_DEC": {
+      "total": 334,
+      "wins": 182,
+      "win_rate": 54.49
+    },
+    "rampup_health_score|INC_THEN_DEC": {
+      "total": 441,
+      "wins": 240,
+      "win_rate": 54.42
+    },
+    "rampup_long_score|INC_THEN_DEC": {
+      "total": 849,
+      "wins": 462,
+      "win_rate": 54.42
+    },
+    "entry_sma_momentum_ratio|WIDENING": {
+      "total": 2185,
+      "wins": 1158,
+      "win_rate": 53.0
+    },
+    "entry_sma_momentum_label|WIDENING": {
+      "total": 2948,
+      "wins": 1572,
+      "win_rate": 53.32
+    },
+    "post_candle_range_pct|DEC_THEN_INC": {
+      "total": 1378,
+      "wins": 745,
+      "win_rate": 54.06
+    },
+    "post_vol_roc|FLAT": {
+      "total": 516,
+      "wins": 303,
+      "win_rate": 58.72
+    },
+    "flip_cvd_slope|NO_FLIP": {
+      "total": 573,
+      "wins": 320,
+      "win_rate": 55.85
+    },
+    "LONG_rampup_candle_range_pct|DEC_THEN_INC": {
+      "total": 469,
+      "wins": 249,
+      "win_rate": 53.09
+    },
+    "LONG_rampup_sma_spread|INC_THEN_DEC": {
+      "total": 142,
+      "wins": 77,
+      "win_rate": 54.23
+    },
+    "LONG_rampup_health_score|INC_THEN_DEC": {
+      "total": 187,
+      "wins": 89,
+      "win_rate": 47.59
+    },
+    "LONG_rampup_long_score|INC_THEN_DEC": {
+      "total": 404,
+      "wins": 185,
+      "win_rate": 45.79
+    },
+    "SHORT_rampup_candle_range_pct|DEC_THEN_INC": {
+      "total": 504,
+      "wins": 274,
+      "win_rate": 54.37
+    },
+    "SHORT_rampup_vol_roc|VOLATILE": {
+      "total": 299,
+      "wins": 169,
+      "win_rate": 56.52
+    },
+    "SHORT_rampup_cvd_slope|INCREASING": {
+      "total": 1293,
+      "wins": 731,
+      "win_rate": 56.54
+    },
+    "SHORT_rampup_sma_spread|INC_THEN_DEC": {
+      "total": 192,
+      "wins": 105,
+      "win_rate": 54.69
+    },
+    "SHORT_rampup_sma_momentum_ratio|INCREASING": {
+      "total": 1310,
+      "wins": 705,
+      "win_rate": 53.82
+    },
+    "SHORT_rampup_health_score|INC_THEN_DEC": {
+      "total": 254,
+      "wins": 151,
+      "win_rate": 59.45
+    },
+    "SHORT_rampup_long_score|INC_THEN_DEC": {
+      "total": 445,
+      "wins": 277,
+      "win_rate": 62.25
+    },
+    "rampup_candle_range_pct|INC_THEN_DEC": {
+      "total": 971,
+      "wins": 571,
+      "win_rate": 58.81
+    },
+    "rampup_vol_roc|DECREASING": {
+      "total": 2040,
+      "wins": 1035,
+      "win_rate": 50.74
+    },
+    "entry_sma_spread|NARROW_BEAR": {
+      "total": 1060,
+      "wins": 554,
+      "win_rate": 52.26
+    },
+    "entry_health_score|CRITICAL": {
+      "total": 298,
+      "wins": 138,
+      "win_rate": 46.31
+    },
+    "post_vol_delta|INCREASING": {
+      "total": 1846,
+      "wins": 993,
+      "win_rate": 53.79
+    },
+    "post_sma_momentum_ratio|DECREASING": {
+      "total": 2227,
+      "wins": 1175,
+      "win_rate": 52.76
+    },
+    "SHORT_rampup_candle_range_pct|INC_THEN_DEC": {
+      "total": 483,
+      "wins": 302,
+      "win_rate": 62.53
+    },
+    "SHORT_rampup_vol_roc|DECREASING": {
+      "total": 1136,
+      "wins": 609,
+      "win_rate": 53.61
+    },
+    "rampup_vol_roc|INCREASING": {
+      "total": 1045,
+      "wins": 598,
+      "win_rate": 57.22
+    },
+    "entry_cvd_slope|MILD_FALLING": {
+      "total": 1791,
+      "wins": 1015,
+      "win_rate": 56.67
+    },
+    "entry_sma_spread|WIDE_BEAR": {
+      "total": 2077,
+      "wins": 1173,
+      "win_rate": 56.48
+    },
+    "post_sma_spread|INCREASING": {
+      "total": 2589,
+      "wins": 1428,
+      "win_rate": 55.16
+    },
+    "post_long_score|DEC_THEN_INC": {
+      "total": 806,
+      "wins": 427,
+      "win_rate": 52.98
+    },
+    "post_short_score|DEC_THEN_INC": {
+      "total": 802,
+      "wins": 457,
+      "win_rate": 56.98
+    },
+    "flip_cvd_slope|FLIP_TO_NEGATIVE": {
+      "total": 753,
+      "wins": 361,
+      "win_rate": 47.94
+    },
+    "SHORT_rampup_vol_roc|INCREASING": {
+      "total": 500,
+      "wins": 283,
+      "win_rate": 56.6
+    },
+    "rampup_vol_delta|INC_THEN_DEC": {
+      "total": 797,
+      "wins": 465,
+      "win_rate": 58.34
+    },
+    "entry_cvd_slope|STRONG_FALLING": {
+      "total": 1061,
+      "wins": 565,
+      "win_rate": 53.25
+    },
+    "entry_health_score|STRONG": {
+      "total": 2072,
+      "wins": 1154,
+      "win_rate": 55.69
+    },
+    "post_vol_roc|VOLATILE": {
+      "total": 568,
+      "wins": 270,
+      "win_rate": 47.54
+    },
+    "LONG_rampup_vol_delta|INC_THEN_DEC": {
+      "total": 410,
+      "wins": 220,
+      "win_rate": 53.66
+    },
+    "LONG_rampup_vol_roc|INCREASING": {
+      "total": 545,
+      "wins": 315,
+      "win_rate": 57.8
+    },
+    "post_vol_delta|DEC_THEN_INC": {
+      "total": 779,
+      "wins": 432,
+      "win_rate": 55.46
+    },
+    "post_sma_spread|DEC_THEN_INC": {
+      "total": 303,
+      "wins": 137,
+      "win_rate": 45.21
+    },
+    "LONG_rampup_vol_roc|DECREASING": {
+      "total": 904,
+      "wins": 426,
+      "win_rate": 47.12
+    },
+    "rampup_candle_range_pct|FLAT": {
+      "total": 464,
+      "wins": 281,
+      "win_rate": 60.56
+    },
+    "LONG_rampup_candle_range_pct|FLAT": {
+      "total": 206,
+      "wins": 126,
+      "win_rate": 61.17
+    },
+    "entry_candle_range_pct|NORMAL": {
+      "total": 1555,
+      "wins": 772,
+      "win_rate": 49.65
+    },
+    "entry_long_score|MINIMAL": {
+      "total": 2504,
+      "wins": 1344,
+      "win_rate": 53.67
+    },
+    "entry_short_score|MINIMAL": {
+      "total": 1838,
+      "wins": 1005,
+      "win_rate": 54.68
+    },
+    "rampup_sma_momentum_ratio|DEC_THEN_INC": {
+      "total": 476,
+      "wins": 265,
+      "win_rate": 55.67
+    },
+    "flip_sma_spread|FLIP_TO_POSITIVE": {
+      "total": 1067,
+      "wins": 592,
+      "win_rate": 55.48
+    },
+    "LONG_rampup_candle_range_pct|INC_THEN_DEC": {
+      "total": 488,
+      "wins": 269,
+      "win_rate": 55.12
+    },
+    "LONG_rampup_sma_momentum_ratio|DEC_THEN_INC": {
+      "total": 234,
+      "wins": 140,
+      "win_rate": 59.83
+    },
+    "rampup_cvd_slope|INC_THEN_DEC": {
+      "total": 392,
+      "wins": 232,
+      "win_rate": 59.18
+    },
+    "rampup_short_score|DEC_THEN_INC": {
+      "total": 706,
+      "wins": 345,
+      "win_rate": 48.87
+    },
+    "SHORT_rampup_cvd_slope|INC_THEN_DEC": {
+      "total": 228,
+      "wins": 147,
+      "win_rate": 64.47
+    },
+    "SHORT_rampup_short_score|DEC_THEN_INC": {
+      "total": 360,
+      "wins": 187,
+      "win_rate": 51.94
+    },
+    "rampup_health_score|DEC_THEN_INC": {
+      "total": 435,
+      "wins": 248,
+      "win_rate": 57.01
+    },
+    "flip_cvd_slope|MULTIPLE_FLIPS": {
+      "total": 3801,
+      "wins": 2066,
+      "win_rate": 54.35
+    },
+    "LONG_rampup_health_score|DEC_THEN_INC": {
+      "total": 202,
+      "wins": 107,
+      "win_rate": 52.97
+    },
+    "LONG_rampup_short_score|DEC_THEN_INC": {
+      "total": 346,
+      "wins": 158,
+      "win_rate": 45.66
+    },
+    "entry_vol_roc|EXTREME": {
+      "total": 939,
+      "wins": 534,
+      "win_rate": 56.87
+    },
+    "rampup_sma_momentum_ratio|INC_THEN_DEC": {
+      "total": 455,
+      "wins": 247,
+      "win_rate": 54.29
+    },
+    "post_health_score|VOLATILE": {
+      "total": 259,
+      "wins": 162,
+      "win_rate": 62.55
+    },
+    "SHORT_rampup_sma_momentum_ratio|INC_THEN_DEC": {
+      "total": 227,
+      "wins": 117,
+      "win_rate": 51.54
+    },
+    "entry_candle_range_pct|COMPRESSED": {
+      "total": 1302,
+      "wins": 737,
+      "win_rate": 56.61
+    },
+    "flip_vol_delta|FLIP_TO_NEGATIVE": {
+      "total": 32,
+      "wins": 19,
+      "win_rate": 59.38
+    },
+    "SHORT_rampup_candle_range_pct|FLAT": {
+      "total": 258,
+      "wins": 155,
+      "win_rate": 60.08
+    },
+    "SHORT_rampup_vol_delta|DEC_THEN_INC": {
+      "total": 382,
+      "wins": 232,
+      "win_rate": 60.73
+    },
+    "SHORT_rampup_sma_spread|INCREASING": {
+      "total": 1354,
+      "wins": 722,
+      "win_rate": 53.32
+    },
+    "rampup_vol_delta|VOLATILE": {
+      "total": 435,
+      "wins": 225,
+      "win_rate": 51.72
+    },
+    "post_cvd_slope|FLAT": {
+      "total": 84,
+      "wins": 52,
+      "win_rate": 61.9
+    },
+    "post_health_score|DEC_THEN_INC": {
+      "total": 363,
+      "wins": 194,
+      "win_rate": 53.44
+    },
+    "LONG_rampup_vol_delta|VOLATILE": {
+      "total": 194,
+      "wins": 97,
+      "win_rate": 50.0
+    },
+    "SHORT_rampup_vol_delta|VOLATILE": {
+      "total": 241,
+      "wins": 128,
+      "win_rate": 53.11
+    },
+    "post_sma_momentum_ratio|FLAT": {
+      "total": 111,
+      "wins": 75,
+      "win_rate": 67.57
+    },
+    "post_long_score|VOLATILE": {
+      "total": 524,
+      "wins": 311,
+      "win_rate": 59.35
+    },
+    "LONG_rampup_cvd_slope|INC_THEN_DEC": {
+      "total": 164,
+      "wins": 85,
+      "win_rate": 51.83
+    },
+    "rampup_long_score|INCREASING": {
+      "total": 67,
+      "wins": 33,
+      "win_rate": 49.25
+    },
+    "entry_sma_momentum_ratio|STRONG_WIDENING": {
+      "total": 936,
+      "wins": 515,
+      "win_rate": 55.02
+    },
+    "post_cvd_slope|INC_THEN_DEC": {
+      "total": 355,
+      "wins": 199,
+      "win_rate": 56.06
+    },
+    "SHORT_rampup_long_score|INCREASING": {
+      "total": 36,
+      "wins": 19,
+      "win_rate": 52.78
+    },
+    "SHORT_rampup_candle_range_pct|VOLATILE": {
+      "total": 349,
+      "wins": 224,
+      "win_rate": 64.18
+    },
+    "rampup_short_score|DECREASING": {
+      "total": 110,
+      "wins": 54,
+      "win_rate": 49.09
+    },
+    "SHORT_rampup_vol_delta|INC_THEN_DEC": {
+      "total": 387,
+      "wins": 245,
+      "win_rate": 63.31
+    },
+    "SHORT_rampup_short_score|DECREASING": {
+      "total": 73,
+      "wins": 37,
+      "win_rate": 50.68
+    },
+    "rampup_vol_roc|FLAT": {
+      "total": 464,
+      "wins": 245,
+      "win_rate": 52.8
+    },
+    "SHORT_rampup_vol_roc|FLAT": {
+      "total": 223,
+      "wins": 116,
+      "win_rate": 52.02
+    },
+    "post_health_score|INC_THEN_DEC": {
+      "total": 380,
+      "wins": 203,
+      "win_rate": 53.42
+    },
+    "rampup_short_score|VOLATILE": {
+      "total": 388,
+      "wins": 190,
+      "win_rate": 48.97
+    },
+    "entry_m1_structure|BEAR": {
+      "total": 2645,
+      "wins": 1338,
+      "win_rate": 50.59
+    },
+    "entry_m5_structure|BEAR": {
+      "total": 2730,
+      "wins": 1463,
+      "win_rate": 53.59
+    },
+    "post_candle_range_pct|FLAT": {
+      "total": 488,
+      "wins": 256,
+      "win_rate": 52.46
+    },
+    "m5_health_trend|FLAT": {
+      "total": 3357,
+      "wins": 1802,
+      "win_rate": 53.68
+    },
+    "SHORT_rampup_health_score|DEC_THEN_INC": {
+      "total": 233,
+      "wins": 141,
+      "win_rate": 60.52
+    },
+    "SHORT_rampup_short_score|VOLATILE": {
+      "total": 213,
+      "wins": 112,
+      "win_rate": 52.58
+    },
+    "rampup_health_score|VOLATILE": {
+      "total": 300,
+      "wins": 166,
+      "win_rate": 55.33
+    },
+    "entry_vol_delta|STRONG_SELL": {
+      "total": 1827,
+      "wins": 981,
+      "win_rate": 53.69
+    },
+    "entry_sma_momentum_label|STABLE": {
+      "total": 322,
+      "wins": 181,
+      "win_rate": 56.21
+    },
+    "entry_h1_structure|BEAR": {
+      "total": 3254,
+      "wins": 1734,
+      "win_rate": 53.29
+    },
+    "LONG_rampup_health_score|VOLATILE": {
+      "total": 161,
+      "wins": 82,
+      "win_rate": 50.93
+    },
+    "rampup_long_score|VOLATILE": {
+      "total": 409,
+      "wins": 215,
+      "win_rate": 52.57
+    },
+    "SHORT_rampup_long_score|VOLATILE": {
+      "total": 227,
+      "wins": 125,
+      "win_rate": 55.07
+    },
+    "LONG_rampup_sma_momentum_ratio|INC_THEN_DEC": {
+      "total": 228,
+      "wins": 130,
+      "win_rate": 57.02
+    },
+    "LONG_rampup_long_score|INCREASING": {
+      "total": 31,
+      "wins": 14,
+      "win_rate": 45.16
+    },
+    "entry_m1_structure|BULL": {
+      "total": 2746,
+      "wins": 1540,
+      "win_rate": 56.08
+    },
+    "post_short_score|VOLATILE": {
+      "total": 597,
+      "wins": 287,
+      "win_rate": 48.07
+    },
+    "rampup_health_score|INCREASING": {
+      "total": 82,
+      "wins": 46,
+      "win_rate": 56.1
+    },
+    "LONG_rampup_health_score|INCREASING": {
+      "total": 26,
+      "wins": 16,
+      "win_rate": 61.54
+    },
+    "rampup_cvd_slope|DEC_THEN_INC": {
+      "total": 407,
+      "wins": 217,
+      "win_rate": 53.32
+    },
+    "rampup_long_score|DECREASING": {
+      "total": 125,
+      "wins": 63,
+      "win_rate": 50.4
+    },
+    "post_cvd_slope|VOLATILE": {
+      "total": 54,
+      "wins": 28,
+      "win_rate": 51.85
+    },
+    "LONG_rampup_vol_roc|FLAT": {
+      "total": 241,
+      "wins": 129,
+      "win_rate": 53.53
+    },
+    "LONG_rampup_cvd_slope|DEC_THEN_INC": {
+      "total": 212,
+      "wins": 113,
+      "win_rate": 53.3
+    },
+    "LONG_rampup_long_score|DECREASING": {
+      "total": 65,
+      "wins": 36,
+      "win_rate": 55.38
+    },
+    "rampup_vol_delta|FLAT": {
+      "total": 412,
+      "wins": 198,
+      "win_rate": 48.06
+    },
+    "LONG_rampup_vol_delta|FLAT": {
+      "total": 197,
+      "wins": 91,
+      "win_rate": 46.19
+    },
+    "post_sma_spread|FLAT": {
+      "total": 68,
+      "wins": 31,
+      "win_rate": 45.59
+    },
+    "LONG_rampup_short_score|VOLATILE": {
+      "total": 175,
+      "wins": 78,
+      "win_rate": 44.57
+    },
+    "SHORT_rampup_sma_momentum_ratio|DEC_THEN_INC": {
+      "total": 242,
+      "wins": 125,
+      "win_rate": 51.65
+    },
+    "SHORT_rampup_health_score|VOLATILE": {
+      "total": 139,
+      "wins": 84,
+      "win_rate": 60.43
+    },
+    "entry_m15_structure|BEAR": {
+      "total": 3035,
+      "wins": 1510,
+      "win_rate": 49.75
+    },
+    "entry_h4_structure|BEAR": {
+      "total": 2545,
+      "wins": 1412,
+      "win_rate": 55.48
+    },
+    "m5_health_trend|INCREASING": {
+      "total": 223,
+      "wins": 110,
+      "win_rate": 49.33
+    },
+    "m5_health_trend|VOLATILE": {
+      "total": 666,
+      "wins": 386,
+      "win_rate": 57.96
+    },
+    "post_sma_spread|VOLATILE": {
+      "total": 35,
+      "wins": 17,
+      "win_rate": 48.57
+    },
+    "rampup_cvd_slope|FLAT": {
+      "total": 75,
+      "wins": 40,
+      "win_rate": 53.33
+    },
+    "SHORT_rampup_cvd_slope|FLAT": {
+      "total": 47,
+      "wins": 19,
+      "win_rate": 40.43
+    },
+    "m5_health_trend|DEC_THEN_INC": {
+      "total": 878,
+      "wins": 501,
+      "win_rate": 57.06
+    },
+    "SHORT_rampup_vol_delta|FLAT": {
+      "total": 215,
+      "wins": 107,
+      "win_rate": 49.77
+    },
+    "entry_long_score|MODERATE": {
+      "total": 366,
+      "wins": 225,
+      "win_rate": 61.48
+    },
+    "rampup_sma_spread|FLAT": {
+      "total": 65,
+      "wins": 47,
+      "win_rate": 72.31
+    },
+    "SHORT_rampup_sma_spread|FLAT": {
+      "total": 31,
+      "wins": 24,
+      "win_rate": 77.42
+    },
+    "SHORT_rampup_cvd_slope|DEC_THEN_INC": {
+      "total": 195,
+      "wins": 104,
+      "win_rate": 53.33
+    },
+    "rampup_sma_spread|DEC_THEN_INC": {
+      "total": 312,
+      "wins": 159,
+      "win_rate": 50.96
+    },
+    "post_long_score|INCREASING": {
+      "total": 100,
+      "wins": 55,
+      "win_rate": 55.0
+    },
+    "SHORT_rampup_sma_spread|DEC_THEN_INC": {
+      "total": 161,
+      "wins": 83,
+      "win_rate": 51.55
+    },
+    "LONG_rampup_sma_spread|FLAT": {
+      "total": 34,
+      "wins": 23,
+      "win_rate": 67.65
+    },
+    "post_health_score|INCREASING": {
+      "total": 52,
+      "wins": 35,
+      "win_rate": 67.31
+    },
+    "post_short_score|INCREASING": {
+      "total": 104,
+      "wins": 54,
+      "win_rate": 51.92
+    },
+    "rampup_health_score|DECREASING": {
+      "total": 45,
+      "wins": 17,
+      "win_rate": 37.78
+    },
+    "LONG_rampup_health_score|DECREASING": {
+      "total": 15,
+      "wins": 7,
+      "win_rate": 46.67
+    },
+    "LONG_rampup_long_score|VOLATILE": {
+      "total": 182,
+      "wins": 90,
+      "win_rate": 49.45
+    },
+    "post_short_score|DECREASING": {
+      "total": 62,
+      "wins": 34,
+      "win_rate": 54.84
+    },
+    "LONG_rampup_short_score|DECREASING": {
+      "total": 37,
+      "wins": 17,
+      "win_rate": 45.95
+    },
+    "post_health_score|DECREASING": {
+      "total": 24,
+      "wins": 15,
+      "win_rate": 62.5
+    },
+    "SHORT_rampup_health_score|INCREASING": {
+      "total": 56,
+      "wins": 30,
+      "win_rate": 53.57
+    },
+    "rampup_sma_momentum_ratio|FLAT": {
+      "total": 111,
+      "wins": 52,
+      "win_rate": 46.85
+    },
+    "LONG_rampup_sma_momentum_ratio|FLAT": {
+      "total": 69,
+      "wins": 28,
+      "win_rate": 40.58
+    },
+    "SHORT_rampup_long_score|DECREASING": {
+      "total": 60,
+      "wins": 27,
+      "win_rate": 45.0
+    },
+    "rampup_sma_momentum_ratio|VOLATILE": {
+      "total": 23,
+      "wins": 15,
+      "win_rate": 65.22
+    },
+    "SHORT_rampup_sma_momentum_ratio|VOLATILE": {
+      "total": 9,
+      "wins": 7,
+      "win_rate": 77.78
+    },
+    "LONG_rampup_sma_spread|DEC_THEN_INC": {
+      "total": 151,
+      "wins": 76,
+      "win_rate": 50.33
+    },
+    "post_long_score|DECREASING": {
+      "total": 83,
+      "wins": 32,
+      "win_rate": 38.55
+    },
+    "post_sma_momentum_ratio|VOLATILE": {
+      "total": 46,
+      "wins": 18,
+      "win_rate": 39.13
+    },
+    "rampup_sma_spread|VOLATILE": {
+      "total": 31,
+      "wins": 18,
+      "win_rate": 58.06
+    },
+    "SHORT_rampup_sma_spread|VOLATILE": {
+      "total": 12,
+      "wins": 4,
+      "win_rate": 33.33
+    },
+    "flip_vol_delta|NO_FLIP": {
+      "total": 11,
+      "wins": 7,
+      "win_rate": 63.64
+    },
+    "SHORT_rampup_sma_momentum_ratio|FLAT": {
+      "total": 42,
+      "wins": 24,
+      "win_rate": 57.14
+    },
+    "SHORT_rampup_health_score|DECREASING": {
+      "total": 30,
+      "wins": 10,
+      "win_rate": 33.33
+    },
+    "LONG_rampup_cvd_slope|FLAT": {
+      "total": 28,
+      "wins": 21,
+      "win_rate": 75.0
+    },
+    "LONG_rampup_sma_spread|VOLATILE": {
+      "total": 19,
+      "wins": 14,
+      "win_rate": 73.68
+    },
+    "LONG_rampup_sma_momentum_ratio|VOLATILE": {
+      "total": 14,
+      "wins": 8,
+      "win_rate": 57.14
+    },
+    "entry_m5_structure|NEUTRAL": {
+      "total": 160,
+      "wins": 68,
+      "win_rate": 42.5
+    }
+  },
+  "combo_patterns": {
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=INCREASING": {
+      "total": 193,
+      "wins": 113,
+      "win_rate": 58.55
+    },
+    "combo|entry_health_score=WEAK+entry_candle_range_pct=EXPLOSIVE": {
+      "total": 273,
+      "wins": 157,
+      "win_rate": 57.51
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+rampup_candle_range_pct=VOLATILE": {
+      "total": 9,
+      "wins": 3,
+      "win_rate": 33.33
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+entry_health_score=WEAK": {
+      "total": 12,
+      "wins": 6,
+      "win_rate": 50.0
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=INCREASING": {
+      "total": 212,
+      "wins": 136,
+      "win_rate": 64.15
+    },
+    "combo|entry_candle_range_pct=EXPLOSIVE+entry_vol_delta=STRONG_BUY": {
+      "total": 673,
+      "wins": 358,
+      "win_rate": 53.19
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=DECREASING": {
+      "total": 550,
+      "wins": 255,
+      "win_rate": 46.36
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=INCREASING": {
+      "total": 606,
+      "wins": 303,
+      "win_rate": 50.0
+    },
+    "combo|entry_health_score=MODERATE+entry_candle_range_pct=EXPANDING": {
+      "total": 342,
+      "wins": 192,
+      "win_rate": 56.14
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+rampup_candle_range_pct=DECREASING": {
+      "total": 10,
+      "wins": 6,
+      "win_rate": 60.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+entry_health_score=MODERATE": {
+      "total": 7,
+      "wins": 1,
+      "win_rate": 14.29
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=DECREASING": {
+      "total": 260,
+      "wins": 123,
+      "win_rate": 47.31
+    },
+    "combo|entry_candle_range_pct=EXPANDING+entry_vol_delta=MILD_BUY": {
+      "total": 261,
+      "wins": 124,
+      "win_rate": 47.51
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 237,
+      "wins": 150,
+      "win_rate": 63.29
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=DECREASING": {
+      "total": 859,
+      "wins": 433,
+      "win_rate": 50.41
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 232,
+      "wins": 119,
+      "win_rate": 51.29
+    },
+    "combo|entry_health_score=MODERATE+entry_candle_range_pct=EXPLOSIVE": {
+      "total": 565,
+      "wins": 319,
+      "win_rate": 56.46
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=DECREASING": {
+      "total": 671,
+      "wins": 360,
+      "win_rate": 53.65
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=DECREASING": {
+      "total": 1850,
+      "wins": 912,
+      "win_rate": 49.3
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+entry_health_score=MODERATE": {
+      "total": 1795,
+      "wins": 935,
+      "win_rate": 52.09
+    },
+    "combo|entry_candle_range_pct=EXPLOSIVE+entry_vol_delta=MILD_SELL": {
+      "total": 202,
+      "wins": 134,
+      "win_rate": 66.34
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=INCREASING": {
+      "total": 614,
+      "wins": 294,
+      "win_rate": 47.88
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=DECREASING": {
+      "total": 615,
+      "wins": 326,
+      "win_rate": 53.01
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 240,
+      "wins": 153,
+      "win_rate": 63.75
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=INCREASING": {
+      "total": 774,
+      "wins": 428,
+      "win_rate": 55.3
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=DECREASING": {
+      "total": 308,
+      "wins": 118,
+      "win_rate": 38.31
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 213,
+      "wins": 114,
+      "win_rate": 53.52
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=VOLATILE": {
+      "total": 26,
+      "wins": 16,
+      "win_rate": 61.54
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 270,
+      "wins": 125,
+      "win_rate": 46.3
+    },
+    "combo|entry_health_score=WEAK+entry_candle_range_pct=EXPANDING": {
+      "total": 329,
+      "wins": 159,
+      "win_rate": 48.33
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=INCREASING": {
+      "total": 991,
+      "wins": 519,
+      "win_rate": 52.37
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+entry_health_score=WEAK": {
+      "total": 1724,
+      "wins": 954,
+      "win_rate": 55.34
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 146,
+      "wins": 91,
+      "win_rate": 62.33
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=VOLATILE": {
+      "total": 83,
+      "wins": 39,
+      "win_rate": 46.99
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=DECREASING": {
+      "total": 417,
+      "wins": 254,
+      "win_rate": 60.91
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=VOLATILE": {
+      "total": 79,
+      "wins": 49,
+      "win_rate": 62.03
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 291,
+      "wins": 168,
+      "win_rate": 57.73
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 85,
+      "wins": 51,
+      "win_rate": 60.0
+    },
+    "combo|entry_candle_range_pct=EXPLOSIVE+entry_vol_delta=MILD_BUY": {
+      "total": 247,
+      "wins": 146,
+      "win_rate": 59.11
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=INCREASING": {
+      "total": 269,
+      "wins": 161,
+      "win_rate": 59.85
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=VOLATILE": {
+      "total": 100,
+      "wins": 61,
+      "win_rate": 61.0
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=INCREASING": {
+      "total": 891,
+      "wins": 514,
+      "win_rate": 57.69
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=VOLATILE": {
+      "total": 161,
+      "wins": 89,
+      "win_rate": 55.28
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=INCREASING": {
+      "total": 65,
+      "wins": 49,
+      "win_rate": 75.38
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=DEC_THEN_INC": {
+      "total": 966,
+      "wins": 518,
+      "win_rate": 53.62
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=INCREASING": {
+      "total": 201,
+      "wins": 117,
+      "win_rate": 58.21
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=DECREASING": {
+      "total": 243,
+      "wins": 143,
+      "win_rate": 58.85
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=DECREASING": {
+      "total": 279,
+      "wins": 159,
+      "win_rate": 56.99
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=DECREASING": {
+      "total": 647,
+      "wins": 310,
+      "win_rate": 47.91
+    },
+    "combo|entry_health_score=CRITICAL+entry_candle_range_pct=EXPANDING": {
+      "total": 56,
+      "wins": 21,
+      "win_rate": 37.5
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=INC_THEN_DEC": {
+      "total": 958,
+      "wins": 565,
+      "win_rate": 58.98
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+entry_health_score=CRITICAL": {
+      "total": 287,
+      "wins": 130,
+      "win_rate": 45.3
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=DECREASING": {
+      "total": 131,
+      "wins": 60,
+      "win_rate": 45.8
+    },
+    "combo|entry_candle_range_pct=EXPANDING+entry_vol_delta=MILD_SELL": {
+      "total": 210,
+      "wins": 100,
+      "win_rate": 47.62
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=INCREASING": {
+      "total": 204,
+      "wins": 107,
+      "win_rate": 52.45
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=INCREASING": {
+      "total": 303,
+      "wins": 178,
+      "win_rate": 58.75
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=DECREASING": {
+      "total": 205,
+      "wins": 101,
+      "win_rate": 49.27
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 197,
+      "wins": 100,
+      "win_rate": 50.76
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=INCREASING": {
+      "total": 385,
+      "wins": 211,
+      "win_rate": 54.81
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=INCREASING": {
+      "total": 133,
+      "wins": 66,
+      "win_rate": 49.62
+    },
+    "combo|entry_health_score=STRONG+entry_candle_range_pct=EXPLOSIVE": {
+      "total": 948,
+      "wins": 554,
+      "win_rate": 58.44
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 369,
+      "wins": 216,
+      "win_rate": 58.54
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+entry_health_score=STRONG": {
+      "total": 2040,
+      "wins": 1136,
+      "win_rate": 55.69
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 116,
+      "wins": 52,
+      "win_rate": 44.83
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=DECREASING": {
+      "total": 250,
+      "wins": 138,
+      "win_rate": 55.2
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=DECREASING": {
+      "total": 591,
+      "wins": 292,
+      "win_rate": 49.41
+    },
+    "combo|entry_health_score=STRONG+entry_candle_range_pct=EXPANDING": {
+      "total": 520,
+      "wins": 278,
+      "win_rate": 53.46
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=VOLATILE": {
+      "total": 632,
+      "wins": 370,
+      "win_rate": 58.54
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=INCREASING": {
+      "total": 260,
+      "wins": 123,
+      "win_rate": 47.31
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=INCREASING": {
+      "total": 126,
+      "wins": 70,
+      "win_rate": 55.56
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 53,
+      "wins": 23,
+      "win_rate": 43.4
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=INCREASING": {
+      "total": 815,
+      "wins": 455,
+      "win_rate": 55.83
+    },
+    "combo|flip_vol_delta=MULTIPLE_FLIPS+rampup_candle_range_pct=FLAT": {
+      "total": 449,
+      "wins": 271,
+      "win_rate": 60.36
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=DECREASING": {
+      "total": 167,
+      "wins": 104,
+      "win_rate": 62.28
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=DECREASING": {
+      "total": 143,
+      "wins": 90,
+      "win_rate": 62.94
+    },
+    "combo|entry_health_score=MODERATE+entry_candle_range_pct=NORMAL": {
+      "total": 519,
+      "wins": 233,
+      "win_rate": 44.89
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=DECREASING": {
+      "total": 847,
+      "wins": 414,
+      "win_rate": 48.88
+    },
+    "combo|entry_candle_range_pct=NORMAL+entry_vol_delta=MILD_BUY": {
+      "total": 376,
+      "wins": 185,
+      "win_rate": 49.2
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=INCREASING": {
+      "total": 336,
+      "wins": 227,
+      "win_rate": 67.56
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=INCREASING": {
+      "total": 174,
+      "wins": 114,
+      "win_rate": 65.52
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=INCREASING": {
+      "total": 344,
+      "wins": 208,
+      "win_rate": 60.47
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=DECREASING": {
+      "total": 270,
+      "wins": 147,
+      "win_rate": 54.44
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=INCREASING": {
+      "total": 206,
+      "wins": 111,
+      "win_rate": 53.88
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 178,
+      "wins": 96,
+      "win_rate": 53.93
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=DECREASING": {
+      "total": 114,
+      "wins": 61,
+      "win_rate": 53.51
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 157,
+      "wins": 79,
+      "win_rate": 50.32
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 209,
+      "wins": 105,
+      "win_rate": 50.24
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 111,
+      "wins": 69,
+      "win_rate": 62.16
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 325,
+      "wins": 196,
+      "win_rate": 60.31
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 459,
+      "wins": 261,
+      "win_rate": 56.86
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 125,
+      "wins": 85,
+      "win_rate": 68.0
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 59,
+      "wins": 31,
+      "win_rate": 52.54
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 126,
+      "wins": 85,
+      "win_rate": 67.46
+    },
+    "combo|entry_health_score=STRONG+entry_candle_range_pct=NORMAL": {
+      "total": 406,
+      "wins": 216,
+      "win_rate": 53.2
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 481,
+      "wins": 278,
+      "win_rate": 57.8
+    },
+    "combo|entry_candle_range_pct=NORMAL+entry_vol_delta=MILD_SELL": {
+      "total": 391,
+      "wins": 187,
+      "win_rate": 47.83
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=DECREASING": {
+      "total": 333,
+      "wins": 167,
+      "win_rate": 50.15
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=INCREASING": {
+      "total": 1139,
+      "wins": 643,
+      "win_rate": 56.45
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 42,
+      "wins": 30,
+      "win_rate": 71.43
+    },
+    "combo|entry_health_score=WEAK+entry_candle_range_pct=COMPRESSED": {
+      "total": 601,
+      "wins": 365,
+      "win_rate": 60.73
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 334,
+      "wins": 188,
+      "win_rate": 56.29
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+rampup_candle_range_pct=FLAT": {
+      "total": 5,
+      "wins": 4,
+      "win_rate": 80.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+entry_health_score=WEAK": {
+      "total": 8,
+      "wins": 6,
+      "win_rate": 75.0
+    },
+    "combo|entry_candle_range_pct=COMPRESSED+entry_vol_delta=MILD_SELL": {
+      "total": 365,
+      "wins": 224,
+      "win_rate": 61.37
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 211,
+      "wins": 117,
+      "win_rate": 55.45
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 272,
+      "wins": 126,
+      "win_rate": 46.32
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=INCREASING": {
+      "total": 222,
+      "wins": 115,
+      "win_rate": 51.8
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 101,
+      "wins": 54,
+      "win_rate": 53.47
+    },
+    "combo|entry_candle_range_pct=COMPRESSED+entry_vol_delta=MILD_BUY": {
+      "total": 402,
+      "wins": 218,
+      "win_rate": 54.23
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=VOLATILE": {
+      "total": 171,
+      "wins": 102,
+      "win_rate": 59.65
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=DECREASING": {
+      "total": 171,
+      "wins": 96,
+      "win_rate": 56.14
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 95,
+      "wins": 56,
+      "win_rate": 58.95
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=VOLATILE": {
+      "total": 221,
+      "wins": 139,
+      "win_rate": 62.9
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=VOLATILE": {
+      "total": 276,
+      "wins": 157,
+      "win_rate": 56.88
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 138,
+      "wins": 73,
+      "win_rate": 52.9
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 165,
+      "wins": 95,
+      "win_rate": 57.58
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 79,
+      "wins": 46,
+      "win_rate": 58.23
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 124,
+      "wins": 73,
+      "win_rate": 58.87
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 124,
+      "wins": 90,
+      "win_rate": 72.58
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=DECREASING": {
+      "total": 835,
+      "wins": 382,
+      "win_rate": 45.75
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=DECREASING": {
+      "total": 157,
+      "wins": 70,
+      "win_rate": 44.59
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 257,
+      "wins": 155,
+      "win_rate": 60.31
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=DECREASING": {
+      "total": 266,
+      "wins": 162,
+      "win_rate": 60.9
+    },
+    "combo|entry_health_score=WEAK+entry_candle_range_pct=NORMAL": {
+      "total": 541,
+      "wins": 285,
+      "win_rate": 52.68
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=DECREASING": {
+      "total": 1143,
+      "wins": 589,
+      "win_rate": 51.53
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=FLAT": {
+      "total": 57,
+      "wins": 28,
+      "win_rate": 49.12
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=FLAT": {
+      "total": 150,
+      "wins": 94,
+      "win_rate": 62.67
+    },
+    "combo|entry_health_score=MODERATE+entry_candle_range_pct=COMPRESSED": {
+      "total": 382,
+      "wins": 197,
+      "win_rate": 51.57
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=VOLATILE": {
+      "total": 59,
+      "wins": 29,
+      "win_rate": 49.15
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=INCREASING": {
+      "total": 201,
+      "wins": 98,
+      "win_rate": 48.76
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=DECREASING": {
+      "total": 237,
+      "wins": 138,
+      "win_rate": 58.23
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 78,
+      "wins": 52,
+      "win_rate": 66.67
+    },
+    "combo|entry_candle_range_pct=EXPLOSIVE+entry_vol_delta=STRONG_SELL": {
+      "total": 696,
+      "wins": 402,
+      "win_rate": 57.76
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=INCREASING": {
+      "total": 274,
+      "wins": 154,
+      "win_rate": 56.2
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=INCREASING": {
+      "total": 278,
+      "wins": 151,
+      "win_rate": 54.32
+    },
+    "combo|entry_candle_range_pct=EXPANDING+entry_vol_delta=STRONG_SELL": {
+      "total": 439,
+      "wins": 215,
+      "win_rate": 48.97
+    },
+    "combo|entry_candle_range_pct=NORMAL+entry_vol_delta=STRONG_BUY": {
+      "total": 389,
+      "wins": 206,
+      "win_rate": 52.96
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=FLAT": {
+      "total": 131,
+      "wins": 58,
+      "win_rate": 44.27
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 222,
+      "wins": 121,
+      "win_rate": 54.5
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=FLAT": {
+      "total": 64,
+      "wins": 47,
+      "win_rate": 73.44
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=VOLATILE": {
+      "total": 92,
+      "wins": 64,
+      "win_rate": 69.57
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=INCREASING": {
+      "total": 158,
+      "wins": 86,
+      "win_rate": 54.43
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=VOLATILE": {
+      "total": 40,
+      "wins": 19,
+      "win_rate": 47.5
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=FLAT": {
+      "total": 158,
+      "wins": 80,
+      "win_rate": 50.63
+    },
+    "combo|flip_cvd_slope=MULTIPLE_FLIPS+rampup_vol_delta=FLAT": {
+      "total": 303,
+      "wins": 138,
+      "win_rate": 45.54
+    },
+    "combo|entry_candle_range_pct=EXPANDING+entry_vol_delta=STRONG_BUY": {
+      "total": 337,
+      "wins": 211,
+      "win_rate": 62.61
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=DECREASING": {
+      "total": 201,
+      "wins": 106,
+      "win_rate": 52.74
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=INCREASING": {
+      "total": 79,
+      "wins": 48,
+      "win_rate": 60.76
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=FLAT": {
+      "total": 29,
+      "wins": 14,
+      "win_rate": 48.28
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=FLAT": {
+      "total": 50,
+      "wins": 20,
+      "win_rate": 40.0
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=FLAT": {
+      "total": 35,
+      "wins": 20,
+      "win_rate": 57.14
+    },
+    "combo|entry_candle_range_pct=NORMAL+entry_vol_delta=STRONG_SELL": {
+      "total": 399,
+      "wins": 194,
+      "win_rate": 48.62
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=VOLATILE": {
+      "total": 83,
+      "wins": 54,
+      "win_rate": 65.06
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=FLAT": {
+      "total": 66,
+      "wins": 32,
+      "win_rate": 48.48
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=FLAT": {
+      "total": 15,
+      "wins": 10,
+      "win_rate": 66.67
+    },
+    "combo|rampup_sma_spread=INCREASING+rampup_vol_delta=VOLATILE": {
+      "total": 162,
+      "wins": 57,
+      "win_rate": 35.19
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_roc=FLAT": {
+      "total": 66,
+      "wins": 48,
+      "win_rate": 72.73
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=VOLATILE": {
+      "total": 83,
+      "wins": 22,
+      "win_rate": 26.51
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=VOLATILE": {
+      "total": 18,
+      "wins": 7,
+      "win_rate": 38.89
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 136,
+      "wins": 61,
+      "win_rate": 44.85
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=INCREASING": {
+      "total": 142,
+      "wins": 73,
+      "win_rate": 51.41
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 128,
+      "wins": 96,
+      "win_rate": 75.0
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=DECREASING": {
+      "total": 281,
+      "wins": 175,
+      "win_rate": 62.28
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=FLAT": {
+      "total": 2,
+      "wins": 2,
+      "win_rate": 100.0
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_delta=FLAT": {
+      "total": 45,
+      "wins": 22,
+      "win_rate": 48.89
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=DECREASING": {
+      "total": 168,
+      "wins": 64,
+      "win_rate": 38.1
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 45,
+      "wins": 18,
+      "win_rate": 40.0
+    },
+    "combo|rampup_sma_spread=DECREASING+rampup_vol_delta=FLAT": {
+      "total": 200,
+      "wins": 88,
+      "win_rate": 44.0
+    },
+    "combo|rampup_sma_spread=FLAT+rampup_vol_delta=INCREASING": {
+      "total": 20,
+      "wins": 13,
+      "win_rate": 65.0
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_roc=DECREASING": {
+      "total": 200,
+      "wins": 99,
+      "win_rate": 49.5
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=INCREASING": {
+      "total": 120,
+      "wins": 62,
+      "win_rate": 51.67
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 86,
+      "wins": 53,
+      "win_rate": 61.63
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=VOLATILE": {
+      "total": 24,
+      "wins": 18,
+      "win_rate": 75.0
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=VOLATILE": {
+      "total": 87,
+      "wins": 51,
+      "win_rate": 58.62
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 74,
+      "wins": 33,
+      "win_rate": 44.59
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 67,
+      "wins": 35,
+      "win_rate": 52.24
+    },
+    "combo|entry_health_score=CRITICAL+entry_candle_range_pct=NORMAL": {
+      "total": 89,
+      "wins": 38,
+      "win_rate": 42.7
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 317,
+      "wins": 180,
+      "win_rate": 56.78
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_roc=INCREASING": {
+      "total": 104,
+      "wins": 67,
+      "win_rate": 64.42
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=VOLATILE": {
+      "total": 81,
+      "wins": 35,
+      "win_rate": 43.21
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=VOLATILE": {
+      "total": 46,
+      "wins": 23,
+      "win_rate": 50.0
+    },
+    "combo|entry_health_score=CRITICAL+entry_candle_range_pct=EXPLOSIVE": {
+      "total": 32,
+      "wins": 10,
+      "win_rate": 31.25
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 49,
+      "wins": 21,
+      "win_rate": 42.86
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 16,
+      "wins": 9,
+      "win_rate": 56.25
+    },
+    "combo|entry_health_score=CRITICAL+entry_candle_range_pct=COMPRESSED": {
+      "total": 121,
+      "wins": 69,
+      "win_rate": 57.02
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=VOLATILE": {
+      "total": 22,
+      "wins": 11,
+      "win_rate": 50.0
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 91,
+      "wins": 64,
+      "win_rate": 70.33
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=INC_THEN_DEC": {
+      "total": 91,
+      "wins": 50,
+      "win_rate": 54.95
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=VOLATILE": {
+      "total": 153,
+      "wins": 84,
+      "win_rate": 54.9
+    },
+    "combo|entry_candle_range_pct=COMPRESSED+entry_vol_delta=STRONG_SELL": {
+      "total": 293,
+      "wins": 170,
+      "win_rate": 58.02
+    },
+    "combo|rampup_candle_range_pct=INCREASING+rampup_vol_delta=FLAT": {
+      "total": 56,
+      "wins": 40,
+      "win_rate": 71.43
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=FLAT": {
+      "total": 31,
+      "wins": 20,
+      "win_rate": 64.52
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 75,
+      "wins": 47,
+      "win_rate": 62.67
+    },
+    "combo|entry_candle_range_pct=COMPRESSED+entry_vol_delta=STRONG_BUY": {
+      "total": 242,
+      "wins": 125,
+      "win_rate": 51.65
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_roc=VOLATILE": {
+      "total": 186,
+      "wins": 98,
+      "win_rate": 52.69
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=VOLATILE": {
+      "total": 62,
+      "wins": 29,
+      "win_rate": 46.77
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 67,
+      "wins": 36,
+      "win_rate": 53.73
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 94,
+      "wins": 54,
+      "win_rate": 57.45
+    },
+    "combo|rampup_candle_range_pct=DEC_THEN_INC+rampup_vol_delta=FLAT": {
+      "total": 93,
+      "wins": 22,
+      "win_rate": 23.66
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=DECREASING": {
+      "total": 142,
+      "wins": 63,
+      "win_rate": 44.37
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=FLAT": {
+      "total": 11,
+      "wins": 7,
+      "win_rate": 63.64
+    },
+    "combo|rampup_candle_range_pct=DECREASING+rampup_vol_delta=FLAT": {
+      "total": 125,
+      "wins": 53,
+      "win_rate": 42.4
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 40,
+      "wins": 18,
+      "win_rate": 45.0
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 85,
+      "wins": 54,
+      "win_rate": 63.53
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 77,
+      "wins": 46,
+      "win_rate": 59.74
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=FLAT": {
+      "total": 21,
+      "wins": 13,
+      "win_rate": 61.9
+    },
+    "combo|flip_cvd_slope=FLIP_TO_NEGATIVE+rampup_vol_delta=FLAT": {
+      "total": 43,
+      "wins": 20,
+      "win_rate": 46.51
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=DEC_THEN_INC": {
+      "total": 56,
+      "wins": 24,
+      "win_rate": 42.86
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+rampup_candle_range_pct=INCREASING": {
+      "total": 10,
+      "wins": 7,
+      "win_rate": 70.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+entry_health_score=CRITICAL": {
+      "total": 8,
+      "wins": 5,
+      "win_rate": 62.5
+    },
+    "combo|rampup_candle_range_pct=INC_THEN_DEC+rampup_vol_roc=FLAT": {
+      "total": 105,
+      "wins": 61,
+      "win_rate": 58.1
+    },
+    "combo|entry_health_score=STRONG+entry_candle_range_pct=COMPRESSED": {
+      "total": 198,
+      "wins": 106,
+      "win_rate": 53.54
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_roc=FLAT": {
+      "total": 39,
+      "wins": 18,
+      "win_rate": 46.15
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_vol_roc=FLAT": {
+      "total": 131,
+      "wins": 57,
+      "win_rate": 43.51
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_vol_roc=FLAT": {
+      "total": 42,
+      "wins": 20,
+      "win_rate": 47.62
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+rampup_candle_range_pct=FLAT": {
+      "total": 9,
+      "wins": 5,
+      "win_rate": 55.56
+    },
+    "combo|flip_cvd_slope=NO_FLIP+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 98,
+      "wins": 62,
+      "win_rate": 63.27
+    },
+    "combo|rampup_vol_delta=DECREASING+rampup_cvd_slope=FLAT": {
+      "total": 21,
+      "wins": 4,
+      "win_rate": 19.05
+    },
+    "combo|flip_cvd_slope=FLIP_TO_POSITIVE+rampup_vol_delta=VOLATILE": {
+      "total": 79,
+      "wins": 32,
+      "win_rate": 40.51
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_vol_roc=INCREASING": {
+      "total": 57,
+      "wins": 31,
+      "win_rate": 54.39
+    },
+    "combo|rampup_sma_spread=FLAT+rampup_vol_delta=DECREASING": {
+      "total": 21,
+      "wins": 10,
+      "win_rate": 47.62
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 26,
+      "wins": 16,
+      "win_rate": 61.54
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_vol_roc=INCREASING": {
+      "total": 66,
+      "wins": 42,
+      "win_rate": 63.64
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 56,
+      "wins": 29,
+      "win_rate": 51.79
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 19,
+      "wins": 12,
+      "win_rate": 63.16
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 61,
+      "wins": 39,
+      "win_rate": 63.93
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_vol_roc=FLAT": {
+      "total": 76,
+      "wins": 44,
+      "win_rate": 57.89
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=INCREASING": {
+      "total": 9,
+      "wins": 9,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 60,
+      "wins": 50,
+      "win_rate": 83.33
+    },
+    "combo|rampup_candle_range_pct=VOLATILE+rampup_vol_delta=VOLATILE": {
+      "total": 25,
+      "wins": 8,
+      "win_rate": 32.0
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 30,
+      "wins": 18,
+      "win_rate": 60.0
+    },
+    "combo|flip_vol_delta=NO_FLIP+rampup_candle_range_pct=FLAT": {
+      "total": 1,
+      "wins": 1,
+      "win_rate": 100.0
+    },
+    "combo|flip_vol_delta=NO_FLIP+entry_health_score=CRITICAL": {
+      "total": 3,
+      "wins": 3,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=DEC_THEN_INC": {
+      "total": 24,
+      "wins": 12,
+      "win_rate": 50.0
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=DECREASING": {
+      "total": 70,
+      "wins": 24,
+      "win_rate": 34.29
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 31,
+      "wins": 16,
+      "win_rate": 51.61
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=VOLATILE": {
+      "total": 9,
+      "wins": 4,
+      "win_rate": 44.44
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+rampup_candle_range_pct=DEC_THEN_INC": {
+      "total": 7,
+      "wins": 5,
+      "win_rate": 71.43
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+entry_health_score=MODERATE": {
+      "total": 2,
+      "wins": 1,
+      "win_rate": 50.0
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=VOLATILE": {
+      "total": 5,
+      "wins": 2,
+      "win_rate": 40.0
+    },
+    "combo|rampup_vol_delta=DEC_THEN_INC+rampup_cvd_slope=VOLATILE": {
+      "total": 5,
+      "wins": 5,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=INCREASING+rampup_cvd_slope=FLAT": {
+      "total": 10,
+      "wins": 3,
+      "win_rate": 30.0
+    },
+    "combo|rampup_sma_spread=FLAT+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 8,
+      "wins": 8,
+      "win_rate": 100.0
+    },
+    "combo|rampup_sma_spread=INC_THEN_DEC+rampup_vol_delta=FLAT": {
+      "total": 28,
+      "wins": 12,
+      "win_rate": 42.86
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+entry_health_score=STRONG": {
+      "total": 14,
+      "wins": 7,
+      "win_rate": 50.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+rampup_candle_range_pct=INC_THEN_DEC": {
+      "total": 3,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|rampup_sma_spread=FLAT+rampup_vol_delta=VOLATILE": {
+      "total": 8,
+      "wins": 8,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=INC_THEN_DEC+rampup_cvd_slope=FLAT": {
+      "total": 17,
+      "wins": 13,
+      "win_rate": 76.47
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+entry_health_score=STRONG": {
+      "total": 14,
+      "wins": 11,
+      "win_rate": 78.57
+    },
+    "combo|rampup_candle_range_pct=FLAT+rampup_vol_delta=VOLATILE": {
+      "total": 14,
+      "wins": 10,
+      "win_rate": 71.43
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=DECREASING": {
+      "total": 13,
+      "wins": 4,
+      "win_rate": 30.77
+    },
+    "combo|rampup_sma_spread=FLAT+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 8,
+      "wins": 8,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=INC_THEN_DEC": {
+      "total": 19,
+      "wins": 13,
+      "win_rate": 68.42
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=DEC_THEN_INC": {
+      "total": 2,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|flip_vol_delta=NO_FLIP+rampup_candle_range_pct=INC_THEN_DEC": {
+      "total": 9,
+      "wins": 6,
+      "win_rate": 66.67
+    },
+    "combo|flip_vol_delta=NO_FLIP+entry_health_score=MODERATE": {
+      "total": 4,
+      "wins": 4,
+      "win_rate": 100.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_NEGATIVE+rampup_candle_range_pct=DECREASING": {
+      "total": 7,
+      "wins": 3,
+      "win_rate": 42.86
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=FLAT": {
+      "total": 14,
+      "wins": 11,
+      "win_rate": 78.57
+    },
+    "combo|flip_vol_delta=NO_FLIP+rampup_candle_range_pct=DECREASING": {
+      "total": 1,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|flip_vol_delta=NO_FLIP+entry_health_score=STRONG": {
+      "total": 4,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+rampup_candle_range_pct=INC_THEN_DEC": {
+      "total": 1,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|rampup_sma_spread=DEC_THEN_INC+rampup_vol_delta=VOLATILE": {
+      "total": 21,
+      "wins": 9,
+      "win_rate": 42.86
+    },
+    "combo|rampup_vol_delta=FLAT+rampup_cvd_slope=VOLATILE": {
+      "total": 1,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=VOLATILE": {
+      "total": 1,
+      "wins": 1,
+      "win_rate": 100.0
+    },
+    "combo|rampup_vol_delta=VOLATILE+rampup_cvd_slope=VOLATILE": {
+      "total": 18,
+      "wins": 4,
+      "win_rate": 22.22
+    },
+    "combo|flip_vol_delta=FLIP_TO_POSITIVE+rampup_candle_range_pct=INCREASING": {
+      "total": 4,
+      "wins": 4,
+      "win_rate": 100.0
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=FLAT": {
+      "total": 4,
+      "wins": 4,
+      "win_rate": 100.0
+    },
+    "combo|rampup_sma_spread=VOLATILE+rampup_vol_delta=INC_THEN_DEC": {
+      "total": 2,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  }
+}

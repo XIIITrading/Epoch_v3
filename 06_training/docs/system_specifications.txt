@@ -1,0 +1,1037 @@
+================================================================================
+EPOCH TRADING SYSTEM v2.0 - TRAINING MODULE
+System Specifications
+XIII Trading LLC
+================================================================================
+
+1. IMPLEMENTATION OVERVIEW
+================================================================================
+
+The Training Module is a Streamlit web application that implements an
+interactive flashcard review system for deliberate practice of trade
+evaluation. Users review historical trades from the Supabase database in
+two modes: Pre-Trade view shows the setup at the right edge (entry point)
+WITHOUT revealing the outcome, while Post-Trade view reveals the full trade
+with exit, MFE/MAE markers, R-level crossings, and comprehensive outcome
+metrics. The review queue is shuffled randomly to prevent temporal memory
+leakage -- the phenomenon where reviewing trades in chronological order
+allows the reviewer to recognize market context rather than evaluating
+setups independently. Each trade is presented with multi-timeframe charts
+(M5 execution, M15 structure, H1 context), a 1-minute ramp-up chart
+showing pre-entry indicator progression, an event indicators table
+tracking health score evolution across ENTRY/R1/R2/R3/MFE/MAE/EXIT
+milestones, and an indicator refinement scoring panel that classifies
+trades as CONTINUATION (EPCH1/3, scored 0-10) or REJECTION (EPCH2/4,
+scored 0-11). The module integrates DOW AI -- a copy-paste prompt
+generation system that creates structured analysis prompts for Claude
+Desktop with full trade context including M1 ramp-up candle data, ATR
+levels, Camarilla pivots, HVN POC levels, and market structure -- enabling
+the trader to get AI-assisted pre-trade and post-trade reviews. Users
+record observations through a multi-flag review form (16 boolean
+assessment flags plus notes) that persists to a dedicated trade_reviews
+table, and pre-computed AI predictions from the ai_predictions table are
+displayed inline with TRADE/NO_TRADE decisions and confidence ratings.
+Win condition uses the canonical outcome from the trades_m5_r_win table
+(M5 ATR 1.1x close-based stop), aligned with the System Analysis module.
+
+
+2. HIGH-LEVEL TECHNICAL SPECIFICATIONS
+================================================================================
+
+2.1 APPLICATION FRAMEWORK
+--------------------------------------------------------------------------------
+- Runtime:          Python 3.12+
+- UI Framework:     Streamlit (web application)
+- Page Title:       Epoch Trade Review
+- Page Icon:        Target emoji
+- Layout:           Wide, sidebar expanded
+- Theme:            Dark mode (#1a1a2e background, custom CSS)
+- Execution:        streamlit run streamlit_app.py --server.headless true
+- Launcher:         python app.py (subprocess wrapper)
+- Version:          v3.0 (M5 ATR canonical outcomes)
+
+2.2 DATA SOURCES
+--------------------------------------------------------------------------------
+- Trade Data:       Supabase PostgreSQL (trades table) via psycopg2 + SSL
+- Event Data:       optimal_trade table (ENTRY, R1_CROSS, R2_CROSS,
+                    R3_CROSS, MFE, MAE, EXIT events)
+- Market Data:      Polygon.io REST API (M5, M15, H1 OHLCV bars)
+                    /v2/aggs/ticker/{}/range/{minutes}/minute/{from}/{to}
+- Ramp-Up Data:     m1_indicator_bars table (pre-computed M1 indicators)
+- Zone Data:        zones table (filtered zone boundaries, ranks, tiers)
+- Image Data:       trade_images table (bookmap/footprint snapshot URLs)
+- Review Data:      trade_reviews table (user assessment flags and notes)
+- AI Analysis:      trade_analysis table (Claude prompt/response pairs)
+- AI Predictions:   ai_predictions table (pre-computed TRADE/NO_TRADE)
+- Refinement:       indicator_refinement table (continuation/rejection scores)
+- Canonical Win:    trades_m5_r_win table (M5 ATR 1.1x stop outcomes)
+- DOW AI Context:   bar_data, hvn_pocs, market_structure, setups tables
+
+2.3 API CONFIGURATION
+--------------------------------------------------------------------------------
+- API Key:          Polygon.io REST API (f4vzZl0g...df4_)
+- Rate Limiting:    0.25s between calls
+- Retries:          3 attempts, 2.0s retry delay
+- Parameters:       adjusted=true, sort=asc, limit=50000
+- Extended Hours:   08:00 ET (pre-market) through 20:00 ET (after-hours)
+
+2.4 CHART CONFIGURATION
+--------------------------------------------------------------------------------
+- Candle Count:     160 per timeframe
+- Timeframes:       5m (40%), 15m (35%), 1h (25%) row heights
+- Chart Height:     900px (multi-timeframe), 550px (ramp-up)
+- Max Bars:         120 per subplot trace
+- Rangebreaks:      Weekends (sat-mon), overnight (20:00-04:00)
+- Prefetch Count:   3 upcoming trades cached ahead
+
+
+3. FLASHCARD STATE MACHINE
+================================================================================
+
+The core interaction model is a two-state flashcard with a review queue:
+
+3.1 SESSION STATE VARIABLES
+--------------------------------------------------------------------------------
+  review_queue         List[TradeWithMetrics]  Shuffled trade queue
+  current_trade_index  int                     Current position (0-indexed)
+  queue_loaded         bool                    Whether queue has been loaded
+  last_filters         dict                    Filter state for reload
+  view_mode            str                     'pre_trade' or 'post_trade'
+
+3.2 PRE-TRADE VIEW (EVALUATE MODE)
+--------------------------------------------------------------------------------
+  Displays:
+  - Trade info panel: Model, Zone Type, Zone POC, Entry Price, AI Prediction
+  - Multi-timeframe chart: M5 (full width), H1 + M15 (side by side)
+    - Bars sliced to entry time (future hidden)
+    - Zone rectangles with midpoint line
+    - Entry marker triangle
+  - M1 ramp-up chart: 45 M1 bars before entry with indicator table
+    - Candle %, Vol Delta, Vol ROC, SMA, H1 Struct, LONG score, SHORT score
+    - Color-coded values (green=favorable, red=unfavorable, yellow=neutral)
+  - Event indicators table: ENTRY column only
+  - AI prediction detail (if available from ai_predictions)
+
+3.3 POST-TRADE VIEW (REVEAL MODE)
+--------------------------------------------------------------------------------
+  Displays:
+  - Trade info panel (same as pre-trade + AI prediction)
+  - Multi-timeframe chart: Full bars (entry through exit + buffer)
+    - R-level horizontal lines (Stop, 1R, 2R, 3R)
+    - Exit marker with P&L label (R-multiple + points)
+    - MFE marker (blue triangle, +R label)
+    - MAE marker (orange triangle, -R label)
+    - R-level crossing diamond markers with health deltas
+  - Stats panel: P&L (R), MFE (R), MAE (R), Duration
+    - R-Levels row: Stop, Entry, 1R, 2R, 3R prices
+    - R-Level Crossings: Time, health score, health delta at each R
+    - Full Trade Details (expandable): Trade info, Entry/Exit, Risk metrics,
+      Health metrics, Zone boundaries
+  - Event indicators table: ENTRY, R1, R2, R3, MAE, MFE, EXIT columns
+    - 15 metrics per event: Time, Price, R-Multiple, Points, Health, VWAP,
+      SMA9, SMA21, SMA Spread, SMA Momentum, Vol ROC, M5/M15/H1/H4 structure
+  - Bookmap snapshot viewer (if bookmap_url available)
+  - Review form: 16 boolean flags + notes + entry attempt selector
+  - Navigation: "Next Trade" button (saves review, advances queue)
+  - DOW AI sections: Prediction detail, Post-trade review (collapsed)
+
+
+4. DATA MODELS
+================================================================================
+
+4.1 Trade (models/trade.py:12)
+--------------------------------------------------------------------------------
+  Core trade record from trades table.
+
+  Fields:
+    trade_id          str         Unique identifier
+    date              date        Trading date
+    ticker            str         Stock symbol
+    model             str         EPCH1, EPCH2, EPCH3, EPCH4
+    zone_type         str         PRIMARY, SECONDARY
+    direction         str         LONG, SHORT
+    zone_high         float       Zone upper boundary
+    zone_low          float       Zone lower boundary
+    entry_price       float       Entry price
+    entry_time        time        Entry timestamp
+    stop_price        float       Stop loss price
+    target_3r         float       3R target price
+    target_calc       float       Calculated target from zone pipeline
+    target_used       float       Actual target used (3R or calc, whichever better)
+    exit_price        float       Exit price
+    exit_time         time        Exit timestamp
+    exit_reason       str         STOP, TARGET_3R, TARGET_CALC, CHOCH, EOD
+    pnl_dollars       float       P&L in dollars
+    pnl_r             float       P&L in R-multiples
+    risk              float       Risk per share
+    is_winner         bool        Win/loss flag
+
+  Computed Properties:
+    zone_mid          float       (zone_high + zone_low) / 2
+    entry_datetime    datetime    Combined date + entry_time
+    exit_datetime     datetime    Combined date + exit_time
+    duration_minutes  int         (exit_datetime - entry_datetime) in minutes
+
+4.2 OptimalTradeEvent (models/trade.py:110)
+--------------------------------------------------------------------------------
+  Event row from optimal_trade table (points-based v2.0).
+  Each trade has up to 7 events: ENTRY, R1_CROSS, R2_CROSS, R3_CROSS,
+  MFE, MAE, EXIT.
+
+  Fields:
+    trade_id            str       Trade identifier
+    event_type          str       ENTRY, MFE, MAE, EXIT, R1_CROSS, R2_CROSS, R3_CROSS
+    date                date      Trading date
+    ticker              str       Stock symbol
+    direction           str       LONG, SHORT
+    model               str       EPCH model
+    win                 int       1 if mfe_time < mae_time (temporal win)
+    event_time          time      When event occurred
+    bars_from_entry     int       M5 bars since entry
+    entry_price         float     Entry reference price
+    price_at_event      float     Price when event occurred
+    points_at_event     float     Points from entry (replaces r_at_event in v2.0)
+    actual_points       float     Actual P&L points (replaces actual_r)
+    health_score        int       Composite health (0-10)
+    health_label        str       STRONG/MODERATE/WEAK/CRITICAL
+    health_delta        int       Change from entry health
+    health_summary      str       IMPROVING/DEGRADING/STABLE
+    structure_score     int       Structure sub-score
+    volume_score        int       Volume sub-score
+    price_score         int       Price sub-score
+    vwap                float     VWAP at event time
+    sma9                float     9-period SMA
+    sma21               float     21-period SMA
+    sma_spread          float     SMA9 - SMA21
+    sma_momentum_ratio  float     Spread change ratio
+    sma_momentum_label  str       WIDENING/NARROWING/STABLE
+    vol_roc             float     Volume Rate of Change (%)
+    vol_delta           float     Volume Delta (buy - sell volume)
+    cvd_slope           float     Cumulative Volume Delta slope
+    m5_structure        str       M5 market structure (BULL/BEAR)
+    m15_structure       str       M15 market structure
+    h1_structure        str       H1 market structure
+    h4_structure        str       H4 market structure
+
+4.3 TradeWithMetrics (models/trade.py:207)
+--------------------------------------------------------------------------------
+  Main data structure for the flashcard UI. Wraps Trade with MFE/MAE
+  metrics, R-level calculations, R-level crossing events, zone metadata,
+  bookmap URL, and canonical outcome from trades_m5_r_win.
+
+  Win Condition: canonical_winner from trades_m5_r_win (M5 ATR 1.1x),
+                 fallback to pnl_r > 0
+
+  Core Fields:
+    trade               Trade       Core trade record
+    temporal_win        int         1 if mfe_time < mae_time (legacy)
+    mfe_points/bars/time/price/health   MFE event metrics
+    mae_points/bars/time/price/health   MAE event metrics
+    exit_points/exit_time_actual        Exit metrics (fixed 15:30 ET)
+    entry_health        int         Health score at entry
+    exit_health         int         Health score at exit
+    zone_rank/tier/score               Zone metadata (L1-L5, T1-T3)
+    bookmap_url         str         Bookmap snapshot URL
+
+  Canonical Outcome Fields (from trades_m5_r_win):
+    stop_analysis_price             Pre-calculated stop from DB
+    stop_analysis_r_achieved        R achieved from DB
+    stop_analysis_outcome           WIN/LOSS from DB
+    stop_analysis_mfe_price         MFE price from stop analysis
+    canonical_winner                is_winner from unified table
+    canonical_outcome               WIN/LOSS from unified table
+    canonical_pnl_r                 pnl_r from unified table
+    canonical_outcome_method        atr_r_target or zone_buffer_fallback
+    canonical_r1/r2/r3_price        Pre-calculated R-level prices
+
+  R-Level Crossing Events (v2.2.0):
+    r1_crossed/time/bars/health/health_delta/health_summary
+    r2_crossed/time/bars/health/health_delta/health_summary
+    r3_crossed/time/bars/health/health_delta/health_summary
+
+  Computed Properties:
+    default_stop_price  float   Prefer stop_analysis_price, fallback to
+                                zone edge + 5% buffer calculation
+    risk_per_share      float   abs(entry_price - default_stop_price)
+    r1_price            float   entry + 1 * risk_per_share (LONG)
+    r2_price            float   entry + 2 * risk_per_share
+    r3_price            float   entry + 3 * risk_per_share
+    mfe_r               float   MFE in R-multiples
+    mae_r               float   MAE in R-multiples (negative)
+    pnl_r               float   Canonical pnl_r, fallback to EOD calculation
+    is_winner_r         bool    Canonical winner, fallback to pnl_r > 0
+    outcome_r           str     WIN/LOSS/BREAKEVEN/UNKNOWN
+
+4.4 Zone (models/trade.py:608)
+--------------------------------------------------------------------------------
+  Zone boundary data from zones table.
+
+  Fields:
+    zone_id             str       Unique zone identifier
+    ticker              str       Stock symbol
+    date                date      Trading date
+    zone_high           float     Zone upper boundary
+    zone_low            float     Zone lower boundary
+    hvn_poc             float     High volume node POC price
+    rank                str       L1-L5 quality ranking
+    tier                str       T1-T3 tier classification
+    score               float     Composite zone score
+    is_filtered         bool      True if in zone_results (quality filtered)
+
+4.5 TradeReview (models/trade.py:644)
+--------------------------------------------------------------------------------
+  User assessment record stored in trade_reviews table.
+
+  Fields:
+    trade_id              str     Trade identifier
+    actual_outcome        str     winner/loser/breakeven
+    notes                 str     Free-text observations
+    accuracy              bool    Did trader predict correctly?
+    tape_confirmation     bool    Was tape confirmation present?
+    good_trade            bool    Was this a good setup?
+    signal_aligned        bool    Were entry signals aligned?
+    confirmation_required bool    Did trade need more confirmation?
+    prior_candle_stop     bool    Stop at prior candle level
+    two_candle_stop       bool    Stop at two candle level
+    atr_stop              bool    Stop using ATR calculation
+    zone_edge_stop        bool    Stop at zone edge
+    entry_attempt         int     1st, 2nd, or 3rd attempt (1-3)
+    with_trend            bool    Trade was with the trend
+    counter_trend         bool    Trade was counter-trend
+    stopped_by_wick       bool    Stopped out by wick (not body)
+
+4.6 TradeAnalysis (models/trade.py:729)
+--------------------------------------------------------------------------------
+  Claude AI analysis record from trade_analysis table.
+
+  Fields:
+    trade_id            str       Trade identifier
+    analysis_type       str       pre_trade or post_trade
+    response_text       str       Claude's analysis response (markdown)
+    prompt_text         str       The prompt sent to Claude
+    created_at          datetime  Creation timestamp
+    updated_at          datetime  Last update timestamp
+
+
+5. MULTI-TIMEFRAME CHART ENGINE
+================================================================================
+
+5.1 CHART LAYOUT (charts.py:20)
+--------------------------------------------------------------------------------
+  build_review_chart() creates a 2-row, 2-column subplot layout:
+
+    Row 1 (55% height): M5 execution chart (spans both columns)
+    Row 2 (45% height): H1 market context (left) + M15 structure (right)
+
+  Vertical spacing: 0.08, Horizontal spacing: 0.03
+
+5.2 EVALUATE MODE (mode='evaluate')
+--------------------------------------------------------------------------------
+  - Candlestick traces for all three timeframes (max 120 bars each)
+  - Trade zone rectangles with rank-based border colors
+  - Zone midpoint horizontal line
+  - Entry marker triangle (up for LONG, down for SHORT)
+  - Bars sliced to entry time only (no future data visible)
+
+5.3 REVEAL MODE (mode='reveal')
+--------------------------------------------------------------------------------
+  All evaluate mode elements PLUS:
+  - R-level horizontal lines on M5:
+      Entry (green, solid), Stop (red, dashed), 1R (light green, dotted),
+      2R (lighter green, dotted), 3R (lime, dotted)
+  - Exit marker triangle with P&L label ({exit_price} ({pnl_r}R))
+  - MFE marker (blue triangle, +{mfe_r}R label)
+  - MAE marker (orange triangle, {mae_r}R label)
+  - R-level crossing diamond markers with health delta labels
+  - Bars include entry through exit + 10 buffer bars + 60 context bars
+
+5.4 SIMPLE CHART (charts.py:673)
+--------------------------------------------------------------------------------
+  build_simple_chart() provides a single-timeframe alternative for
+  performance-sensitive contexts. 400px height, entry/exit vertical lines.
+
+5.5 COLOR PALETTE
+--------------------------------------------------------------------------------
+  Candle Up:       #26a69a (teal green)
+  Candle Down:     #ef5350 (red)
+  Entry:           #00C853 (green)
+  Exit:            #FF1744 (red)
+  MFE:             #2196F3 (blue)
+  MAE:             #FF9800 (orange)
+  Stop:            #FF1744 (red)
+  1R Target:       #4CAF50 (light green)
+  2R Target:       #8BC34A (lighter green)
+  3R Target:       #CDDC39 (lime)
+  EOD Exit:        #9C27B0 (purple)
+  Primary Zone:    #90bff9 (light blue, 15% opacity)
+  Secondary Zone:  #faa1a4 (light red, 15% opacity)
+  Background:      #1a1a2e (dark navy)
+  Grid:            #2a2a4e (muted purple)
+
+
+6. M1 RAMP-UP CHART
+================================================================================
+
+6.1 PURPOSE (rampup_chart.py:1)
+--------------------------------------------------------------------------------
+  Displays 1-minute candlestick chart with a vertical indicator table below
+  each bar, similar to a TradingView-style ramp-up visualization. Shows
+  the 45 M1 bars before entry to visualize pre-entry momentum.
+
+6.2 DATA SOURCE
+--------------------------------------------------------------------------------
+  Pre-computed m1_indicator_bars table (populated by
+  09_backtest/processor/secondary_analysis/m1_indicator_bars).
+
+  Query: SELECT ... FROM m1_indicator_bars
+         WHERE ticker = %s AND bar_date = %s AND bar_time < %s
+         ORDER BY bar_time DESC LIMIT 45
+
+6.3 CHART LAYOUT
+--------------------------------------------------------------------------------
+  Two-row subplot: 60% candlestick chart, 40% indicator table.
+  Shared X-axes. Total height: 550px.
+
+6.4 INDICATOR TABLE ROWS
+--------------------------------------------------------------------------------
+  7 indicator rows displayed as colored text annotations:
+
+    Candle %    candle_range_pct    Good >=0.15, OK 0.12-0.15, Skip <0.12
+    Vol Delta   vol_delta           Green if positive, red if negative
+    Vol ROC     vol_roc             Green >=30%, Yellow 0-30%, Red <0%
+    SMA         sma_spread/close    B=Bullish (spread>0), S=Bearish
+    H1 Struct   h1_structure        Triangle up=BULL, down=BEAR, dash=NEUTRAL
+    LONG        long_score          Green >=5, Yellow 3-4, Red 0-2 (out of 7)
+    SHORT       short_score         Green >=5, Yellow 3-4, Red 0-2 (out of 7)
+
+6.5 OVERLAY INDICATORS
+--------------------------------------------------------------------------------
+  SMA9 (blue line), SMA21 (orange line), VWAP (purple dotted line)
+  overlaid on the candlestick chart.
+
+
+7. INDICATOR REFINEMENT TAB
+================================================================================
+
+7.1 PURPOSE (indicator_refinement_tab.py:1)
+--------------------------------------------------------------------------------
+  Displays Continuation and Rejection scores for trade qualification
+  based on the Epoch Indicator Model Specification v1.0.
+
+7.2 CONTINUATION INDICATORS (EPCH1/3, 0-10 points)
+--------------------------------------------------------------------------------
+  CONT-01: MTF Alignment (0-4 pts)
+    - H4, H1, M15, M5 structure aligned with trade direction
+    - 1 point per aligned timeframe
+
+  CONT-02: SMA Momentum (0-2 pts)
+    - SMA spread aligned with direction + expanding
+    - 1 point for aligned, 1 point for expanding
+
+  CONT-03: Volume Thrust (0-2 pts)
+    - Volume ROC strong + Volume Delta aligned with direction
+    - 1 point per condition met
+
+  CONT-04: Pullback Quality (0-2 pts)
+    - In pullback + favorable delta ratio
+    - 1 point per condition met
+
+  Score Labels:
+    STRONG   8-10
+    GOOD     6-7
+    WEAK     4-5
+    AVOID    0-3
+
+7.3 REJECTION INDICATORS (EPCH2/4, 0-11 points)
+--------------------------------------------------------------------------------
+  REJ-01: Structure Divergence (0-2 pts)
+    - HTF aligned + LTF divergent (counter-trend exhaustion signal)
+
+  REJ-02: SMA Exhaustion (0-3 pts)
+    - SMA spread contracting + very tight + tight
+    - 1 point per condition met
+
+  REJ-03: Delta Absorption (0-2 pts)
+    - Absorption ratio indicating exhaustion
+
+  REJ-04: Volume Climax (0-2 pts)
+    - Volume ROC in Q5 (>50%) + volume declining
+
+  REJ-05: CVD Extreme (0-2 pts)
+    - CVD slope extreme (normalized) indicating reversal
+
+  Score Labels:
+    STRONG   9-11
+    GOOD     6-8
+    WEAK     4-5
+    AVOID    0-3
+
+7.4 MONTE AI PROMPT GENERATION
+--------------------------------------------------------------------------------
+  Generates a structured analysis prompt including all continuation and
+  rejection indicator values for copy-paste into Claude for trade analysis.
+
+
+8. DOW AI INTEGRATION
+================================================================================
+
+8.1 ARCHITECTURE (components/dow_ai/)
+--------------------------------------------------------------------------------
+  DOW AI is a copy-paste prompt generation system, NOT an API integration.
+  It generates structured prompts that the trader manually copies to
+  Claude Desktop, receives analysis, and pastes the response back for
+  storage in the trade_analysis table.
+
+  Files:
+    ui.py               (328 lines) Prompt display + copy/paste UI
+    data_fetcher.py     (379 lines) Supplemental data fetching
+    prompt_generator.py (981 lines) Prompt template population
+    prediction_display.py (170 lines) Batch prediction display
+
+8.2 DATA CONTEXT (data_fetcher.py:102)
+--------------------------------------------------------------------------------
+  DOWAIDataFetcher fetches 4 types of supplemental context:
+
+  BarDataContext:
+    - ATR values: M5, M15, H1, D1
+    - Daily Camarilla: S6, S4, S3, R3, R4, R6
+    - Weekly Camarilla: S3, R3
+    - Options levels: op_01 through op_10
+
+  HVNPOCContext:
+    - 10 ranked HVN POC levels (poc_1 through poc_10)
+    - Epoch start date
+
+  MarketStructureContext:
+    - Multi-timeframe directions: D1, H4, H1, M15, composite
+    - Strong/weak levels per timeframe
+
+  SetupContext:
+    - Zone setup: direction, zone_id, hvn_poc, zone boundaries
+    - Target: target_id, target_price, risk_reward
+
+8.3 PRE-TRADE PROMPT (prompt_generator.py:27)
+--------------------------------------------------------------------------------
+  6-section structured prompt:
+
+    TRADE CONTEXT:          Ticker, date, direction, model, entry, zone
+    MARKET STRUCTURE:       M5/M15/H1/H4 structure alignment table
+    INDICATOR SNAPSHOT:     VWAP, SMA9/21, Vol ROC, Vol Delta, Health
+    M1 RAMP-UP:            15 M1 candle OHLCV + indicator table +
+                           price action summary (candle types, momentum,
+                           SMA config, VWAP position, H1 structure,
+                           composite scores, candle quality)
+    SUPPORTING LEVELS:     ATR, Camarilla, HVN POCs, Structure levels,
+                           Options levels
+    ANALYSIS REQUEST:      Entry quality, zone interaction, confirmation
+                           signals, key insights, confidence rating
+
+8.4 POST-TRADE PROMPT (prompt_generator.py:112)
+--------------------------------------------------------------------------------
+  6-section structured prompt:
+
+    TRADE SUMMARY:         Outcome, P&L (R + points)
+    EXECUTION:             Entry/exit prices and times, exit reason
+    RISK MANAGEMENT:       Stop (M5 ATR 1.1x), R-levels, R achieved
+    PERFORMANCE:           MFE/MAE (R + points), edge efficiency
+    R-LEVEL CROSSINGS:     1R/2R/3R hit times, health at crossing
+    INDICATOR COMPARISON:  Full event comparison table (Entry through Exit)
+    SUPPORTING LEVELS:     Same as pre-trade
+    REVIEW REQUEST:        Entry quality, R-level progression, exit timing,
+                           structure degradation, refinement suggestions,
+                           pattern recognition
+
+8.5 AI PREDICTION DISPLAY (prediction_display.py:12)
+--------------------------------------------------------------------------------
+  Renders pre-computed predictions from ai_predictions table:
+  - Decision: TRADE or NO_TRADE (color-coded green/red)
+  - Confidence: HIGH/MEDIUM/LOW (color-coded)
+  - Correctness badge (checkmark/cross based on actual outcome)
+  - Extracted indicators: Candle %, Vol Delta, Vol ROC, SMA, H1 Structure
+  - Outcome tracking: Actual outcome vs prediction
+
+
+9. DATA LAYER
+================================================================================
+
+9.1 SUPABASE CLIENT (data/supabase_client.py)
+--------------------------------------------------------------------------------
+  SupabaseClient class with singleton pattern (get_supabase_client()).
+  Lazy connection on first use. psycopg2 with RealDictCursor.
+
+  Trade Fetching:
+    fetch_trades()                  Filtered trade list with JOIN support
+                                    for unreviewed/AI-validated filters
+    fetch_trade_with_metrics()      Single trade with full context (events,
+                                    zones, bookmap, canonical outcome)
+    fetch_trades_with_metrics()     Batch fetch with ANY() optimization
+    fetch_optimal_trade_events()    Event indicators dict keyed by type
+    fetch_zones_for_trade()         Zones for ticker+date
+
+  Trade Reviews:
+    fetch_review()                  Get existing review by trade_id
+    upsert_review()                 Insert or update (ON CONFLICT)
+
+  AI Analysis:
+    fetch_analysis()                Get analysis by trade_id + type
+    fetch_all_analysis()            Both pre and post analysis
+    upsert_analysis()               Insert or update analysis record
+
+  Indicator Refinement:
+    fetch_indicator_refinement()    Full refinement scores for a trade
+    fetch_indicator_refinement_batch()  Batch fetch with ANY()
+
+  AI Predictions:
+    fetch_ai_prediction()           Pre-computed prediction from ai_predictions
+
+  Utility:
+    get_available_tickers()         Distinct tickers with optional date filter
+    get_available_models()          Distinct models (EPCH1-4)
+    get_trade_count()               Total trade count
+
+9.2 POLYGON CLIENT (data/polygon_client.py)
+--------------------------------------------------------------------------------
+  PolygonClient class with singleton pattern (get_polygon_client()).
+
+  BarData Container:
+    ticker              str         Stock symbol
+    trade_date          date        Trading date
+    bars_5m             DataFrame   M5 OHLCV (index=timezone-aware datetime)
+    bars_15m            DataFrame   M15 OHLCV
+    bars_1h             DataFrame   H1 OHLCV
+    fetch_time          datetime    When data was fetched
+    is_valid            bool        All three timeframes have data
+
+  Lookback Days per Timeframe:
+    5m:   3 days lookback
+    15m:  8 days lookback
+    1h:   25 days lookback
+
+  Methods:
+    fetch_bars_for_trade()          All 3 timeframes for a symbol+date
+    fetch_extended_bars()           Extended bars for reveal mode
+
+9.3 BAR CACHE (data/cache_manager.py)
+--------------------------------------------------------------------------------
+  BarCache class manages Streamlit session state caching.
+  Cache key: "{TICKER}_{YYYY-MM-DD}" (symbol+date).
+
+  Key Insight: Trades on the same symbol/date share the same bar data.
+  Cache per symbol+date, slice differently per trade.
+
+  Methods:
+    get_bars_for_trade()            Cache check + fetch on miss
+    prefetch_for_trades()           Pre-fetch next 3 trades (PREFETCH_COUNT)
+    slice_bars_to_time()            Pre-trade: slice bars <= entry_time
+    slice_bars_for_reveal()         Post-trade: context + trade + buffer
+    get_cache_stats()               Hit/miss statistics
+    clear_cache()                   Reset cache
+
+  Cache Statistics: Tracked in session state as {hits: N, misses: N}.
+
+  Pre-Trade Slicing:
+    - End at entry_time (include_end=True)
+    - Max 120 bars per timeframe
+    - Timezone-aware comparison
+
+  Reveal Slicing:
+    - context_bars=60 bars before entry
+    - buffer_bars=10 bars after exit
+    - Full trade window visible
+
+
+10. DATABASE SCHEMA
+================================================================================
+
+10.1 TABLES OWNED BY TRAINING MODULE
+--------------------------------------------------------------------------------
+
+  trade_reviews (schema/01_trade_reviews.sql):
+    id                UUID PK     gen_random_uuid()
+    trade_id          VARCHAR(50) FK -> trades(trade_id) ON DELETE CASCADE
+    actual_outcome    TEXT        CHECK IN (winner, loser, breakeven)
+    notes             TEXT        Free-text observations
+    good_trade        BOOLEAN     DEFAULT FALSE
+    signal_aligned    BOOLEAN     DEFAULT FALSE
+    confirmation_required BOOLEAN DEFAULT FALSE
+    prior_candle_stop BOOLEAN     DEFAULT FALSE
+    two_candle_stop   BOOLEAN     DEFAULT FALSE
+    atr_stop          BOOLEAN     DEFAULT FALSE
+    zone_edge_stop    BOOLEAN     DEFAULT FALSE
+    entry_attempt     INTEGER     CHECK 1-3 or NULL
+    with_trend        BOOLEAN     DEFAULT FALSE
+    counter_trend     BOOLEAN     DEFAULT FALSE
+    stopped_by_wick   BOOLEAN     DEFAULT FALSE
+    reviewed_at       TIMESTAMPTZ DEFAULT NOW()
+    created_at        TIMESTAMPTZ DEFAULT NOW()
+    UNIQUE(trade_id)
+
+    Indexes:
+      idx_trade_reviews_trade_id
+      idx_trade_reviews_reviewed_at DESC
+      idx_trade_reviews_actual_outcome
+      idx_trade_reviews_good_trade WHERE good_trade = TRUE
+
+  trade_images (schema/02_trade_images.sql):
+    trade_id          VARCHAR(50) PK FK -> trades(trade_id) ON DELETE CASCADE
+    bookmap_url       TEXT        Supabase storage or external URL
+    image_type        TEXT        CHECK IN (bookmap, dom, footprint, other)
+    capture_time      TIME        When snapshot was captured
+    notes             TEXT        Notes about the image
+    created_at        TIMESTAMPTZ DEFAULT NOW()
+    updated_at        TIMESTAMPTZ DEFAULT NOW() (trigger-updated)
+
+  trade_analysis (schema/06_trade_analysis.sql):
+    id                UUID PK     gen_random_uuid()
+    trade_id          VARCHAR(50) FK -> trades(trade_id) ON DELETE CASCADE
+    analysis_type     TEXT        CHECK IN (pre_trade, post_trade)
+    prompt_text       TEXT        Prompt sent to Claude
+    response_text     TEXT        NOT NULL, Claude's response (markdown)
+    created_at        TIMESTAMPTZ DEFAULT NOW()
+    updated_at        TIMESTAMPTZ DEFAULT NOW()
+    UNIQUE(trade_id, analysis_type)
+
+10.2 VIEWS (schema/03_views_and_functions.sql)
+--------------------------------------------------------------------------------
+
+  unreviewed_trades:
+    Trades NOT in trade_reviews, joined with optimal_trade for MFE/MAE/
+    entry health and trade_images for bookmap URL.
+
+  reviewed_trades:
+    Trades IN trade_reviews, joined with review flags and MFE/MAE metrics.
+
+10.3 DATABASE FUNCTIONS (schema/03_views_and_functions.sql)
+--------------------------------------------------------------------------------
+
+  get_review_stats_by_flag():
+    Returns win rate for each boolean flag (good_trade, signal_aligned,
+    with_trend, counter_trend, stopped_by_wick).
+    Output: flag_name, total_flagged, winners, losers, win_rate
+
+  get_stop_placement_stats():
+    Returns performance by stop type (prior_candle, two_candle, atr_stop,
+    zone_edge) including avg MFE and avg MAE per type.
+    Output: stop_type, total_count, winners, losers, win_rate, avg_mfe, avg_mae
+
+  get_entry_attempt_stats():
+    Returns performance by entry attempt number (1st, 2nd, 3rd).
+    Output: entry_attempt, total_count, winners, losers, win_rate, avg_r
+
+  get_review_summary():
+    Returns aggregate review statistics.
+    Output: total_reviews, good_trades, signal_aligned_trades,
+            with_trend_trades, counter_trend_trades, reviews_today,
+            reviews_this_week
+
+10.4 TABLES READ (NOT OWNED)
+--------------------------------------------------------------------------------
+  trades              Core trade records (from backtest module)
+  optimal_trade       Event snapshots (ENTRY, MFE, MAE, EXIT, R1-R3_CROSS)
+  zones               Zone boundaries and rankings
+  trades_m5_r_win     Canonical outcomes (M5 ATR 1.1x stop)
+  bar_data            ATR values, Camarilla pivots, options levels
+  hvn_pocs            High volume node POC levels (10 ranked)
+  market_structure    Multi-timeframe structure directions
+  setups              Primary/secondary zone setup configurations
+  m1_indicator_bars   Pre-computed M1 indicator values
+  ai_predictions      Pre-computed AI trade/no-trade predictions
+  indicator_refinement Continuation/rejection indicator scores
+
+
+11. SCHEMA MANAGEMENT
+================================================================================
+
+11.1 SCHEMA RUNNER (run_schema.py)
+--------------------------------------------------------------------------------
+  CLI utility to execute SQL schema files in order.
+
+  Usage:
+    python run_schema.py             Execute all schema files
+    python run_schema.py --dry-run   Show SQL without executing
+
+  Process:
+    1. Find all .sql files in schema/ directory (sorted by filename)
+    2. Execute each file sequentially with rollback on error
+    3. Commit all changes atomically
+    4. Verify: Check tables exist (trade_reviews, trade_images)
+    5. Verify: Check views exist (unreviewed_trades, reviewed_trades)
+    6. Verify: Check functions exist (get_calibration_stats,
+       get_recent_calibration_stats, get_review_summary)
+
+
+12. NAVIGATION AND FILTERS
+================================================================================
+
+12.1 SIDEBAR FILTERS (navigation.py:18)
+--------------------------------------------------------------------------------
+  render_sidebar_filters() returns a filter dict:
+
+    date_from       date        Default: today - 30 days
+    date_to         date        Default: today
+    ticker          str|None    "All Tickers" = None, else specific ticker
+    model           str|None    "All Models" = None, else EPCH1-4
+    unreviewed_only bool        Only unreviewed trades
+    ai_validated_only bool      Only trades with AI predictions
+
+  Ticker options dynamically fetched from database based on date range.
+
+12.2 QUEUE MANAGEMENT
+--------------------------------------------------------------------------------
+  - Load Trades: Fetches trades, shuffles randomly, initializes queue
+  - Queue Progress: Metric + progress bar (reviewed/total)
+  - Shuffle Button: Re-randomizes queue, resets to position 0
+  - Jump to Trade: Number input to skip to specific position
+  - Queue Completion: Shows "Session Complete" with Start Over / Load New
+
+12.3 TRADE COUNTER (navigation.py:95)
+--------------------------------------------------------------------------------
+  Header showing "Trade N of M" with progress bar and trade info subheader
+  (ticker, date, model, direction, zone type, trade_id).
+
+
+13. STATS PANEL
+================================================================================
+
+13.1 MAIN METRICS (stats_panel.py:17)
+--------------------------------------------------------------------------------
+  Four-column metric display:
+
+    P&L (R):     R-multiple with points delta, Winner/Loser badge
+    MFE (R):     Maximum favorable excursion with bar count
+    MAE (R):     Maximum adverse excursion with bar count
+    Duration:    Trade duration in hours/minutes, "EOD 15:30" label
+
+13.2 R-LEVELS ROW
+--------------------------------------------------------------------------------
+  Five-column display: Stop, Entry, 1R, 2R, 3R prices.
+  Label: "R-Levels (Stop = M5 ATR 1.1x)"
+
+13.3 R-LEVEL CROSSINGS ROW (v2.2.0)
+--------------------------------------------------------------------------------
+  Three-column display showing for each R-level crossed:
+  - Time of crossing
+  - Health score at crossing (X/10)
+  - Health delta from entry (+/- change)
+
+  Only displayed when at least one R-level was crossed.
+
+13.4 FULL TRADE DETAILS (expandable)
+--------------------------------------------------------------------------------
+  Three sub-sections:
+  - Trade Info: Model, zone type, direction, tier, rank
+  - Entry/Exit: Prices, times, exit reason
+  - Risk Metrics: Risk/share, stop price, outcome, win status
+  - Health Metrics: Entry/MFE/MAE/Exit health scores
+  - Zone Boundaries: High, POC, Low
+
+13.5 EVENT INDICATORS TABLE (stats_panel.py:291)
+--------------------------------------------------------------------------------
+  HTML table with dynamic columns based on available events.
+
+  Evaluate mode:  [ENTRY] column only
+  Reveal mode:    [ENTRY] [1R] [2R] [3R] [MAE] [MFE] [EXIT] columns
+
+  15 metric rows per event:
+    Time, Price, R-Multiple, Points, Health, VWAP, SMA9, SMA21,
+    SMA Spread, SMA Momentum, Vol ROC, M5/M15/H1/H4 Structure
+
+  Color coding:
+    Health:     Green >=8, Yellow >=6, Orange >=4, Red <4
+    Structure:  Green if aligned with direction, Red if opposing
+    Momentum:   Green WIDENING, Orange NARROWING
+
+
+14. REVIEW WORKFLOW
+================================================================================
+
+14.1 REVIEW FORM LAYOUT
+--------------------------------------------------------------------------------
+  Five-column layout with categorized assessment flags:
+
+    Accuracy:       accuracy, tape_confirmation
+    Quality:        good_trade, signal_aligned, confirmation_required
+    Stop Placement: prior_candle_stop, two_candle_stop, atr_stop, zone_edge_stop
+    Context:        with_trend, counter_trend, stopped_by_wick
+    Entry Attempt:  Selectbox (1st/2nd/3rd)
+
+  Notes text area (80px height): "What did you learn from this trade?"
+
+14.2 REVIEW PERSISTENCE
+--------------------------------------------------------------------------------
+  - Load: Existing review loaded into session state on trade display
+  - Save: Upsert to trade_reviews (ON CONFLICT DO UPDATE)
+  - Auto-save: Review saved automatically on "Next Trade" click
+  - Outcome: Derived from canonical_winner (WIN/LOSS)
+
+14.3 STATE RESET
+--------------------------------------------------------------------------------
+  On advancing to next trade:
+  1. Save current review
+  2. Increment current_trade_index
+  3. Reset view_mode to 'pre_trade'
+  4. Clear all review session state keys
+  5. Trigger Streamlit rerun
+
+
+15. CONFIGURATION SUMMARY
+================================================================================
+
+15.1 DATABASE CONNECTION (config.py:23)
+--------------------------------------------------------------------------------
+  Host:       db.pdbmcskznoaiybdiobje.supabase.co
+  Port:       5432
+  Database:   postgres
+  User:       postgres
+  SSL:        require
+
+15.2 CHART THEME (config.py:52)
+--------------------------------------------------------------------------------
+  Background:       #1a1a2e
+  Paper:            #1a1a2e
+  Grid:             #2a2a4e
+  Text:             #e0e0e0
+  Text Muted:       #888888
+
+15.3 ZONE RANK COLORS (config.py:98)
+--------------------------------------------------------------------------------
+  L5: #00C853 (Green, best)
+  L4: #2196F3 (Blue)
+  L3: #FFC107 (Yellow/Amber)
+  L2: #9E9E9E (Gray)
+  L1: #616161 (Dark gray)
+
+15.4 INDICATOR REFINEMENT COLORS (config.py:115)
+--------------------------------------------------------------------------------
+  Continuation:     #4CAF50 (Green)
+  Rejection:        #FF9800 (Orange)
+  STRONG:           #00C853
+  GOOD:             #8BC34A
+  WEAK:             #FF9800
+  AVOID:            #FF1744
+  Aligned:          #00C853
+  Divergent:        #FF1744
+  Neutral:          #888888
+
+15.5 TIME SETTINGS (config.py:152)
+--------------------------------------------------------------------------------
+  Display Timezone:   America/New_York (ET)
+  Market Open Hour:   08:00 ET (pre-market)
+  Market Close Hour:  20:00 ET (after-hours)
+
+
+16. SYSTEM RELATIONSHIPS
+================================================================================
+
+16.1 DATA DEPENDENCIES
+--------------------------------------------------------------------------------
+  - trades table:         Created by 03_backtest module
+  - optimal_trade table:  Created by 03_backtest module
+  - zones table:          Created by 01_application zone pipeline
+  - trades_m5_r_win:      Created by 03_backtest secondary processors
+  - bar_data table:       Created by 01_application
+  - hvn_pocs table:       Created by 01_application
+  - market_structure:     Created by 01_application
+  - setups table:         Created by 01_application zone pipeline
+  - m1_indicator_bars:    Created by 03_backtest secondary processor
+  - ai_predictions:       Created by 02_dow_ai module
+  - indicator_refinement: Created by 03_backtest secondary processor
+
+16.2 MODULE RELATIONSHIPS
+--------------------------------------------------------------------------------
+  - 01_application: Provides zones, setups, bar_data, hvn_pocs,
+                    market_structure tables
+  - 02_dow_ai:     Provides ai_predictions table
+  - 03_backtest:   Provides trades, optimal_trade, trades_m5_r_win,
+                    m1_indicator_bars, indicator_refinement tables
+  - 05_system_analysis: Shares canonical win condition (trades_m5_r_win,
+                        M5 ATR 1.1x) and health score framework
+
+16.3 WIN CONDITION ALIGNMENT
+--------------------------------------------------------------------------------
+  Training module uses the same canonical outcome as System Analysis:
+  - Source: trades_m5_r_win table
+  - Stop: M5 ATR(14) x 1.1 close-based
+  - Win: MFE >= 1R before stop hit
+  - Loss: Stop hit before reaching 1R
+  - Fallback: pnl_r > 0 from EOD exit if canonical not available
+
+
+17. DEPENDENCIES
+================================================================================
+
+  Runtime:
+    streamlit         >=1.28.0    Web application framework
+    pandas            >=2.0.0     Data manipulation
+    numpy             >=1.24.0    Numerical computation
+    plotly            >=5.18.0    Interactive charting
+    psycopg2-binary   >=2.9.9     PostgreSQL driver
+    requests          >=2.31.0    HTTP client (Polygon API)
+    pytz              >=2023.3    Timezone handling
+
+
+18. FILE INVENTORY
+================================================================================
+
+18.1 ENTRY POINTS
+--------------------------------------------------------------------------------
+  app.py                           (53 lines)  CLI launcher
+  streamlit_app.py                 (295 lines) Main Streamlit application
+
+18.2 CONFIGURATION
+--------------------------------------------------------------------------------
+  config.py                        (158 lines) All settings
+  requirements.txt                 (23 lines)  Dependencies
+
+18.3 DATA MODELS
+--------------------------------------------------------------------------------
+  models/__init__.py               (5 lines)
+  models/trade.py                  (752 lines) 6 dataclasses
+
+18.4 DATA LAYER
+--------------------------------------------------------------------------------
+  data/__init__.py                 (7 lines)
+  data/supabase_client.py          (832 lines) PostgreSQL client
+  data/polygon_client.py           (259 lines) Polygon API client
+  data/cache_manager.py            (253 lines) Bar data caching
+
+18.5 UI COMPONENTS
+--------------------------------------------------------------------------------
+  components/__init__.py           (8 lines)
+  components/flashcard_ui.py       (539 lines) Pre/post-trade state machine
+  components/charts.py             (774 lines) Multi-timeframe chart builder
+  components/stats_panel.py        (508 lines) Trade statistics display
+  components/navigation.py         (218 lines) Sidebar filters/navigation
+  components/bookmap_viewer.py     (76 lines)  Bookmap image display
+  components/rampup_chart.py       (604 lines) M1 ramp-up chart
+  components/indicator_refinement_tab.py (515 lines) Indicator scoring
+
+18.6 DOW AI INTEGRATION
+--------------------------------------------------------------------------------
+  components/dow_ai/__init__.py    (20 lines)
+  components/dow_ai/ui.py          (328 lines) Prompt display/copy UI
+  components/dow_ai/data_fetcher.py (379 lines) Context data fetching
+  components/dow_ai/prompt_generator.py (981 lines) Prompt templates
+  components/dow_ai/prediction_display.py (170 lines) AI prediction UI
+
+18.7 SCHEMA
+--------------------------------------------------------------------------------
+  run_schema.py                    (149 lines) Schema setup utility
+  schema/01_trade_reviews.sql      (69 lines)  User review table
+  schema/02_trade_images.sql       (43 lines)  Bookmap image table
+  schema/03_views_and_functions.sql (367 lines) Views + 4 functions
+  schema/05_migrate_trade_reviews.sql           Migration script
+  schema/06_trade_analysis.sql     (41 lines)  AI analysis table
+
+18.8 DOCUMENTATION
+--------------------------------------------------------------------------------
+  README.md                        (115 lines) User documentation
+  CLAUDE.md                        (9 lines)   AI context
+
+TOTAL: 24 Python files, 7,891 lines of Python code
+       5 SQL schema files
+       2 documentation files
+
+================================================================================
+END OF SPECIFICATIONS
+================================================================================
