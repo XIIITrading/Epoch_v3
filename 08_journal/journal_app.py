@@ -19,9 +19,25 @@ Usage:
 
 ================================================================================
 """
+import os
 import sys
 import logging
 from pathlib import Path
+
+# Fix Qt platform plugin discovery on Windows
+# qwindows.dll depends on Qt6Core.dll/Qt6Gui.dll in PyQt6/Qt6/bin/
+# Python 3.8+ on Windows requires os.add_dll_directory() for DLL search
+import importlib.util as _ilu
+_spec = _ilu.find_spec("PyQt6")
+if _spec and _spec.origin:
+    _pyqt6_dir = Path(_spec.origin).parent
+    _qt6_bin = _pyqt6_dir / "Qt6" / "bin"
+    if _qt6_bin.exists():
+        os.add_dll_directory(str(_qt6_bin))
+        os.environ["PATH"] = str(_qt6_bin) + os.pathsep + os.environ.get("PATH", "")
+    _qt_plugins = _pyqt6_dir / "Qt6" / "plugins"
+    if _qt_plugins.exists():
+        os.environ["QT_PLUGIN_PATH"] = str(_qt_plugins)
 
 # Add viewer package to path
 viewer_path = Path(__file__).parent / "viewer"

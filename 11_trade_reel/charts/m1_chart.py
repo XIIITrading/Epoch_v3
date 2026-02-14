@@ -81,24 +81,40 @@ def build_m1_chart(
             opacity=0.8,
         )
 
-    # Entry marker — prominent (larger, bright)
+    # Entry marker — direction-colored triangle (green up / red down)
     if highlight.entry_time and highlight.entry_price:
         entry_dt = _TZ.localize(datetime.combine(highlight.date, highlight.entry_time))
-        symbol = 'triangle-up' if highlight.direction == 'LONG' else 'triangle-down'
-        text_pos = 'top center' if highlight.direction == 'LONG' else 'bottom center'
+        is_long = highlight.direction == 'LONG'
+        entry_symbol = 'triangle-up' if is_long else 'triangle-down'
+        entry_color = CHART_COLORS.get('bull', '#089981') if is_long else CHART_COLORS.get('bear', '#F23645')
 
         fig.add_trace(go.Scatter(
             x=[entry_dt],
             y=[highlight.entry_price],
-            mode='markers+text',
-            marker=dict(symbol=symbol, size=14, color=CHART_COLORS['entry'],
-                        line=dict(color='white', width=1.5)),
-            text=['ENTRY'],
-            textposition=text_pos,
-            textfont=dict(color=CHART_COLORS['entry'], size=10, family='Arial Black'),
+            mode='markers',
+            marker=dict(symbol=entry_symbol, size=6, color=entry_color,
+                        line=dict(color='white', width=0.5)),
             showlegend=False,
             hoverinfo='text',
             hovertext=f"Entry ${highlight.entry_price:.2f}",
+        ))
+
+    # Exit/VWAP marker — direction-colored triangle (green up / red down)
+    if highlight.exit_price and highlight.exit_time:
+        exit_dt = _TZ.localize(datetime.combine(highlight.date, highlight.exit_time))
+        is_long = highlight.direction == 'LONG'
+        exit_symbol = 'triangle-up' if is_long else 'triangle-down'
+        exit_color = CHART_COLORS.get('bull', '#089981') if is_long else CHART_COLORS.get('bear', '#F23645')
+
+        fig.add_trace(go.Scatter(
+            x=[exit_dt],
+            y=[highlight.exit_price],
+            mode='markers',
+            marker=dict(symbol=exit_symbol, size=6, color=exit_color,
+                        line=dict(color='white', width=0.5)),
+            showlegend=False,
+            hoverinfo='text',
+            hovertext=f"Exit VWAP ${highlight.exit_price:.2f}",
         ))
 
     # R-level lines — intermediate levels subdued, highest R prominent
