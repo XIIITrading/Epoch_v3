@@ -1,6 +1,6 @@
 """
 Epoch Trading System - M1 Action Chart Builder
-1-minute candlestick from entry to 5 bars after exit.
+1-minute candlestick: 30 bars before entry, full trade, 30 bars after max R hit.
 """
 
 import plotly.graph_objects as go
@@ -17,6 +17,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
+from charts.poc_lines import add_zone_poc_lines
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
@@ -30,8 +31,9 @@ R_COLORS = {
     5: CHART_COLORS['r5'],
 }
 
-# How many bars after exit to show
-BARS_AFTER_EXIT = 5
+# How many bars of context before entry and after max R hit
+BARS_BEFORE_ENTRY = 30
+BARS_AFTER_MAX_R = 30
 
 
 def build_m1_chart(
@@ -40,7 +42,7 @@ def build_m1_chart(
     zones: Optional[List[dict]] = None
 ) -> go.Figure:
     """
-    Build M1 candlestick chart from entry to 5 bars after exit.
+    Build M1 candlestick chart: 30 bars before entry, full trade, 30 bars after max R hit.
 
     Args:
         bars_m1: Full-day M1 DataFrame with OHLCV, datetime index
@@ -70,16 +72,8 @@ def build_m1_chart(
             name='M1',
         ))
 
-    # Zone overlay
-    if highlight.zone_high and highlight.zone_low:
-        fig.add_hrect(
-            y0=highlight.zone_low,
-            y1=highlight.zone_high,
-            fillcolor=CHART_COLORS['zone_fill'],
-            line_width=1,
-            line_color=CHART_COLORS['zone_border'],
-            opacity=0.8,
-        )
+    # Zone HVN POC lines (blue=primary, red=secondary)
+    add_zone_poc_lines(fig, zones, highlight)
 
     # Entry marker — direction-colored triangle (green up / red down)
     if highlight.entry_time and highlight.entry_price:
@@ -217,32 +211,24 @@ def _slice_to_window(
     highlight: HighlightTrade
 ) -> pd.DataFrame:
     """
-    Slice M1 bars to window: entry_time to 5 bars after exit.
+    Slice M1 bars to window:
+      - 30 bars before entry
+      - All candles of the trade
+      - 30 bars after the max R level hit time
 
-    Exit is the latest of all R-level hit times (r1-r5) and stop_hit_time.
-    Fallback: 60 bars after entry if no times available.
+    Fallback: 60 bars after entry if no max R hit time available.
     """
     if bars_m1.empty:
         return bars_m1
 
     entry_dt = _TZ.localize(datetime.combine(highlight.date, highlight.entry_time))
-    # Start 5 bars before entry for context
-    start_dt = entry_dt - timedelta(minutes=5)
+    start_dt = entry_dt - timedelta(minutes=BARS_BEFORE_ENTRY)
 
-    # Collect all trade event times to find the true exit (latest event)
-    event_times = []
-    for rt in [highlight.r1_time, highlight.r2_time, highlight.r3_time,
-               highlight.r4_time, highlight.r5_time]:
-        if rt:
-            event_times.append(rt)
-    if highlight.stop_hit and highlight.stop_hit_time:
-        event_times.append(highlight.stop_hit_time)
-
-    if event_times:
-        exit_time = max(event_times)
-        exit_dt = _TZ.localize(datetime.combine(highlight.date, exit_time))
-        # Add BARS_AFTER_EXIT minutes (1 bar = 1 min for M1)
-        end_dt = exit_dt + timedelta(minutes=BARS_AFTER_EXIT)
+    # Use max R hit time as the anchor for the end of window
+    max_r_time = highlight.highest_r_hit_time
+    if max_r_time:
+        max_r_dt = _TZ.localize(datetime.combine(highlight.date, max_r_time))
+        end_dt = max_r_dt + timedelta(minutes=BARS_AFTER_MAX_R)
     else:
         # Fallback: 60 bars after entry
         end_dt = entry_dt + timedelta(minutes=60)

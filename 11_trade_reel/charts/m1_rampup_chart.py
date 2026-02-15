@@ -1,13 +1,13 @@
 """
 Epoch Trading System - M1 Ramp-Up Chart Builder
-M1 candlestick showing the bars leading up to entry (same window as ramp-up table).
-Zone overlay, HVN POC lines. No VbP sidebar (plain figure).
+M1 candlestick showing 180 bars leading up to entry.
+Zone HVN POC lines. Intraday Value VbP sidebar (04:00 ET → entry).
 """
 
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 import pytz
 
 import sys
@@ -18,98 +18,91 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
-from charts.poc_lines import add_poc_lines
+from charts.poc_lines import add_zone_poc_lines
+from charts.volume_profile import build_volume_profile, add_volume_profile_from_dict
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
 
+# Number of M1 candles to show on the ramp-up chart
+RAMPUP_CHART_BARS = 180
+
+
+def _slice_rampup_window(bars_m1: pd.DataFrame, highlight: HighlightTrade) -> pd.DataFrame:
+    """Slice M1 bars: 180 bars before entry + entry bar (181 total)."""
+    if bars_m1 is None or bars_m1.empty or not highlight.entry_time:
+        return pd.DataFrame()
+
+    entry_dt = _TZ.localize(datetime.combine(highlight.date, highlight.entry_time))
+
+    # Find bars at or before entry
+    mask = bars_m1.index <= entry_dt
+    bars_up_to_entry = bars_m1[mask]
+
+    if bars_up_to_entry.empty:
+        return pd.DataFrame()
+
+    # Take last RAMPUP_CHART_BARS + 1 (180 before + entry bar)
+    return bars_up_to_entry.tail(RAMPUP_CHART_BARS + 1)
+
 
 def build_m1_rampup_chart(
-    rampup_df: pd.DataFrame,
+    bars_m1: pd.DataFrame,
     highlight: HighlightTrade,
     zones: Optional[List[dict]] = None,
     pocs: Optional[List[float]] = None,
+    intraday_vbp_dict: Optional[Dict[float, float]] = None,
 ) -> go.Figure:
     """
-    Build M1 ramp-up candlestick chart from the same data as the ramp-up table.
-    Shows M1 bars leading up to entry.
+    Build M1 ramp-up candlestick chart showing 180 bars before entry.
 
     Args:
-        rampup_df: DataFrame from fetch_rampup_data() with OHLCV + bar_time columns
+        bars_m1: Full M1 DataFrame from Polygon (datetime-indexed, tz-aware)
         highlight: HighlightTrade object
         zones: Optional zone dicts
         pocs: Optional list of HVN POC prices
+        intraday_vbp_dict: Optional pre-computed volume profile dict (04:00→entry)
 
     Returns:
         Plotly Figure
     """
     fig = go.Figure()
 
-    if rampup_df is not None and not rampup_df.empty:
-        # Build datetime index from bar_date + bar_time
-        timestamps = []
-        for _, row in rampup_df.iterrows():
-            bar_date = row.get('bar_date', highlight.date)
-            bar_time = row.get('bar_time')
-            if bar_date and bar_time:
-                dt = _TZ.localize(datetime.combine(bar_date, bar_time))
-                timestamps.append(dt)
-            else:
-                timestamps.append(None)
+    df = _slice_rampup_window(bars_m1, highlight)
 
-        df = rampup_df.copy()
-        df['dt'] = timestamps
-        df = df.dropna(subset=['dt'])
+    if not df.empty:
+        fig.add_trace(go.Candlestick(
+            x=df.index,
+            open=df['open'],
+            high=df['high'],
+            low=df['low'],
+            close=df['close'],
+            increasing_line_color=CHART_COLORS['candle_up'],
+            decreasing_line_color=CHART_COLORS['candle_down'],
+            increasing_fillcolor=CHART_COLORS['candle_up'],
+            decreasing_fillcolor=CHART_COLORS['candle_down'],
+            showlegend=False,
+            name='M1',
+        ))
 
-        if not df.empty:
-            fig.add_trace(go.Candlestick(
-                x=df['dt'],
-                open=df['open'],
-                high=df['high'],
-                low=df['low'],
-                close=df['close'],
-                increasing_line_color=CHART_COLORS['candle_up'],
-                decreasing_line_color=CHART_COLORS['candle_down'],
-                increasing_fillcolor=CHART_COLORS['candle_up'],
-                decreasing_fillcolor=CHART_COLORS['candle_down'],
-                showlegend=False,
-                name='M1',
-            ))
+    # Zone HVN POC lines (blue=primary, red=secondary)
+    add_zone_poc_lines(fig, zones, highlight)
 
-    # Zone overlay
-    if highlight.zone_high and highlight.zone_low:
-        fig.add_hrect(
-            y0=highlight.zone_low,
-            y1=highlight.zone_high,
-            fillcolor=CHART_COLORS['zone_fill'],
-            line_width=1,
-            line_color=CHART_COLORS['zone_border'],
-            opacity=0.8,
-        )
-
-    # HVN POC lines (no row/col needed — plain figure)
-    if pocs:
-        for price in pocs:
-            if price and price > 0:
-                fig.add_hline(
-                    y=price,
-                    line_color='#FFFFFF',
-                    line_width=1.0,
-                    line_dash='dot',
-                    opacity=0.3,
-                )
-
-    # Calculate Y-range from visible candle data (not zones/POCs)
-    # Cast to float because DB may return decimal.Decimal
+    # Calculate Y-range from visible candle data
     y_range = None
-    if rampup_df is not None and not rampup_df.empty:
-        data_low = float(rampup_df['low'].min())
-        data_high = float(rampup_df['high'].max())
+    if not df.empty:
+        data_low = float(df['low'].min())
+        data_high = float(df['high'].max())
         price_range = data_high - data_low
         if price_range > 0:
-            # Add small buffer (~2% of range) so candles aren't edge-to-edge
             buffer = price_range * 0.02
             y_range = [data_low - buffer, data_high + buffer]
+
+    # Intraday Value VbP sidebar (04:00 ET → entry)
+    if intraday_vbp_dict and y_range:
+        add_volume_profile_from_dict(fig, intraday_vbp_dict, y_min=y_range[0], y_max=y_range[1])
+    elif intraday_vbp_dict:
+        add_volume_profile_from_dict(fig, intraday_vbp_dict)
 
     # Layout
     title_text = f"1-Minute Ramp-Up  |  {highlight.ticker}  |  {highlight.date}"

@@ -5,9 +5,11 @@ Queries trades_m5_r_win_2 for highlight trades.
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import date
+from datetime import date, time
 from typing import List, Optional, Tuple
+from decimal import Decimal
 import logging
+import pandas as pd
 
 import sys
 from pathlib import Path
@@ -119,21 +121,21 @@ class HighlightLoader:
 
     def fetch_zones_for_trade(self, ticker: str, trade_date: date) -> List[dict]:
         """
-        Fetch zones for a trade's ticker and date (for chart overlays).
+        Fetch PRIMARY and SECONDARY setups from setups table for chart overlays.
+        Each setup has setup_type ('PRIMARY'/'SECONDARY'), hvn_poc, zone_high, zone_low.
 
         Returns:
-            List of dicts with zone_high, zone_low, hvn_poc, rank, score, is_filtered
+            List of dicts with setup_type, hvn_poc, zone_high, zone_low, direction
         """
         if not self._ensure_connected():
             logger.warning("Skipping fetch_zones_for_trade - no database connection")
             return []
 
         query = """
-            SELECT zone_id, ticker, date, zone_high, zone_low, hvn_poc,
-                   rank, score, is_filtered
-            FROM zones
-            WHERE ticker = %s AND date = %s
-            ORDER BY score DESC NULLS LAST
+            SELECT setup_type, hvn_poc, zone_high, zone_low, direction, zone_id
+            FROM setups
+            WHERE UPPER(ticker) = UPPER(%s) AND date = %s
+            ORDER BY setup_type
         """
 
         try:
@@ -141,7 +143,7 @@ class HighlightLoader:
                 cur.execute(query, (ticker.upper(), trade_date))
                 return [dict(row) for row in cur.fetchall()]
         except Exception as e:
-            logger.error(f"Error fetching zones: {e}")
+            logger.error(f"Error fetching setups: {e}")
             if self.conn and not self.conn.closed:
                 self.conn.rollback()
             return []
@@ -182,6 +184,57 @@ class HighlightLoader:
             if self.conn and not self.conn.closed:
                 self.conn.rollback()
             return []
+
+    def fetch_intraday_vbp_bars(self, ticker: str, trade_date: date, entry_time: time) -> pd.DataFrame:
+        """
+        Fetch M1 bars from m1_bars_2 for intraday value volume profile.
+        Returns bars from 04:00 ET on trade_date up to (not including) entry_time.
+
+        Args:
+            ticker: Ticker symbol
+            trade_date: Trade date
+            entry_time: Trade entry time (exclusive upper bound)
+
+        Returns:
+            DataFrame with open, high, low, close, volume columns
+        """
+        if not self._ensure_connected():
+            logger.warning("Skipping fetch_intraday_vbp_bars - no database connection")
+            return pd.DataFrame()
+
+        query = """
+            SELECT bar_time, open, high, low, close, volume
+            FROM m1_bars_2
+            WHERE ticker = %s
+              AND bar_date = %s
+              AND bar_time >= '04:00:00'
+              AND bar_time < %s
+            ORDER BY bar_time
+        """
+
+        try:
+            with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, (ticker.upper(), trade_date, entry_time))
+                rows = cur.fetchall()
+
+                if not rows:
+                    return pd.DataFrame()
+
+                df = pd.DataFrame([dict(r) for r in rows])
+                # Convert Decimal columns to float
+                for col in ['open', 'high', 'low', 'close']:
+                    if col in df.columns:
+                        df[col] = df[col].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
+                if 'volume' in df.columns:
+                    df['volume'] = df['volume'].astype(float)
+
+                logger.info(f"Intraday VbP: {ticker} {trade_date} 04:00→{entry_time} ({len(df)} M1 bars)")
+                return df
+        except Exception as e:
+            logger.error(f"Error fetching intraday vbp bars: {e}")
+            if self.conn and not self.conn.closed:
+                self.conn.rollback()
+            return pd.DataFrame()
 
     def fetch_epoch_start_date(self, ticker: str, trade_date: date) -> Optional[date]:
         """

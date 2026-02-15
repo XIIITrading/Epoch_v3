@@ -116,6 +116,24 @@ class HighlightTrade:
         return r_prices.get(self.max_r_achieved)
 
     @property
+    def exit_price(self) -> Optional[float]:
+        """Derived exit price: highest R price for wins, stop price for losses."""
+        if self.is_winner:
+            return self.highest_r_price
+        if self.stop_hit:
+            return self.stop_price
+        return self.eod_price
+
+    @property
+    def exit_time(self) -> Optional[time]:
+        """Derived exit time: highest R hit time for wins, stop hit time for losses."""
+        if self.is_winner:
+            return self.highest_r_hit_time
+        if self.stop_hit:
+            return self.stop_hit_time
+        return None
+
+    @property
     def entry_datetime(self) -> Optional[datetime]:
         """Combine date and entry_time into datetime."""
         if self.entry_time:

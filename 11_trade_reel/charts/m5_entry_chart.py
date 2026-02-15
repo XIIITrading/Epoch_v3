@@ -1,7 +1,7 @@
 """
 Epoch Trading System - M5 Entry Chart Builder
-Shows 80 M5 bars before entry + the entry bar as the last candle.
-No entry triangle marker. Zone overlay, HVN POC lines, VbP overlay.
+Shows 120 M5 bars before entry + the entry bar as the last candle.
+No entry triangle marker. Zone HVN POC lines, VbP overlay.
 Y-axis auto-ranged to data min/max with 5px buffer.
 """
 
@@ -20,7 +20,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
 from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_profile_from_dict
-from charts.poc_lines import add_poc_lines
+from charts.poc_lines import add_poc_lines, add_zone_poc_lines
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
@@ -31,7 +31,7 @@ BUFFER_PX = 5
 
 
 def _slice_entry_window(bars_m5: pd.DataFrame, highlight: HighlightTrade) -> pd.DataFrame:
-    """Slice M5 bars: 80 bars before entry + entry bar (81 total)."""
+    """Slice M5 bars: 120 bars before entry + entry bar (121 total)."""
     if bars_m5 is None or bars_m5.empty or not highlight.entry_time:
         return pd.DataFrame()
 
@@ -44,8 +44,8 @@ def _slice_entry_window(bars_m5: pd.DataFrame, highlight: HighlightTrade) -> pd.
     if bars_up_to_entry.empty:
         return pd.DataFrame()
 
-    # Take last 81 bars (80 before + entry bar)
-    return bars_up_to_entry.tail(81)
+    # Take last 121 bars (120 before + entry bar)
+    return bars_up_to_entry.tail(121)
 
 
 def build_m5_entry_chart(
@@ -57,7 +57,7 @@ def build_m5_entry_chart(
     volume_profile_dict: Optional[dict] = None,
 ) -> go.Figure:
     """
-    Build M5 Entry chart: 80 bars before entry + entry bar as last candle.
+    Build M5 Entry chart: 120 bars before entry + entry bar as last candle.
 
     Args:
         bars_m5: Full M5 DataFrame with OHLCV, datetime index
@@ -99,19 +99,8 @@ def build_m5_entry_chart(
             name='M5',
         ))
 
-    # Zone overlay
-    if highlight.zone_high and highlight.zone_low:
-        fig.add_hrect(
-            y0=highlight.zone_low,
-            y1=highlight.zone_high,
-            fillcolor=CHART_COLORS['zone_fill'],
-            line_width=1,
-            line_color=CHART_COLORS['zone_border'],
-            opacity=0.8,
-        )
-
-    # HVN POC lines
-    add_poc_lines(fig, pocs)
+    # Zone HVN POC lines (blue=primary, red=secondary)
+    add_zone_poc_lines(fig, zones, highlight)
 
     # Auto Y-range from visible data with 5px buffer
     y_range = _calc_y_range(df, M5_CHART_HEIGHT, BUFFER_PX)

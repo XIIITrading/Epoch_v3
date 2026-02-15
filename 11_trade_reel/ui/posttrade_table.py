@@ -1,16 +1,15 @@
 """
-Epoch Trading System - M1 Ramp-Up Indicator Table (Trade Reel)
-QTableWidget showing 7 indicator rows x N bar columns, up to entry.
-Data sourced from m1_indicator_bars_2 table.
+Epoch Trading System - M1 Post-Trade Indicator Table (Trade Reel)
+QTableWidget showing 7 indicator rows x N bar columns, from entry onward.
+Entry candle is the first column, followed by the next 45 candles.
 
-Reuses formatter/color logic from 06_training/components/rampup_chart.py.
+Reuses formatter/color logic from rampup_table.py.
 """
 
 import pandas as pd
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import date, time
-from decimal import Decimal
 from typing import Optional
 import logging
 
@@ -26,170 +25,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import DB_CONFIG, TV_COLORS
+from ui.rampup_table import (
+    INDICATOR_LABELS,
+    _fmt_candle_range, _color_candle_range,
+    _fmt_vol_delta, _color_vol_delta,
+    _fmt_vol_roc, _color_vol_roc,
+    _fmt_sma, _color_sma,
+    _fmt_structure, _color_structure,
+)
 
 logger = logging.getLogger(__name__)
 
-# Number of M1 bars before entry to show
-RAMPUP_BARS = 45
-
-# Indicator row labels
-INDICATOR_LABELS = [
-    'Candle %',
-    'Vol Delta',
-    'Vol ROC',
-    'SMA',
-    'M5 Struct',
-    'M15 Struct',
-    'H1 Struct',
-]
-
-
-# =============================================================================
-# COLOR HELPERS (TradingView Dark palette)
-# =============================================================================
-
-def _to_float(val) -> Optional[float]:
-    if val is None:
-        return None
-    if isinstance(val, Decimal):
-        return float(val)
-    try:
-        return float(val)
-    except (TypeError, ValueError):
-        return None
-
-
-def _color_candle_range(pct) -> str:
-    pct = _to_float(pct)
-    if pct is None:
-        return TV_COLORS['text_muted']
-    if pct >= 0.15:
-        return TV_COLORS['bull']
-    elif pct >= 0.12:
-        return TV_COLORS['text_muted']
-    return TV_COLORS['bear']
-
-
-def _color_vol_delta(val) -> str:
-    val = _to_float(val)
-    if val is None:
-        return TV_COLORS['text_muted']
-    return TV_COLORS['bull'] if val > 0 else TV_COLORS['bear']
-
-
-def _color_vol_roc(val) -> str:
-    val = _to_float(val)
-    if val is None:
-        return TV_COLORS['text_muted']
-    if val >= 30:
-        return TV_COLORS['bull']
-    elif val >= 0:
-        return '#FFC107'  # Yellow
-    return TV_COLORS['bear']
-
-
-def _color_sma(spread) -> str:
-    spread = _to_float(spread)
-    if spread is None:
-        return TV_COLORS['text_muted']
-    return TV_COLORS['bull'] if spread > 0 else TV_COLORS['bear']
-
-
-def _color_structure(val) -> str:
-    if val is None:
-        return TV_COLORS['text_muted']
-    s = str(val).upper()
-    if s == 'BULL':
-        return TV_COLORS['bull']
-    elif s == 'BEAR':
-        return TV_COLORS['bear']
-    return TV_COLORS['text_muted']
-
-
-def _color_score(val) -> str:
-    if val is None:
-        return TV_COLORS['text_muted']
-    try:
-        s = int(val)
-    except (TypeError, ValueError):
-        return TV_COLORS['text_muted']
-    if s >= 5:
-        return TV_COLORS['bull']
-    elif s >= 3:
-        return '#FFC107'
-    return TV_COLORS['bear']
-
-
-# =============================================================================
-# VALUE FORMATTERS
-# =============================================================================
-
-def _fmt_candle_range(pct) -> str:
-    pct = _to_float(pct)
-    return f"{pct:.2f}" if pct is not None else '-'
-
-
-def _fmt_vol_delta(val) -> str:
-    val = _to_float(val)
-    if val is None:
-        return '-'
-    prefix = '+' if val > 0 else ''
-    a = abs(val)
-    if a >= 1_000_000:
-        return f"{prefix}{val / 1_000_000:.1f}M"
-    elif a >= 1_000:
-        return f"{prefix}{val / 1_000:.0f}K"
-    return f"{prefix}{val:.0f}"
-
-
-def _fmt_vol_roc(val) -> str:
-    val = _to_float(val)
-    if val is None:
-        return '-'
-    return f"{'+' if val > 0 else ''}{val:.0f}%"
-
-
-def _fmt_sma(spread, close) -> str:
-    spread = _to_float(spread)
-    close = _to_float(close)
-    if spread is None or close is None or close == 0:
-        return '-'
-    config = 'B' if spread > 0 else 'S'
-    pct = abs(spread) / close * 100
-    return f"{config}{pct:.2f}"
-
-
-def _fmt_structure(val) -> str:
-    if val is None:
-        return '-'
-    s = str(val).upper()
-    if s == 'BULL':
-        return '\u25B2'
-    elif s == 'BEAR':
-        return '\u25BC'
-    return '\u2500'
-
-
-def _fmt_score(val) -> str:
-    if val is None:
-        return '-'
-    try:
-        return str(int(val))
-    except (TypeError, ValueError):
-        return '-'
+# Entry candle + 45 candles after = 46 total columns
+POSTTRADE_BARS = 46
 
 
 # =============================================================================
 # DATA FETCH
 # =============================================================================
 
-def fetch_rampup_data(
+def fetch_posttrade_data(
     ticker: str,
     trade_date: date,
     entry_time: time,
-    num_bars: int = RAMPUP_BARS,
+    num_bars: int = POSTTRADE_BARS,
 ) -> pd.DataFrame:
-    """Fetch M1 indicator bars up to (but not including) entry time."""
+    """Fetch M1 indicator bars from entry time onward (inclusive)."""
     query = """
         SELECT
             ticker, bar_date, bar_time,
@@ -201,8 +62,8 @@ def fetch_rampup_data(
         FROM m1_indicator_bars_2
         WHERE ticker = %s
           AND bar_date = %s
-          AND bar_time < %s
-        ORDER BY bar_time DESC
+          AND bar_time >= %s
+        ORDER BY bar_time ASC
         LIMIT %s
     """
     try:
@@ -216,11 +77,10 @@ def fetch_rampup_data(
             return pd.DataFrame()
 
         df = pd.DataFrame([dict(r) for r in rows])
-        df = df.iloc[::-1].reset_index(drop=True)
         return df
 
     except Exception as e:
-        logger.error(f"Error fetching rampup data: {e}")
+        logger.error(f"Error fetching post-trade data: {e}")
         return pd.DataFrame()
 
 
@@ -228,8 +88,8 @@ def fetch_rampup_data(
 # QT WIDGET
 # =============================================================================
 
-class RampUpTable(QFrame):
-    """M1 ramp-up indicator table: 7 rows x N bar columns, color-coded."""
+class PostTradeTable(QFrame):
+    """M1 post-trade indicator table: 7 rows x N bar columns, color-coded."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -241,7 +101,7 @@ class RampUpTable(QFrame):
         layout.setContentsMargins(8, 4, 8, 4)
         layout.setSpacing(2)
 
-        self._title = QLabel("M1 Ramp-Up Indicators")
+        self._title = QLabel("M1 Post-Trade Indicators")
         self._title.setFont(QFont("Trebuchet MS", 11, QFont.Weight.Bold))
         self._title.setStyleSheet(f"color: {TV_COLORS['text_primary']}; padding: 2px 0;")
         layout.addWidget(self._title)
@@ -276,7 +136,7 @@ class RampUpTable(QFrame):
         if df is None or df.empty:
             self._table.setRowCount(0)
             self._table.setColumnCount(0)
-            self._title.setText("M1 Ramp-Up Indicators - No data")
+            self._title.setText("M1 Post-Trade Indicators - No data")
             return
 
         num_bars = len(df)
@@ -285,14 +145,18 @@ class RampUpTable(QFrame):
         self._table.setRowCount(num_ind)
         self._table.setColumnCount(num_bars)
 
-        # Column headers = time labels
+        # Column headers = time labels; first column is entry
         time_labels = []
-        for _, row in df.iterrows():
+        for i, (_, row) in enumerate(df.iterrows()):
             bt = row.get('bar_time')
             if bt and hasattr(bt, 'strftime'):
-                time_labels.append(bt.strftime('%H:%M'))
+                label = bt.strftime('%H:%M')
             else:
-                time_labels.append(str(bt)[:5] if bt else '-')
+                label = str(bt)[:5] if bt else '-'
+            # Mark the entry candle
+            if i == 0:
+                label = f"E {label}"
+            time_labels.append(label)
         self._table.setHorizontalHeaderLabels(time_labels)
 
         # Row headers = indicator names
@@ -335,12 +199,12 @@ class RampUpTable(QFrame):
         self._table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        self._title.setText(f"M1 Ramp-Up Indicators ({num_bars} bars to entry)")
+        self._title.setText(f"M1 Post-Trade Indicators (entry + {num_bars - 1} bars)")
 
     def clear(self):
         self._table.setRowCount(0)
         self._table.setColumnCount(0)
-        self._title.setText("M1 Ramp-Up Indicators")
+        self._title.setText("M1 Post-Trade Indicators")
 
     def _cell(self, ind_name: str, row: pd.Series) -> tuple:
         """Return (formatted_value, hex_color) for a cell."""

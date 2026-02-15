@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import CHART_COLORS
 from models.highlight import HighlightTrade
 from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_profile_from_dict
+from charts.poc_lines import add_zone_poc_lines
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
@@ -74,16 +75,8 @@ def build_h1_chart(
             name='H1',
         ))
 
-    # Zone overlay
-    if highlight.zone_high and highlight.zone_low:
-        fig.add_hrect(
-            y0=highlight.zone_low,
-            y1=highlight.zone_high,
-            fillcolor=CHART_COLORS['zone_fill'],
-            line_width=1,
-            line_color=CHART_COLORS['zone_border'],
-            opacity=0.8,
-        )
+    # Zone HVN POC lines (blue=primary, red=secondary)
+    add_zone_poc_lines(fig, zones, highlight)
 
     # Layout
     title_text = f"1-Hour  |  {highlight.ticker}  |  {highlight.date}"

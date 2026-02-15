@@ -20,7 +20,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
 from charts.volume_profile import create_chart_with_vbp, add_volume_profile
-from charts.poc_lines import add_poc_lines
+from charts.poc_lines import add_poc_lines, add_zone_poc_lines
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
@@ -119,16 +119,8 @@ def build_m5_exit_chart(
             name='M5',
         ))
 
-    # Zone overlay
-    if highlight.zone_high and highlight.zone_low:
-        fig.add_hrect(
-            y0=highlight.zone_low,
-            y1=highlight.zone_high,
-            fillcolor=CHART_COLORS['zone_fill'],
-            line_width=1,
-            line_color=CHART_COLORS['zone_border'],
-            opacity=0.8,
-        )
+    # Zone HVN POC lines (blue=primary, red=secondary)
+    add_zone_poc_lines(fig, zones, highlight)
 
     # R-level horizontal lines (70% transparent)
     r_levels = [

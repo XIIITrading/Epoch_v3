@@ -1,6 +1,6 @@
 """
 Epoch Trading System - Chart Preview Panel
-Displays charts in paired 2-up layout plus ramp-up indicator table.
+Displays charts in paired 2-up layout plus ramp-up and post-trade indicator tables.
 
 Layout:
   Row 1: Daily + 1-Hour  (side by side)
@@ -8,6 +8,7 @@ Layout:
   Row 3: 5-Minute Entry + 1-Minute Action  (side by side)
   Row 4: 1-Minute Ramp-Up  (full width)
   Row 5: M1 Ramp-Up Indicators table
+  Row 6: M1 Post-Trade Indicators table
 """
 
 from PyQt6.QtWidgets import (
@@ -25,6 +26,7 @@ from config import TV_COLORS
 from models.highlight import HighlightTrade
 from ui.chart_renderer import create_chart_label, render_chart_to_label, RENDER_WIDTH, CHART_HEIGHT
 from ui.rampup_table import RampUpTable
+from ui.posttrade_table import PostTradeTable
 
 
 class ChartPreview(QFrame):
@@ -125,6 +127,10 @@ class ChartPreview(QFrame):
         self._rampup_table = RampUpTable()
         self._content_layout.addWidget(self._rampup_table)
 
+        # ---- Row 6: M1 Post-Trade Indicator Table ----
+        self._posttrade_table = PostTradeTable()
+        self._content_layout.addWidget(self._posttrade_table)
+
         self._content_layout.addStretch()
 
         scroll.setWidget(container)
@@ -167,6 +173,10 @@ class ChartPreview(QFrame):
         """Populate the ramp-up indicator table."""
         self._rampup_table.update_data(df)
 
+    def show_posttrade(self, df):
+        """Populate the post-trade indicator table."""
+        self._posttrade_table.update_data(df)
+
     def show_loading(self):
         """Show loading state."""
         self._summary.setText("Loading charts...")
@@ -179,6 +189,7 @@ class ChartPreview(QFrame):
         self._m1_chart.setText("Loading M1...")
         self._m1_rampup_chart.setText("Loading M1 Ramp-Up...")
         self._rampup_table.clear()
+        self._posttrade_table.clear()
 
     def show_placeholder(self):
         """Show placeholder state."""
@@ -192,6 +203,7 @@ class ChartPreview(QFrame):
         self._m1_chart.setText("M1 chart will appear here")
         self._m1_rampup_chart.setText("M1 Ramp-Up chart will appear here")
         self._rampup_table.clear()
+        self._posttrade_table.clear()
 
     def show_error(self, message: str):
         """Show error state."""

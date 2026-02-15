@@ -50,10 +50,14 @@ def _load_base_window():
 BaseWindow = _load_base_window()
 
 # Module-level imports (app.py adds MODULE_DIR to sys.path)
+import pytz
+
 from config import (
     TV_DARK_QSS, POLYGON_API_KEY, API_DELAY, API_RETRIES,
     API_RETRY_DELAY, DISPLAY_TIMEZONE, EXPORT_DIR, TV_COLORS,
 )
+
+_TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from data.highlight_loader import get_highlight_loader, HighlightLoader
 from models.highlight import HighlightTrade
 from charts import theme  # noqa: F401 - registers tradingview_dark template
@@ -71,6 +75,7 @@ from ui.highlight_table import HighlightTable, COL_WIDTHS
 from ui.chart_preview import ChartPreview
 from ui.export_bar import ExportBar, PLATFORM_STYLES
 from ui.rampup_table import fetch_rampup_data
+from ui.posttrade_table import fetch_posttrade_data
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +162,49 @@ def _fetch_daily_bars(ticker: str, start_date: date, end_date: date) -> pd.DataF
 
 
 # =============================================================================
+# INTRADAY VBP HELPER
+# =============================================================================
+
+def _compute_intraday_vbp(bars_m1: pd.DataFrame, highlight: HighlightTrade) -> dict:
+    """
+    Compute intraday value volume profile from M1 bars: 04:00 ET → entry_time.
+
+    Slices the already-fetched Polygon M1 bars to the pre-entry window and
+    builds a volume profile dict for the M1 ramp-up chart sidebar.
+
+    Args:
+        bars_m1: Full M1 DataFrame from Polygon (datetime-indexed, tz-aware)
+        highlight: HighlightTrade with entry_time and date
+
+    Returns:
+        Dict mapping price_level -> volume, or {} if insufficient data
+    """
+    if bars_m1 is None or bars_m1.empty or not highlight.entry_time:
+        return {}
+
+    try:
+        # 04:00 ET on trade date
+        start_dt = _TZ.localize(datetime.combine(
+            highlight.date,
+            datetime.min.time().replace(hour=4, minute=0),
+        ))
+        # Entry time on trade date (exclusive upper bound)
+        entry_dt = _TZ.localize(datetime.combine(highlight.date, highlight.entry_time))
+
+        # Slice to pre-entry window
+        mask = (bars_m1.index >= start_dt) & (bars_m1.index < entry_dt)
+        intraday_bars = bars_m1.loc[mask]
+
+        if intraday_bars.empty:
+            return {}
+
+        return build_volume_profile(intraday_bars)
+    except Exception as e:
+        logger.warning(f"Intraday VbP computation failed: {e}")
+        return {}
+
+
+# =============================================================================
 # H1 PRIOR BUILDER (shared by preview and export)
 # =============================================================================
 
@@ -166,9 +214,6 @@ def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
     If entry is 10:30, the last candle shown is 09:00 (covering 09:00-10:00).
     Polygon H1 bars use bar start time as timestamp, so cutoff = entry_hour - 1.
     """
-    import pytz
-    _tz = pytz.timezone(DISPLAY_TIMEZONE)
-
     if bars_h1 is None or (isinstance(bars_h1, pd.DataFrame) and bars_h1.empty):
         return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
 
@@ -176,7 +221,7 @@ def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
     # e.g. entry 10:30 → cutoff 09:00 (the 09:00-10:00 bar)
     entry_hour = highlight.entry_time.hour if highlight.entry_time else 9
     cutoff_hour = max(entry_hour - 1, 4)  # floor at 04:00 pre-market
-    cutoff = _tz.localize(datetime.combine(
+    cutoff = _TZ.localize(datetime.combine(
         highlight.date,
         datetime.min.time().replace(hour=cutoff_hour, minute=0),
     ))
@@ -219,10 +264,10 @@ class HighlightLoadThread(QThread):
 
 
 class BarFetchThread(QThread):
-    """Fetch Daily/H1/M15/M5/M1 bars + zones + POCs + rampup + VbP from Polygon + DB."""
+    """Fetch Daily/H1/M15/M5/M1 bars + zones + POCs + rampup + posttrade + VbP from Polygon + DB."""
 
-    # bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, vbp_bars, anchor_date
-    finished = pyqtSignal(object, object, object, object, object, list, list, object, object, object)
+    # bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date
+    finished = pyqtSignal(object, object, object, object, object, list, list, object, object, object, object)
     error = pyqtSignal(str)
 
     def __init__(self, highlight: HighlightTrade, loader: HighlightLoader, parent=None):
@@ -263,6 +308,11 @@ class BarFetchThread(QThread):
             if self._hl.entry_time:
                 rampup_df = fetch_rampup_data(ticker, trade_date, self._hl.entry_time)
 
+            # Fetch M1 post-trade indicator data (entry onward)
+            posttrade_df = None
+            if self._hl.entry_time:
+                posttrade_df = fetch_posttrade_data(ticker, trade_date, self._hl.entry_time)
+
             # Fetch VbP bars from epoch_start_date (anchor) → trade_date
             # Uses M15 bars for granularity (same as 01_application)
             vbp_bars = pd.DataFrame()
@@ -273,7 +323,7 @@ class BarFetchThread(QThread):
             else:
                 logger.warning(f"No epoch_start_date found for {ticker} {trade_date}, VbP will use display bars")
 
-            self.finished.emit(bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, vbp_bars, anchor_date)
+            self.finished.emit(bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
         except Exception as e:
             self.error.emit(str(e))
 
@@ -352,7 +402,10 @@ class ExportThread(QThread):
                 m15_fig = build_m15_chart(bars_m15, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
                 m5_entry_fig = build_m5_entry_chart(bars_m5, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
                 m1_fig = build_m1_chart(bars_m1, hl, zones)
-                m1_rampup_fig = build_m1_rampup_chart(rampup_df, hl, zones, pocs=pocs)
+
+                # Compute intraday value VbP (04:00 ET → entry) for M1 ramp-up chart
+                intraday_vbp = _compute_intraday_vbp(bars_m1, hl)
+                m1_rampup_fig = build_m1_rampup_chart(bars_m1, hl, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
 
                 # Build H1 prior (sliced to 08:00 candle) for Instagram
                 h1_prior_fig = _build_h1_prior_fig(bars_h1, hl, zones, pocs, vp_dict)
@@ -384,7 +437,7 @@ class TradeReelWindow(BaseWindow):
 
         self._loader = get_highlight_loader()
         self._current_highlight: Optional[HighlightTrade] = None
-        self._current_bars = {}  # Cache: {trade_id: (daily, h1, m15, m5, m1, zones, pocs, rampup_df, vbp_bars, anchor_date)}
+        self._current_bars = {}  # Cache: {trade_id: (daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)}
         self._active_threads: list = []
 
         self._setup_trade_reel_ui()
@@ -529,8 +582,8 @@ class TradeReelWindow(BaseWindow):
 
         # Check cache
         if highlight.trade_id in self._current_bars:
-            daily, h1, m15, m5, m1, zones, pocs, rampup_df, vbp_bars, anchor_date = self._current_bars[highlight.trade_id]
-            self._render_charts(highlight, daily, h1, m15, m5, m1, zones, pocs, rampup_df, vbp_bars, anchor_date)
+            daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date = self._current_bars[highlight.trade_id]
+            self._render_charts(highlight, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
             return
 
         # Fetch bars in background
@@ -539,7 +592,7 @@ class TradeReelWindow(BaseWindow):
 
         thread = BarFetchThread(highlight, self._loader, parent=self)
         thread.finished.connect(
-            lambda d, h1, m15, m5, m1, z, p, r, vbp, anch: self._on_bars_fetched(highlight, d, h1, m15, m5, m1, z, p, r, vbp, anch)
+            lambda d, h1, m15, m5, m1, z, p, r, pt, vbp, anch: self._on_bars_fetched(highlight, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch)
         )
         thread.error.connect(self._on_bars_error)
         thread.finished.connect(lambda *_: self._cleanup_thread(thread))
@@ -547,16 +600,16 @@ class TradeReelWindow(BaseWindow):
         self._active_threads.append(thread)
         thread.start()
 
-    def _on_bars_fetched(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, vbp_bars, anchor_date):
+    def _on_bars_fetched(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date):
         """Handle fetched bar data."""
         # Cache the bars
-        self._current_bars[highlight.trade_id] = (bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, vbp_bars, anchor_date)
+        self._current_bars[highlight.trade_id] = (bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
 
         # Only render if this is still the selected highlight
         if self._current_highlight and self._current_highlight.trade_id == highlight.trade_id:
-            self._render_charts(highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, vbp_bars, anchor_date)
+            self._render_charts(highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
 
-    def _render_charts(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs=None, rampup_df=None, vbp_bars=None, anchor_date=None):
+    def _render_charts(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs=None, rampup_df=None, posttrade_df=None, vbp_bars=None, anchor_date=None):
         """Build and display charts for a highlight."""
         try:
             if bars_m5 is None or (isinstance(bars_m5, pd.DataFrame) and bars_m5.empty):
@@ -572,7 +625,10 @@ class TradeReelWindow(BaseWindow):
             m15_fig = build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
             m5_entry_fig = build_m5_entry_chart(bars_m5, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
             m1_fig = build_m1_chart(bars_m1, highlight, zones)
-            m1_rampup_fig = build_m1_rampup_chart(rampup_df, highlight, zones, pocs=pocs)
+
+            # Compute intraday value VbP (04:00 ET → entry) for M1 ramp-up chart
+            intraday_vbp = _compute_intraday_vbp(bars_m1, highlight)
+            m1_rampup_fig = build_m1_rampup_chart(bars_m1, highlight, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
 
             # Build H1 "prior" figure: slice H1 bars to end at 09:00 candle on day before trade
             h1_prior_fig = self._build_h1_prior(bars_h1, highlight, zones, pocs, vp_dict)
@@ -582,6 +638,10 @@ class TradeReelWindow(BaseWindow):
             # Show ramp-up indicator table
             if rampup_df is not None:
                 self._chart_preview.show_rampup(rampup_df)
+
+            # Show post-trade indicator table
+            if posttrade_df is not None:
+                self._chart_preview.show_posttrade(posttrade_df)
 
             self.statusBar().showMessage(
                 f"{highlight.ticker} {highlight.date} - {highlight.star_display} | "
