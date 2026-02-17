@@ -19,7 +19,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
-from charts.volume_profile import create_chart_with_vbp, add_volume_profile
+from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_bars
 from charts.poc_lines import add_poc_lines, add_zone_poc_lines
 
 # Ensure TV Dark template is registered
@@ -119,7 +119,11 @@ def build_m5_exit_chart(
             name='M5',
         ))
 
-    # Zone HVN POC lines (blue=primary, red=secondary)
+    # Volume bars (TradingView-style, bottom of chart)
+    if not df.empty:
+        add_volume_bars(fig, df)
+
+    # Zone HVN POC lines (teal=primary, cyan=secondary)
     add_zone_poc_lines(fig, zones, highlight)
 
     # R-level horizontal lines (70% transparent)
@@ -214,7 +218,8 @@ def build_m5_exit_chart(
             dict(bounds=[20, 4], pattern="hour"),
         ],
         type='date',
-        tickformat='%H:%M',
+        tickformat='%m-%d %H:%M',
+        tickangle=0,
         showgrid=False,
     )
 

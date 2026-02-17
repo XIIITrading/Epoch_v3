@@ -1,14 +1,14 @@
 """
 Epoch Trading System - Chart Preview Panel
-Displays charts in paired 2-up layout plus ramp-up and post-trade indicator tables.
+Displays charts in 6-row layout with paired charts and indicator tables.
 
 Layout:
-  Row 1: Daily + 1-Hour  (side by side)
-  Row 2: 1-Hour + 15-Minute  (side by side)
-  Row 3: 5-Minute Entry + 1-Minute Action  (side by side)
-  Row 4: 1-Minute Ramp-Up  (full width)
-  Row 5: M1 Ramp-Up Indicators table
-  Row 6: M1 Post-Trade Indicators table
+  Row 1: Weekly + Daily  (side by side)
+  Row 2: H1 Prior + M15  (side by side)
+  Row 3: M5 Entry + M1 Ramp-Up  (side by side)
+  Row 4: Pre-trade Indicators table  (full width)
+  Row 5: Post-trade Indicators table  (full width)
+  Row 6: M1 Action  (full width)
 """
 
 from PyQt6.QtWidgets import (
@@ -30,7 +30,7 @@ from ui.posttrade_table import PostTradeTable
 
 
 class ChartPreview(QFrame):
-    """Panel showing charts in paired 2-up layout with ramp-up table."""
+    """Panel showing charts in 6-row layout with indicator tables."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -67,8 +67,8 @@ class ChartPreview(QFrame):
         # Render width for paired charts (half width each)
         self._pair_render_width = RENDER_WIDTH // 2
 
-        # ---- Row 1: Daily + 1-Hour ----
-        row1_label = QLabel("Daily  +  1-Hour")
+        # ---- Row 1: Weekly + Daily ----
+        row1_label = QLabel("Weekly  +  Daily")
         row1_label.setStyleSheet(_section_style)
         self._content_layout.addWidget(row1_label)
 
@@ -77,14 +77,14 @@ class ChartPreview(QFrame):
         row1_layout.setContentsMargins(0, 0, 0, 0)
         row1_layout.setSpacing(4)
 
+        self._weekly_chart = create_chart_label(min_height=200)
         self._daily_chart = create_chart_label(min_height=200)
-        self._h1_chart_row1 = create_chart_label(min_height=200)
+        row1_layout.addWidget(self._weekly_chart, stretch=1)
         row1_layout.addWidget(self._daily_chart, stretch=1)
-        row1_layout.addWidget(self._h1_chart_row1, stretch=1)
         self._content_layout.addWidget(row1)
 
-        # ---- Row 2: 1-Hour + 15-Minute ----
-        row2_label = QLabel("1-Hour  +  15-Minute")
+        # ---- Row 2: H1 Prior + 15-Minute ----
+        row2_label = QLabel("1-Hour Prior  +  15-Minute")
         row2_label.setStyleSheet(_section_style)
         self._content_layout.addWidget(row2_label)
 
@@ -93,14 +93,14 @@ class ChartPreview(QFrame):
         row2_layout.setContentsMargins(0, 0, 0, 0)
         row2_layout.setSpacing(4)
 
-        self._h1_chart_row2 = create_chart_label(min_height=200)
+        self._h1_chart = create_chart_label(min_height=200)
         self._m15_chart = create_chart_label(min_height=200)
-        row2_layout.addWidget(self._h1_chart_row2, stretch=1)
+        row2_layout.addWidget(self._h1_chart, stretch=1)
         row2_layout.addWidget(self._m15_chart, stretch=1)
         self._content_layout.addWidget(row2)
 
-        # ---- Row 3: 5-Minute Entry + 1-Minute Action ----
-        row3_label = QLabel("5-Minute Entry  +  1-Minute Action")
+        # ---- Row 3: 5-Minute Entry + 1-Minute Ramp-Up ----
+        row3_label = QLabel("5-Minute Entry  +  1-Minute Ramp-Up")
         row3_label.setStyleSheet(_section_style)
         self._content_layout.addWidget(row3_label)
 
@@ -110,26 +110,34 @@ class ChartPreview(QFrame):
         row3_layout.setSpacing(4)
 
         self._m5_entry_chart = create_chart_label(min_height=200)
-        self._m1_chart = create_chart_label(min_height=200)
+        self._m1_rampup_chart = create_chart_label(min_height=200)
         row3_layout.addWidget(self._m5_entry_chart, stretch=1)
-        row3_layout.addWidget(self._m1_chart, stretch=1)
+        row3_layout.addWidget(self._m1_rampup_chart, stretch=1)
         self._content_layout.addWidget(row3)
 
-        # ---- Row 4: 1-Minute Ramp-Up (full width) ----
-        row4_label = QLabel("1-Minute Ramp-Up")
+        # ---- Row 4: Pre-trade Indicators table (full width) ----
+        row4_label = QLabel("Pre-Trade Indicators")
         row4_label.setStyleSheet(_section_style)
         self._content_layout.addWidget(row4_label)
 
-        self._m1_rampup_chart = create_chart_label(min_height=250)
-        self._content_layout.addWidget(self._m1_rampup_chart)
-
-        # ---- Row 5: M1 Ramp-Up Indicator Table ----
         self._rampup_table = RampUpTable()
         self._content_layout.addWidget(self._rampup_table)
 
-        # ---- Row 6: M1 Post-Trade Indicator Table ----
+        # ---- Row 5: Post-trade Indicators table (full width) ----
+        row5_label = QLabel("Post-Trade Indicators")
+        row5_label.setStyleSheet(_section_style)
+        self._content_layout.addWidget(row5_label)
+
         self._posttrade_table = PostTradeTable()
         self._content_layout.addWidget(self._posttrade_table)
+
+        # ---- Row 6: 1-Minute Action (full width) ----
+        row6_label = QLabel("1-Minute Action")
+        row6_label.setStyleSheet(_section_style)
+        self._content_layout.addWidget(row6_label)
+
+        self._m1_chart = create_chart_label(min_height=250)
+        self._content_layout.addWidget(self._m1_chart)
 
         self._content_layout.addStretch()
 
@@ -138,36 +146,35 @@ class ChartPreview(QFrame):
 
     def show_charts(
         self,
+        weekly_fig: go.Figure,
         daily_fig: go.Figure,
         h1_fig: go.Figure,
         m15_fig: go.Figure,
         m5_entry_fig: go.Figure,
-        m1_fig: go.Figure,
         m1_rampup_fig: go.Figure,
+        m1_fig: go.Figure,
         highlight: HighlightTrade,
-        h1_prior_fig: go.Figure = None,
     ):
-        """Render charts in paired 2-up layout."""
+        """Render charts in 6-row layout."""
         self._update_summary(highlight)
 
         pair_w = self._pair_render_width
         pair_h = 340
 
-        # Row 1: Daily + H1 Prior (sliced to 08:00-09:00 candle, prior day context)
-        h1_row1 = h1_prior_fig if h1_prior_fig is not None else h1_fig
+        # Row 1: Weekly + Daily
+        render_chart_to_label(weekly_fig, self._weekly_chart, width=pair_w, height=pair_h)
         render_chart_to_label(daily_fig, self._daily_chart, width=pair_w, height=pair_h)
-        render_chart_to_label(h1_row1, self._h1_chart_row1, width=pair_w, height=pair_h)
 
-        # Row 2: H1 (full trade day) + M15 (side by side)
-        render_chart_to_label(h1_fig, self._h1_chart_row2, width=pair_w, height=pair_h)
+        # Row 2: H1 Prior + M15
+        render_chart_to_label(h1_fig, self._h1_chart, width=pair_w, height=pair_h)
         render_chart_to_label(m15_fig, self._m15_chart, width=pair_w, height=pair_h)
 
-        # Row 3: M5 Entry + M1 Action (side by side)
+        # Row 3: M5 Entry + M1 Ramp-Up
         render_chart_to_label(m5_entry_fig, self._m5_entry_chart, width=pair_w, height=pair_h)
-        render_chart_to_label(m1_fig, self._m1_chart, width=pair_w, height=pair_h)
+        render_chart_to_label(m1_rampup_fig, self._m1_rampup_chart, width=pair_w, height=pair_h)
 
-        # Row 4: M1 Ramp-Up (full width)
-        render_chart_to_label(m1_rampup_fig, self._m1_rampup_chart, width=RENDER_WIDTH, height=380)
+        # Row 6: M1 Action (full width)
+        render_chart_to_label(m1_fig, self._m1_chart, width=RENDER_WIDTH, height=380)
 
     def show_rampup(self, df):
         """Populate the ramp-up indicator table."""
@@ -181,13 +188,13 @@ class ChartPreview(QFrame):
         """Show loading state."""
         self._summary.setText("Loading charts...")
         self._summary.setStyleSheet(f"color: {TV_COLORS['accent']}; padding: 8px;")
+        self._weekly_chart.setText("Loading Weekly...")
         self._daily_chart.setText("Loading Daily...")
-        self._h1_chart_row1.setText("Loading H1...")
-        self._h1_chart_row2.setText("Loading H1...")
+        self._h1_chart.setText("Loading H1...")
         self._m15_chart.setText("Loading M15...")
         self._m5_entry_chart.setText("Loading M5 Entry...")
-        self._m1_chart.setText("Loading M1...")
         self._m1_rampup_chart.setText("Loading M1 Ramp-Up...")
+        self._m1_chart.setText("Loading M1...")
         self._rampup_table.clear()
         self._posttrade_table.clear()
 
@@ -195,13 +202,13 @@ class ChartPreview(QFrame):
         """Show placeholder state."""
         self._summary.setText("Select a highlight trade to view charts")
         self._summary.setStyleSheet(f"color: {TV_COLORS['text_muted']}; padding: 8px;")
+        self._weekly_chart.setText("Weekly chart will appear here")
         self._daily_chart.setText("Daily chart will appear here")
-        self._h1_chart_row1.setText("H1 chart will appear here")
-        self._h1_chart_row2.setText("H1 chart will appear here")
+        self._h1_chart.setText("H1 chart will appear here")
         self._m15_chart.setText("M15 chart will appear here")
         self._m5_entry_chart.setText("M5 Entry chart will appear here")
-        self._m1_chart.setText("M1 chart will appear here")
         self._m1_rampup_chart.setText("M1 Ramp-Up chart will appear here")
+        self._m1_chart.setText("M1 chart will appear here")
         self._rampup_table.clear()
         self._posttrade_table.clear()
 

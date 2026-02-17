@@ -19,7 +19,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
 from charts.poc_lines import add_zone_poc_lines
-from charts.volume_profile import build_volume_profile, add_volume_profile_from_dict
+from charts.volume_profile import build_volume_profile, add_volume_profile_from_dict, add_volume_bars, CANDLE_DOMAIN_BOTTOM, VOL_CLEARANCE_FRAC
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
@@ -85,18 +85,15 @@ def build_m1_rampup_chart(
             name='M1',
         ))
 
-    # Zone HVN POC lines (blue=primary, red=secondary)
+    # Volume bars (TradingView-style, bottom of chart)
+    if not df.empty:
+        add_volume_bars(fig, df)
+
+    # Zone HVN POC lines (teal=primary, cyan=secondary)
     add_zone_poc_lines(fig, zones, highlight)
 
-    # Calculate Y-range from visible candle data
-    y_range = None
-    if not df.empty:
-        data_low = float(df['low'].min())
-        data_high = float(df['high'].max())
-        price_range = data_high - data_low
-        if price_range > 0:
-            buffer = price_range * 0.02
-            y_range = [data_low - buffer, data_high + buffer]
+    # Calculate Y-range from visible candle data with 10px buffer
+    y_range = _calc_y_range(df, 380, 10)
 
     # Intraday Value VbP sidebar (04:00 ET → entry)
     if intraday_vbp_dict and y_range:
@@ -113,6 +110,7 @@ def build_m1_rampup_chart(
         showlegend=False,
         margin=dict(l=10, r=60, t=45, b=30),
         xaxis_rangeslider_visible=False,
+        yaxis=dict(domain=[CANDLE_DOMAIN_BOTTOM, 1.0]),
     )
 
     fig.update_xaxes(
@@ -121,8 +119,13 @@ def build_m1_rampup_chart(
             dict(bounds=[20, 4], pattern="hour"),
         ],
         type='date',
+        dtick=7200000,
         tickformat='%H:%M',
+        tickangle=0,
         showgrid=False,
+        tickformatstops=[
+            dict(dtickrange=[86400000, None], value='%m-%d'),
+        ],
     )
 
     if y_range:
@@ -131,3 +134,35 @@ def build_m1_rampup_chart(
         fig.update_yaxes(side='right')
 
     return fig
+
+
+def _calc_y_range(df: pd.DataFrame, chart_height: int, buffer_px: int):
+    """Calculate Y-axis range with pixel buffer and volume bar clearance.
+
+    Extends the bottom of the y-range so the lowest candle sits above the
+    volume bars (which occupy the bottom VOL_BAR_MAX_HEIGHT of the chart).
+    Top gets a standard pixel buffer.
+    """
+    if df is None or df.empty:
+        return None
+
+    data_low = df['low'].min()
+    data_high = df['high'].max()
+    price_range = data_high - data_low
+
+    if price_range <= 0:
+        return None
+
+    # Top buffer: convert pixels to price units
+    usable_px = chart_height - 45 - 30
+    if usable_px <= 0:
+        usable_px = chart_height
+    price_per_px = price_range / usable_px
+    top_buffer = buffer_px * price_per_px
+
+    # Bottom buffer: extend y-range so data_low maps to VOL_CLEARANCE_FRAC
+    visible_range = price_range + top_buffer
+    total_range = visible_range / (1.0 - VOL_CLEARANCE_FRAC)
+    bottom_extension = total_range - visible_range
+
+    return [data_low - bottom_extension, data_high + top_buffer]

@@ -1,12 +1,11 @@
 """
-Epoch Trading System - Daily Context Chart Builder
-Daily candlestick from epoch_start_date to the day before the trade date.
-Shows the full epoch structure with zone overlay and HVN POC lines.
+Epoch Trading System - Weekly Context Chart Builder
+90-candle weekly chart from Polygon weekly bars.
+Zone POC lines, volume bars. No VbP overlay.
 """
 
 import plotly.graph_objects as go
 import pandas as pd
-from datetime import date, timedelta
 from typing import List, Optional
 
 import sys
@@ -15,54 +14,40 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import CHART_COLORS
 from models.highlight import HighlightTrade
-from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_profile_from_dict, add_volume_bars, CANDLE_DOMAIN_BOTTOM, VOL_CLEARANCE_FRAC
+from charts.volume_profile import add_volume_bars, CANDLE_DOMAIN_BOTTOM, VOL_CLEARANCE_FRAC
 
 # Ensure TV Dark template is registered
 import charts.theme  # noqa: F401
 
+# Constants
+WEEKLY_BARS = 90
+BUFFER_PX = 10
 
-def build_daily_chart(
-    bars_daily: pd.DataFrame,
+
+def build_weekly_chart(
+    bars_weekly: pd.DataFrame,
     highlight: HighlightTrade,
     zones: Optional[List[dict]] = None,
-    vbp_bars: Optional[pd.DataFrame] = None,
-    pocs: Optional[List[float]] = None,
-    anchor_date: Optional[date] = None,
-    volume_profile_dict: Optional[dict] = None,
 ) -> go.Figure:
     """
-    Build Daily candlestick chart from epoch_start_date to day before trade.
+    Build 90-candle weekly chart from Polygon weekly bars.
 
     Args:
-        bars_daily: DataFrame with OHLCV, datetime index (daily bars)
+        bars_weekly: Weekly OHLCV DataFrame from Polygon
         highlight: HighlightTrade object
-        zones: Optional list of zone dicts
-        vbp_bars: Optional M15 bars from epoch for VbP calculation
-        pocs: Optional list of HVN POC prices
-        anchor_date: Optional epoch start date for title display
+        zones: Optional zone dicts
 
     Returns:
         Plotly Figure
     """
-    fig = create_chart_with_vbp(height=380)
+    fig = go.Figure()
 
-    # Show at least 90 bars, or full epoch if longer
-    if bars_daily is not None and not bars_daily.empty:
-        df = bars_daily if len(bars_daily) >= 90 else bars_daily.tail(90) if len(bars_daily) < 90 else bars_daily
+    # Take last 90 weekly bars
+    if bars_weekly is not None and not bars_weekly.empty:
+        df = bars_weekly.tail(WEEKLY_BARS) if len(bars_weekly) > WEEKLY_BARS else bars_weekly
     else:
         df = pd.DataFrame()
 
-    # Volume by Price overlay (added first so candles render on top)
-    if volume_profile_dict:
-        y_lo = float(df['low'].min()) if not df.empty else None
-        y_hi = float(df['high'].max()) if not df.empty else None
-        add_volume_profile_from_dict(fig, volume_profile_dict, y_min=y_lo, y_max=y_hi)
-    else:
-        vbp_source = vbp_bars if (vbp_bars is not None and not vbp_bars.empty) else df
-        if vbp_source is not None and not vbp_source.empty:
-            add_volume_profile(fig, vbp_source)
-
-    # Candlestick trace
     if not df.empty:
         fig.add_trace(go.Candlestick(
             x=df.index,
@@ -75,7 +60,7 @@ def build_daily_chart(
             increasing_fillcolor=CHART_COLORS['candle_up'],
             decreasing_fillcolor=CHART_COLORS['candle_down'],
             showlegend=False,
-            name='D1',
+            name='W1',
         ))
 
     # Volume bars (TradingView-style, bottom of chart)
@@ -83,10 +68,10 @@ def build_daily_chart(
         add_volume_bars(fig, df)
 
     # Y-range with 10px buffer
-    y_range = _calc_y_range(df, 380, 10)
+    y_range = _calc_y_range(df, 380, BUFFER_PX)
 
     # Layout
-    title_text = f"Daily  |  {highlight.ticker}  |  {highlight.date}"
+    title_text = f"Weekly  |  {highlight.ticker}  |  {highlight.date}"
 
     fig.update_layout(
         title=dict(text=title_text, font=dict(size=14), x=0.5, xanchor='center'),
@@ -94,12 +79,10 @@ def build_daily_chart(
         showlegend=False,
         margin=dict(l=10, r=60, t=45, b=30),
         xaxis_rangeslider_visible=False,
+        yaxis=dict(domain=[CANDLE_DOMAIN_BOTTOM, 1.0]),
     )
 
     fig.update_xaxes(
-        rangebreaks=[
-            dict(bounds=["sat", "mon"]),
-        ],
         type='date',
         dtick='M1',
         tickformat='%b',
@@ -133,13 +116,16 @@ def _calc_y_range(df: pd.DataFrame, chart_height: int, buffer_px: int):
         return None
 
     # Top buffer: convert pixels to price units
-    usable_px = chart_height - 45 - 30
+    usable_px = chart_height - 45 - 30  # subtract top/bottom margins
     if usable_px <= 0:
         usable_px = chart_height
     price_per_px = price_range / usable_px
     top_buffer = buffer_px * price_per_px
 
     # Bottom buffer: extend y-range so data_low maps to VOL_CLEARANCE_FRAC
+    # of chart height (above volume bars).  Formula: if data occupies the
+    # range [data_low, data_high+top] and we want data_low at frac from
+    # bottom, then total_range = visible_range / (1 - frac).
     visible_range = price_range + top_buffer
     total_range = visible_range / (1.0 - VOL_CLEARANCE_FRAC)
     bottom_extension = total_range - visible_range

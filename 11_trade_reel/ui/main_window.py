@@ -62,6 +62,7 @@ from data.highlight_loader import get_highlight_loader, HighlightLoader
 from models.highlight import HighlightTrade
 from charts import theme  # noqa: F401 - registers tradingview_dark template
 from charts.volume_profile import build_volume_profile
+from charts.weekly_chart import build_weekly_chart
 from charts.daily_chart import build_daily_chart
 from charts.h1_chart import build_h1_chart
 from charts.m15_chart import build_m15_chart
@@ -161,6 +162,45 @@ def _fetch_daily_bars(ticker: str, start_date: date, end_date: date) -> pd.DataF
     return pd.DataFrame()
 
 
+def _fetch_weekly_bars(ticker: str, end_date: date, lookback_weeks: int = 100) -> pd.DataFrame:
+    """Fetch weekly bars from Polygon API."""
+    start = end_date - timedelta(weeks=lookback_weeks)
+    url = (
+        f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range"
+        f"/1/week/{start:%Y-%m-%d}/{end_date:%Y-%m-%d}"
+    )
+    params = {'apiKey': POLYGON_API_KEY, 'adjusted': 'true', 'sort': 'asc', 'limit': 50000}
+
+    for attempt in range(API_RETRIES):
+        try:
+            resp = requests.get(url, params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+
+            if data.get('status') != 'OK' or not data.get('results'):
+                return pd.DataFrame()
+
+            df = pd.DataFrame(data['results'])
+            df = df.rename(columns={'t': 'timestamp', 'o': 'open', 'h': 'high', 'l': 'low', 'c': 'close', 'v': 'volume'})
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms', utc=True)
+            df['timestamp'] = df['timestamp'].dt.tz_convert(DISPLAY_TIMEZONE)
+            df.set_index('timestamp', inplace=True)
+            df = df[['open', 'high', 'low', 'close', 'volume']]
+
+            time_module.sleep(API_DELAY)
+            return df
+
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Weekly bar fetch attempt {attempt + 1} failed: {e}")
+            if attempt < API_RETRIES - 1:
+                time_module.sleep(API_RETRY_DELAY)
+        except Exception as e:
+            logger.error(f"Unexpected weekly bar fetch error: {e}")
+            break
+
+    return pd.DataFrame()
+
+
 # =============================================================================
 # INTRADAY VBP HELPER
 # =============================================================================
@@ -209,21 +249,18 @@ def _compute_intraday_vbp(bars_m1: pd.DataFrame, highlight: HighlightTrade) -> d
 # =============================================================================
 
 def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
-    """Build H1 chart sliced to end at the H1 candle before entry.
+    """Build H1 chart sliced to end at the 08:00 bar (covering 08:00-09:00).
 
-    If entry is 10:30, the last candle shown is 09:00 (covering 09:00-10:00).
-    Polygon H1 bars use bar start time as timestamp, so cutoff = entry_hour - 1.
+    Fixed cutoff at 08:00 regardless of entry time.
+    Polygon H1 bars use bar start time as timestamp.
     """
     if bars_h1 is None or (isinstance(bars_h1, pd.DataFrame) and bars_h1.empty):
         return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
 
-    # Last H1 candle before entry: entry_hour - 1
-    # e.g. entry 10:30 → cutoff 09:00 (the 09:00-10:00 bar)
-    entry_hour = highlight.entry_time.hour if highlight.entry_time else 9
-    cutoff_hour = max(entry_hour - 1, 4)  # floor at 04:00 pre-market
+    # Fixed cutoff: 08:00 bar (covers 08:00-09:00)
     cutoff = _TZ.localize(datetime.combine(
         highlight.date,
-        datetime.min.time().replace(hour=cutoff_hour, minute=0),
+        datetime.min.time().replace(hour=8, minute=0),
     ))
     h1_prior = bars_h1[bars_h1.index <= cutoff]
 
@@ -231,6 +268,28 @@ def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
         return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
 
     return build_h1_chart(h1_prior, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+
+def _build_m15_prior_fig(bars_m15, highlight, zones, pocs, vp_dict):
+    """Build M15 chart sliced to end at the 09:15 bar (covering 09:15-09:30).
+
+    Fixed cutoff at 09:15 regardless of entry time.
+    Polygon M15 bars use bar start time as timestamp.
+    """
+    if bars_m15 is None or (isinstance(bars_m15, pd.DataFrame) and bars_m15.empty):
+        return build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    # Fixed cutoff: 09:15 bar (covers 09:15-09:30)
+    cutoff = _TZ.localize(datetime.combine(
+        highlight.date,
+        datetime.min.time().replace(hour=9, minute=15),
+    ))
+    m15_prior = bars_m15[bars_m15.index <= cutoff]
+
+    if m15_prior.empty:
+        return build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    return build_m15_chart(m15_prior, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
 
 
 # =============================================================================
@@ -264,10 +323,10 @@ class HighlightLoadThread(QThread):
 
 
 class BarFetchThread(QThread):
-    """Fetch Daily/H1/M15/M5/M1 bars + zones + POCs + rampup + posttrade + VbP from Polygon + DB."""
+    """Fetch Weekly/Daily/H1/M15/M5/M1 bars + zones + POCs + rampup + posttrade + VbP from Polygon + DB."""
 
-    # bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date
-    finished = pyqtSignal(object, object, object, object, object, list, list, object, object, object, object)
+    # bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date
+    finished = pyqtSignal(object, object, object, object, object, object, list, list, object, object, object, object)
     error = pyqtSignal(str)
 
     def __init__(self, highlight: HighlightTrade, loader: HighlightLoader, parent=None):
@@ -282,6 +341,10 @@ class BarFetchThread(QThread):
 
             # Fetch anchor date first (needed for daily chart + VbP)
             anchor_date = self._loader.fetch_epoch_start_date(ticker, trade_date)
+
+            # Fetch weekly bars (90 weeks lookback)
+            bars_weekly = _fetch_weekly_bars(ticker, trade_date, lookback_weeks=100)
+            logger.info(f"Weekly: {ticker} ({len(bars_weekly)} bars)")
 
             # Fetch daily bars: epoch_start_date → day before trade
             bars_daily = pd.DataFrame()
@@ -323,7 +386,7 @@ class BarFetchThread(QThread):
             else:
                 logger.warning(f"No epoch_start_date found for {ticker} {trade_date}, VbP will use display bars")
 
-            self.finished.emit(bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
+            self.finished.emit(bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
         except Exception as e:
             self.error.emit(str(e))
 
@@ -363,6 +426,9 @@ class ExportThread(QThread):
                 # Fetch anchor date for daily + VbP
                 anchor_date = self._loader.fetch_epoch_start_date(ticker, trade_date)
 
+                # Fetch weekly bars from Polygon
+                bars_weekly = _fetch_weekly_bars(ticker, trade_date, lookback_weeks=100)
+
                 # Fetch daily bars
                 bars_daily = pd.DataFrame()
                 if anchor_date:
@@ -396,10 +462,11 @@ class ExportThread(QThread):
                 vbp_source = vbp_bars if not vbp_bars.empty else None
                 vp_dict = build_volume_profile(vbp_source) if vbp_source is not None else {}
 
-                # Build all 6 charts
+                # Build all 7 charts
+                weekly_fig = build_weekly_chart(bars_weekly, hl, zones)
                 daily_fig = build_daily_chart(bars_daily, hl, zones, pocs=pocs, anchor_date=anchor_date, volume_profile_dict=vp_dict)
-                h1_fig = build_h1_chart(bars_h1, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
-                m15_fig = build_m15_chart(bars_m15, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
+                h1_prior_fig = _build_h1_prior_fig(bars_h1, hl, zones, pocs, vp_dict)
+                m15_prior_fig = _build_m15_prior_fig(bars_m15, hl, zones, pocs, vp_dict)
                 m5_entry_fig = build_m5_entry_chart(bars_m5, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
                 m1_fig = build_m1_chart(bars_m1, hl, zones)
 
@@ -407,13 +474,10 @@ class ExportThread(QThread):
                 intraday_vbp = _compute_intraday_vbp(bars_m1, hl)
                 m1_rampup_fig = build_m1_rampup_chart(bars_m1, hl, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
 
-                # Build H1 prior (sliced to 08:00 candle) for Instagram
-                h1_prior_fig = _build_h1_prior_fig(bars_h1, hl, zones, pocs, vp_dict)
-
                 # Export composite (returns list of paths)
                 paths = export_highlight_image(
-                    daily_fig, h1_fig, m15_fig, m5_entry_fig, m1_fig, m1_rampup_fig,
-                    hl, self._platform, out_dir, h1_prior_fig=h1_prior_fig,
+                    weekly_fig, daily_fig, h1_prior_fig, m15_prior_fig, m5_entry_fig, m1_fig,
+                    m1_rampup_fig, hl, self._platform, out_dir,
                     rampup_df=rampup_df,
                 )
                 if paths:
@@ -437,7 +501,7 @@ class TradeReelWindow(BaseWindow):
 
         self._loader = get_highlight_loader()
         self._current_highlight: Optional[HighlightTrade] = None
-        self._current_bars = {}  # Cache: {trade_id: (daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)}
+        self._current_bars = {}  # Cache: {trade_id: (weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)}
         self._active_threads: list = []
 
         self._setup_trade_reel_ui()
@@ -582,8 +646,8 @@ class TradeReelWindow(BaseWindow):
 
         # Check cache
         if highlight.trade_id in self._current_bars:
-            daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date = self._current_bars[highlight.trade_id]
-            self._render_charts(highlight, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
+            weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date = self._current_bars[highlight.trade_id]
+            self._render_charts(highlight, weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
             return
 
         # Fetch bars in background
@@ -592,7 +656,7 @@ class TradeReelWindow(BaseWindow):
 
         thread = BarFetchThread(highlight, self._loader, parent=self)
         thread.finished.connect(
-            lambda d, h1, m15, m5, m1, z, p, r, pt, vbp, anch: self._on_bars_fetched(highlight, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch)
+            lambda w, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch: self._on_bars_fetched(highlight, w, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch)
         )
         thread.error.connect(self._on_bars_error)
         thread.finished.connect(lambda *_: self._cleanup_thread(thread))
@@ -600,16 +664,16 @@ class TradeReelWindow(BaseWindow):
         self._active_threads.append(thread)
         thread.start()
 
-    def _on_bars_fetched(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date):
+    def _on_bars_fetched(self, highlight, bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date):
         """Handle fetched bar data."""
         # Cache the bars
-        self._current_bars[highlight.trade_id] = (bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
+        self._current_bars[highlight.trade_id] = (bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
 
         # Only render if this is still the selected highlight
         if self._current_highlight and self._current_highlight.trade_id == highlight.trade_id:
-            self._render_charts(highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
+            self._render_charts(highlight, bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)
 
-    def _render_charts(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs=None, rampup_df=None, posttrade_df=None, vbp_bars=None, anchor_date=None):
+    def _render_charts(self, highlight, bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs=None, rampup_df=None, posttrade_df=None, vbp_bars=None, anchor_date=None):
         """Build and display charts for a highlight."""
         try:
             if bars_m5 is None or (isinstance(bars_m5, pd.DataFrame) and bars_m5.empty):
@@ -620,9 +684,11 @@ class TradeReelWindow(BaseWindow):
             vbp_source = vbp_bars if (vbp_bars is not None and not vbp_bars.empty) else None
             vp_dict = build_volume_profile(vbp_source) if vbp_source is not None else {}
 
+            # Build all 7 charts
+            weekly_fig = build_weekly_chart(bars_weekly, highlight, zones)
             daily_fig = build_daily_chart(bars_daily, highlight, zones, pocs=pocs, anchor_date=anchor_date, volume_profile_dict=vp_dict)
-            h1_fig = build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
-            m15_fig = build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+            h1_prior_fig = self._build_h1_prior(bars_h1, highlight, zones, pocs, vp_dict)
+            m15_prior_fig = self._build_m15_prior(bars_m15, highlight, zones, pocs, vp_dict)
             m5_entry_fig = build_m5_entry_chart(bars_m5, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
             m1_fig = build_m1_chart(bars_m1, highlight, zones)
 
@@ -630,10 +696,10 @@ class TradeReelWindow(BaseWindow):
             intraday_vbp = _compute_intraday_vbp(bars_m1, highlight)
             m1_rampup_fig = build_m1_rampup_chart(bars_m1, highlight, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
 
-            # Build H1 "prior" figure: slice H1 bars to end at 09:00 candle on day before trade
-            h1_prior_fig = self._build_h1_prior(bars_h1, highlight, zones, pocs, vp_dict)
-
-            self._chart_preview.show_charts(daily_fig, h1_fig, m15_fig, m5_entry_fig, m1_fig, m1_rampup_fig, highlight, h1_prior_fig=h1_prior_fig)
+            self._chart_preview.show_charts(
+                weekly_fig, daily_fig, h1_prior_fig, m15_prior_fig,
+                m5_entry_fig, m1_rampup_fig, m1_fig, highlight,
+            )
 
             # Show ramp-up indicator table
             if rampup_df is not None:
@@ -654,6 +720,10 @@ class TradeReelWindow(BaseWindow):
     def _build_h1_prior(self, bars_h1, highlight, zones, pocs, vp_dict):
         """Delegate to module-level function."""
         return _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict)
+
+    def _build_m15_prior(self, bars_m15, highlight, zones, pocs, vp_dict):
+        """Delegate to module-level function."""
+        return _build_m15_prior_fig(bars_m15, highlight, zones, pocs, vp_dict)
 
     def _on_bars_error(self, error: str):
         """Handle bar fetch error."""

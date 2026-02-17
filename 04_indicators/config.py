@@ -111,3 +111,52 @@ THRESHOLDS = {
 # =============================================================================
 RAMP_UP_BARS = 25
 POST_TRADE_BARS = 25
+
+# =============================================================================
+# SCORECARD CONFIGURATION
+# =============================================================================
+
+# Trade type definitions: each maps to (direction, [models])
+TRADE_TYPES = {
+    "long_continuation": {
+        "label": "Long Continuation",
+        "direction": "LONG",
+        "models": ["EPCH1", "EPCH3"],
+    },
+    "short_continuation": {
+        "label": "Short Continuation",
+        "direction": "SHORT",
+        "models": ["EPCH1", "EPCH3"],
+    },
+    "long_rejection": {
+        "label": "Long Rejection",
+        "direction": "LONG",
+        "models": ["EPCH2", "EPCH4"],
+    },
+    "short_rejection": {
+        "label": "Short Rejection",
+        "direction": "SHORT",
+        "models": ["EPCH2", "EPCH4"],
+    },
+}
+
+# Tier ranking thresholds
+TIER_THRESHOLDS = {
+    "S": {"min_effect_size": 15.0, "max_p_value": 0.01},
+    "A": {"min_effect_size": 8.0, "max_p_value": 0.05},
+    "B": {"min_effect_size": 4.0, "max_p_value": 0.05},
+    "C": {"min_effect_size": 2.0, "max_p_value": 0.10},
+}
+
+# Statistical settings
+P_VALUE_THRESHOLD = 0.05
+EFFECT_SIZE_THRESHOLD = 3.0        # percentage points minimum
+MIN_SAMPLE_SIZE = 30               # minimum trades for overall trade type
+MIN_GROUP_SIZE = 10                # minimum trades per indicator group/quintile
+
+# Scorecard limits
+SCORECARD_TOP_N = 5                # max indicators per scorecard
+
+# Ramp-up analysis window (bar_sequence indices)
+RAMP_UP_ANALYSIS_BARS = range(15, 25)   # bars 15-24 (last 10 before entry)
+RAMP_UP_ACCEL_BARS = range(20, 25)      # bars 20-24 (last 5, for acceleration)

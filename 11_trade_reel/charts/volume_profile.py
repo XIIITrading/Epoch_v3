@@ -24,6 +24,16 @@ VBP_NUM_BINS = 150          # Target number of price bins (auto-scales granulari
 VBP_COLOR = 'rgba(195,195,195,0.30)'  # Light grey at 30% opacity
 VBP_MAX_WIDTH_FRAC = 0.20  # Largest bar = 20% of x-axis (paper coords)
 
+# Volume bar colors (match candle colors with transparency)
+VOL_UP_COLOR = CHART_COLORS['candle_up']      # Teal (up candles)
+VOL_DOWN_COLOR = CHART_COLORS['candle_down']   # Red (down candles)
+VOL_OPACITY = 0.45                              # Subtle but visible
+
+# Volume bars render inside the candlestick area (shared y-axis domain)
+VOL_BAR_MAX_HEIGHT = 0.20       # Volume bars: max 20% of chart height
+CANDLE_DOMAIN_BOTTOM = 0.0      # No domain offset — volume buffer handled via y-range padding
+VOL_CLEARANCE_FRAC = 0.24       # Lowest candle sits at 24% of chart height (above 20% vol bars + gap)
+
 
 def build_volume_profile(bars: pd.DataFrame, num_bins: int = VBP_NUM_BINS) -> Dict[float, float]:
     """
@@ -98,7 +108,8 @@ def _round_granularity(g: float) -> float:
 
 def create_chart_with_vbp(height: int = 380) -> go.Figure:
     """
-    Create a standard single-panel Plotly figure.
+    Create a standard single-panel Plotly figure with y-axis domain
+    offset to separate candlesticks from volume bars at the bottom.
 
     Args:
         height: Figure height in pixels
@@ -107,6 +118,9 @@ def create_chart_with_vbp(height: int = 380) -> go.Figure:
         Plotly Figure (single panel)
     """
     fig = go.Figure()
+    fig.update_layout(
+        yaxis=dict(domain=[CANDLE_DOMAIN_BOTTOM, 1.0]),
+    )
     return fig
 
 
@@ -230,3 +244,62 @@ def add_volume_profile_from_dict(
         filtered = {p: v for p, v in volume_profile.items() if y_min <= p <= y_max}
 
     _add_vbp_shapes(fig, filtered, y_min, y_max)
+
+
+def add_volume_bars(fig: go.Figure, df: pd.DataFrame):
+    """
+    Add TradingView-style volume bars at the bottom of a candlestick chart.
+    Bars are color-matched to candle direction (up=teal, down=red).
+
+    Uses Plotly shapes (not go.Bar) to avoid axis scaling issues with
+    rangebreaks. Each bar is a rectangle: x in data coords (datetime),
+    y from paper 0 (bottom) to a height proportional to volume (max = 20%).
+
+    Args:
+        fig: Plotly Figure with candlestick already added
+        df: OHLCV DataFrame (must have 'open', 'close', 'volume' columns)
+    """
+    if df is None or df.empty or 'volume' not in df.columns:
+        return
+
+    max_vol = df['volume'].max()
+    if max_vol <= 0:
+        return
+
+    # Max volume bar height as fraction of chart
+    max_height_frac = VOL_BAR_MAX_HEIGHT
+
+    # Calculate half-bar width from median candle interval
+    half_width = pd.Timedelta(minutes=0.4)  # fallback
+    if len(df) >= 2:
+        diffs = pd.Series(df.index).diff().dropna()
+        median_interval = diffs.median()
+        half_width = median_interval * 0.4  # 80% of interval, split in half
+
+    shapes = []
+    for idx, row in df.iterrows():
+        vol = float(row['volume'])
+        if vol <= 0:
+            continue
+
+        # Bar height proportional to volume (paper coords: 0=bottom, 1=top)
+        height_frac = (vol / max_vol) * max_height_frac
+
+        # Color based on candle direction
+        color = VOL_UP_COLOR if row['close'] >= row['open'] else VOL_DOWN_COLOR
+
+        shapes.append(dict(
+            type='rect',
+            xref='x',
+            yref='paper',
+            x0=idx - half_width,
+            x1=idx + half_width,
+            y0=0,
+            y1=height_frac,
+            fillcolor=color,
+            opacity=VOL_OPACITY,
+            line=dict(width=0),
+            layer='below',
+        ))
+
+    fig.update_layout(shapes=list(fig.layout.shapes or []) + shapes)

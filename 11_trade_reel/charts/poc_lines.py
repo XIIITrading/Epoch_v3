@@ -2,8 +2,8 @@
 Epoch Trading System - HVN POC Lines Helper
 Adds horizontal POC lines to any Plotly chart.
 Zone POC lines color-coded by setup_type from setups table:
-  - PRIMARY: blue
-  - SECONDARY: red
+  - PRIMARY: cyan
+  - SECONDARY: crimson
 """
 
 import plotly.graph_objects as go
@@ -11,13 +11,13 @@ from typing import List, Optional
 
 # POC line styling
 POC_COLOR = '#FFFFFF'   # White (fallback)
-POC_OPACITY = 0.3       # 70% transparent (1.0 - 0.7 = 0.3)
+POC_OPACITY = 0.3       # 30% opacity
 POC_WIDTH = 1.0
-POC_DASH = 'solid'
+POC_DASH = 'dot'
 
 # Setup-type colors
-PRIMARY_COLOR = '#2962FF'    # Blue
-SECONDARY_COLOR = '#F23645'  # Red
+PRIMARY_COLOR = '#00BCD4'    # Cyan
+SECONDARY_COLOR = '#DC143C'  # Crimson
 
 
 def add_poc_lines(
@@ -52,7 +52,7 @@ def add_zone_poc_lines(
 ):
     """
     Add HVN POC lines from setups table, color-coded by setup_type.
-    PRIMARY = blue, SECONDARY = red.
+    PRIMARY = cyan, SECONDARY = crimson.
 
     Args:
         fig: Plotly Figure
@@ -75,10 +75,12 @@ def add_zone_poc_lines(
         else:
             color = POC_COLOR
 
+        # PRIMARY/SECONDARY: solid, fully visible; fallback: dotted, 30%
+        is_zone = setup_type in ('PRIMARY', 'SECONDARY')
         fig.add_hline(
             y=float(poc_price),
             line_color=color,
             line_width=POC_WIDTH,
-            line_dash=POC_DASH,
-            opacity=POC_OPACITY,
+            line_dash='solid' if is_zone else POC_DASH,
+            opacity=1.0 if is_zone else POC_OPACITY,
         )

@@ -19,7 +19,7 @@ from config import CHART_COLORS, DISPLAY_TIMEZONE
 
 _TZ = pytz.timezone(DISPLAY_TIMEZONE)
 from models.highlight import HighlightTrade
-from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_profile_from_dict
+from charts.volume_profile import create_chart_with_vbp, add_volume_profile, add_volume_profile_from_dict, add_volume_bars, CANDLE_DOMAIN_BOTTOM, VOL_CLEARANCE_FRAC
 from charts.poc_lines import add_poc_lines, add_zone_poc_lines
 
 # Ensure TV Dark template is registered
@@ -27,7 +27,6 @@ import charts.theme  # noqa: F401
 
 # Chart pixel height for buffer calculation
 M5_CHART_HEIGHT = 420
-BUFFER_PX = 5
 
 
 def _slice_entry_window(bars_m5: pd.DataFrame, highlight: HighlightTrade) -> pd.DataFrame:
@@ -99,11 +98,15 @@ def build_m5_entry_chart(
             name='M5',
         ))
 
-    # Zone HVN POC lines (blue=primary, red=secondary)
+    # Volume bars (TradingView-style, bottom of chart)
+    if not df.empty:
+        add_volume_bars(fig, df)
+
+    # Zone HVN POC lines (teal=primary, cyan=secondary)
     add_zone_poc_lines(fig, zones, highlight)
 
-    # Auto Y-range from visible data with 5px buffer
-    y_range = _calc_y_range(df, M5_CHART_HEIGHT, BUFFER_PX)
+    # Auto Y-range from visible data with 10px buffer
+    y_range = _calc_y_range(df, M5_CHART_HEIGHT, 10)
 
     # Layout
     title_text = f"5-Minute Entry  |  {highlight.ticker}  |  {highlight.date}"
@@ -122,8 +125,13 @@ def build_m5_entry_chart(
             dict(bounds=[20, 4], pattern="hour"),
         ],
         type='date',
+        dtick=7200000,
         tickformat='%H:%M',
+        tickangle=0,
         showgrid=False,
+        tickformatstops=[
+            dict(dtickrange=[86400000, None], value='%m-%d'),
+        ],
     )
 
     if y_range:
@@ -135,12 +143,11 @@ def build_m5_entry_chart(
 
 
 def _calc_y_range(df: pd.DataFrame, chart_height: int, buffer_px: int):
-    """
-    Calculate Y-axis range from data min/max with pixel buffer.
-    Converts pixel buffer to price units based on chart height.
+    """Calculate Y-axis range with pixel buffer and volume bar clearance.
 
-    Returns:
-        (y_min, y_max) tuple or None if no data
+    Extends the bottom of the y-range so the lowest candle sits above the
+    volume bars (which occupy the bottom VOL_BAR_MAX_HEIGHT of the chart).
+    Top gets a standard pixel buffer.
     """
     if df is None or df.empty:
         return None
@@ -152,13 +159,16 @@ def _calc_y_range(df: pd.DataFrame, chart_height: int, buffer_px: int):
     if price_range <= 0:
         return None
 
-    # Convert pixel buffer to price units
-    # Chart area height = chart_height - top margin(45) - bottom margin(30) = usable pixels
+    # Top buffer: convert pixels to price units
     usable_px = chart_height - 45 - 30
     if usable_px <= 0:
         usable_px = chart_height
-
     price_per_px = price_range / usable_px
-    buffer_price = buffer_px * price_per_px
+    top_buffer = buffer_px * price_per_px
 
-    return [data_low - buffer_price, data_high + buffer_price]
+    # Bottom buffer: extend y-range so data_low maps to VOL_CLEARANCE_FRAC
+    visible_range = price_range + top_buffer
+    total_range = visible_range / (1.0 - VOL_CLEARANCE_FRAC)
+    bottom_extension = total_range - visible_range
+
+    return [data_low - bottom_extension, data_high + top_buffer]

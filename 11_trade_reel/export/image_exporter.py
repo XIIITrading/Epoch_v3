@@ -347,6 +347,7 @@ def _build_instagram_image(
 
 
 def export_highlight_image(
+    weekly_fig: go.Figure,
     daily_fig: go.Figure,
     h1_fig: go.Figure,
     m15_fig: go.Figure,
@@ -363,10 +364,11 @@ def export_highlight_image(
     Export composite marketing image(s) for a platform.
 
     Instagram: 2 images (H1 prior + M15|M1)
-    Discord:   H1 prior (25%) + M15|M1 (50%) + indicator table (25%)
-    X/StockTwits: H1 prior (30%) + M15|M1 (70%)
+    Discord:   Weekly+Daily, M1RampUp+Table, M15+M1Action (3 pages)
+    X/StockTwits: H1 prior (40%) + M15|M1 (60%)
 
     Args:
+        weekly_fig: Weekly context chart
         daily_fig: Daily context chart
         h1_fig: H1 context chart
         m15_fig: M15 context chart
@@ -544,7 +546,7 @@ def export_highlight_image(
 
 
 def export_batch(
-    charts_data: List[Tuple[go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, HighlightTrade]],
+    charts_data: List[Tuple[go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, HighlightTrade]],
     platform: str,
     output_dir: Optional[Path] = None,
     progress_callback=None,
@@ -553,7 +555,7 @@ def export_batch(
     Export multiple highlights for a platform.
 
     Args:
-        charts_data: List of (daily, h1, m15, m5_entry, m1, m1_rampup, highlight) tuples
+        charts_data: List of (weekly, daily, h1, m15, m5_entry, m1, m1_rampup, highlight) tuples
         platform: Platform name
         output_dir: Output directory
         progress_callback: Optional callable(current, total)
@@ -564,8 +566,8 @@ def export_batch(
     results = []
     total = len(charts_data)
 
-    for i, (daily, h1, m15, m5, m1, m1r, hl) in enumerate(charts_data):
-        paths = export_highlight_image(daily, h1, m15, m5, m1, m1r, hl, platform, output_dir)
+    for i, (weekly, daily, h1, m15, m5, m1, m1r, hl) in enumerate(charts_data):
+        paths = export_highlight_image(weekly, daily, h1, m15, m5, m1, m1r, hl, platform, output_dir)
         if paths:
             results.extend(paths)
         if progress_callback:

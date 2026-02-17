@@ -1,0 +1,340 @@
+{
+  "run_date": "2026-02-16 07:30:06",
+  "date_from": null,
+  "date_to": null,
+  "total_trades": 1126,
+  "trade_types": {
+    "long_continuation": {
+      "total_trades": 43,
+      "win_rate": 48.8,
+      "indicators": {
+        "h1_structure": {
+          "tier": "C",
+          "confidence": "HIGH",
+          "effect_size": 30.7,
+          "p_value": 0.093845,
+          "top5": true
+        },
+        "vol_delta_roll": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 49.2,
+          "p_value": 0.652996,
+          "top5": true
+        },
+        "sma_spread_pct": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 41.7,
+          "p_value": 0.855369,
+          "top5": true
+        },
+        "cvd_slope": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 41.7,
+          "p_value": 0.761291,
+          "top5": true
+        },
+        "price_position": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 35.9,
+          "p_value": 0.197001,
+          "top5": true
+        },
+        "vol_roc": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 33.3,
+          "p_value": 0.855369,
+          "top5": false
+        },
+        "candle_range_pct": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 29.2,
+          "p_value": 0.855369,
+          "top5": false
+        },
+        "sma_config": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 24.7,
+          "p_value": 0.264789,
+          "top5": false
+        },
+        "m5_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 18.2,
+          "p_value": 0.444455,
+          "top5": false
+        },
+        "sma_momentum_label": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 17.1,
+          "p_value": 0.729984,
+          "top5": false
+        },
+        "m15_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 2.6,
+          "p_value": 1.0,
+          "top5": false
+        }
+      }
+    },
+    "short_continuation": {
+      "total_trades": 46,
+      "win_rate": 50.0,
+      "indicators": {
+        "vol_delta_roll": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 68.9,
+          "p_value": 0.226815,
+          "top5": true
+        },
+        "vol_roc": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 57.5,
+          "p_value": 0.567769,
+          "top5": true
+        },
+        "candle_range_pct": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 36.7,
+          "p_value": 0.253172,
+          "top5": true
+        },
+        "cvd_slope": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 36.7,
+          "p_value": 0.481939,
+          "top5": true
+        },
+        "sma_spread_pct": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 29.2,
+          "p_value": 0.523953,
+          "top5": true
+        },
+        "price_position": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 27.5,
+          "p_value": 0.57695,
+          "top5": false
+        },
+        "m5_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 26.1,
+          "p_value": 0.139994,
+          "top5": false
+        },
+        "sma_config": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 25.6,
+          "p_value": 0.283549,
+          "top5": false
+        },
+        "sma_momentum_label": {
+          "tier": "Rejected",
+          "confidence": "LOW_DATA",
+          "effect_size": 19.0,
+          "p_value": 0.826565,
+          "top5": false
+        },
+        "m15_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 13.1,
+          "p_value": 0.553844,
+          "top5": false
+        },
+        "h1_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 13.1,
+          "p_value": 0.553844,
+          "top5": false
+        }
+      }
+    },
+    "long_rejection": {
+      "total_trades": 545,
+      "win_rate": 52.5,
+      "indicators": {
+        "candle_range_pct": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 25.3,
+          "p_value": 0.00974,
+          "top5": true
+        },
+        "vol_roc": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 22.1,
+          "p_value": 0.008549,
+          "top5": true
+        },
+        "sma_config": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 21.2,
+          "p_value": 1e-06,
+          "top5": true
+        },
+        "m15_structure": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 20.4,
+          "p_value": 3e-06,
+          "top5": true
+        },
+        "h1_structure": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 17.6,
+          "p_value": 6.6e-05,
+          "top5": true
+        },
+        "price_position": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 16.9,
+          "p_value": 0.001955,
+          "top5": false
+        },
+        "sma_spread_pct": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 13.9,
+          "p_value": 0.466612,
+          "top5": false
+        },
+        "cvd_slope": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 10.0,
+          "p_value": 0.121804,
+          "top5": false
+        },
+        "sma_momentum_label": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 6.5,
+          "p_value": 0.665555,
+          "top5": false
+        },
+        "m5_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 4.1,
+          "p_value": 0.394998,
+          "top5": false
+        },
+        "vol_delta_roll": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 3.1,
+          "p_value": 0.950269,
+          "top5": false
+        }
+      }
+    },
+    "short_rejection": {
+      "total_trades": 492,
+      "win_rate": 58.3,
+      "indicators": {
+        "m5_structure": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 29.6,
+          "p_value": 0.0,
+          "top5": true
+        },
+        "cvd_slope": {
+          "tier": "S",
+          "confidence": "HIGH",
+          "effect_size": 27.4,
+          "p_value": 4.4e-05,
+          "top5": true
+        },
+        "price_position": {
+          "tier": "C",
+          "confidence": "HIGH",
+          "effect_size": 14.2,
+          "p_value": 0.062263,
+          "top5": true
+        },
+        "sma_config": {
+          "tier": "C",
+          "confidence": "HIGH",
+          "effect_size": 9.0,
+          "p_value": 0.052679,
+          "top5": true
+        },
+        "vol_delta_roll": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 31.4,
+          "p_value": 0.148647,
+          "top5": true
+        },
+        "sma_spread_pct": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 19.7,
+          "p_value": 0.551219,
+          "top5": false
+        },
+        "candle_range_pct": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 18.7,
+          "p_value": 0.745073,
+          "top5": false
+        },
+        "sma_momentum_label": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 14.5,
+          "p_value": 0.306564,
+          "top5": false
+        },
+        "vol_roc": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 10.9,
+          "p_value": 0.323955,
+          "top5": false
+        },
+        "m15_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 2.5,
+          "p_value": 0.635108,
+          "top5": false
+        },
+        "h1_structure": {
+          "tier": "Rejected",
+          "confidence": "HIGH",
+          "effect_size": 1.9,
+          "p_value": 0.751108,
+          "top5": false
+        }
+      }
+    }
+  }
+}

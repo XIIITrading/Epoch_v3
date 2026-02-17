@@ -23,7 +23,8 @@ def register_tv_dark_template():
                 tickfont=dict(color='#787B86'),
             ),
             yaxis=dict(
-                gridcolor='#2A2E39',
+                gridcolor='rgba(42,46,57,0.30)',
+                griddash='dot',
                 linecolor='#1A1E29',
                 linewidth=0,
                 zerolinecolor='#2A2E39',
