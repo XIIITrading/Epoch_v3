@@ -52,7 +52,7 @@ class M1BarFull:
     sma_momentum_label: str     # WIDENING, NARROWING, FLAT
 
     # Structure Indicators (multi-timeframe)
-    h1_structure: str           # BULL, BEAR, NEUT
+    h1_structure: str           # B+, B-, N
     m15_structure: str
     m5_structure: str
     m1_structure: str
@@ -136,14 +136,14 @@ COLUMN GUIDE
 - Delta: Buy - Sell volume (positive = buying pressure). For {direction}, want {delta_preference}.
 - Range%: Candle volatility. >=0.12% shows movement; <0.10% suggests absorption/chop.
 - Spread: SMA9 - SMA21. For LONG want positive; for SHORT want negative.
-- H1/M15/M5/M1: Multi-timeframe structure (BULL/BEAR/NEUT). Higher timeframes matter most.
+- H1/M15/M5/M1: Multi-timeframe structure (B+/B-/N). Higher timeframes matter most.
 - L/S: Long and Short scores (0-10). Higher = more favorable for that direction.
 
 ================================================================================
 QUICK CHECK FOR {direction}
 ================================================================================
 
-1. STRUCTURE: Is H1 at least NEUTRAL toward {direction}? (BULL ok for LONG, BEAR ok for SHORT, NEUT ok)
+1. STRUCTURE: Is H1 at least NEUTRAL toward {direction}? (B+ ok for LONG, B- ok for SHORT, N ok)
 2. SCORES: Is the {direction_score} score >= 4?
 3. VOLATILITY: Is Range% >= 0.10% on recent bars? (shows market is moving)
 
@@ -219,9 +219,9 @@ DECISION RULES
 ================================================================================
 
 CHECK THE STRONGEST EDGE FIRST: H1 Structure
-- H1 ALIGNED with {direction} (BULL for LONG, BEAR for SHORT): Strong TRADE signal (+36pp edge)
-- H1 NEUTRAL: Trade is acceptable (neutral edge)
-- H1 OPPOSED (BEAR for LONG, BULL for SHORT): Caution - consider NO_TRADE only if MULTIPLE other factors also unfavorable
+- H1 ALIGNED with {direction} (B+ for LONG, B- for SHORT): Strong TRADE signal (+36pp edge)
+- H1 NEUTRAL (N): Trade is acceptable (neutral edge)
+- H1 OPPOSED (B- for LONG, B+ for SHORT): Caution - consider NO_TRADE only if MULTIPLE other factors also unfavorable
 
 Then check supporting indicators:
 - {direction_score} score >= 5: Supportive
@@ -351,13 +351,13 @@ def get_direction_guidance(direction: str) -> str:
         return """- Positive Vol Delta = buying pressure (SUPPORTIVE)
 - Negative Vol Delta = selling pressure (OPPOSING)
 - Positive SMA Spread = bullish alignment (SUPPORTIVE)
-- H1 BULL = trend aligned (SUPPORTIVE), H1 BEAR = counter-trend (OPPOSING)
+- H1 B+ = trend aligned (SUPPORTIVE), H1 B- = counter-trend (OPPOSING)
 - Higher Long Score = more favorable conditions"""
     else:  # SHORT
         return """- Negative Vol Delta = selling pressure (SUPPORTIVE)
 - Positive Vol Delta = buying pressure (OPPOSING)
 - Negative SMA Spread = bearish alignment (SUPPORTIVE)
-- H1 BEAR = trend aligned (SUPPORTIVE), H1 BULL = counter-trend (OPPOSING)
+- H1 B- = trend aligned (SUPPORTIVE), H1 B+ = counter-trend (OPPOSING)
 - Higher Short Score = more favorable conditions"""
 
 
@@ -652,11 +652,11 @@ def parse_pass2_response(response: str) -> Pass2Result:
 
     # H1 Structure
     h1_match = re.search(
-        r'H1 Structure:\s*(BULL|BEAR|NEUT)\w*\s*-?>?\s*\[?(ALIGNED|NEUTRAL|OPPOSING)\]?',
+        r'H1 Structure:\s*(B\+|B-|N)\w*\s*-?>?\s*\[?(ALIGNED|NEUTRAL|OPPOSING)\]?',
         response, re.IGNORECASE
     )
     if h1_match:
-        result.h1_structure = h1_match.group(1).upper()
+        result.h1_structure = h1_match.group(1)
         result.h1_status = h1_match.group(2).upper()
 
     return result

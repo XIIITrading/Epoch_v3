@@ -1,0 +1,261 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © XIIITrading
+
+//@version=6
+indicator("Epoch - Zones + POC Levels", overlay=true)
+
+// ============================================================================
+// BULK INPUT - PASTE FORMAT: 6 zone values + 10 POC values
+// ============================================================================
+
+bulkInput = input.string("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", "Paste Values (comma-separated)", 
+     tooltip="Format: PrimaryHigh,PrimaryLow,PrimaryTarget,SecondaryHigh,SecondaryLow,SecondaryTarget,POC1,POC2,POC3,POC4,POC5,POC6,POC7,POC8,POC9,POC10\n\nExample: 462.41,459.91,472.41,445.25,442.75,429.22,461.16,444.00,429.22,419.11,409.03,395.00,385.80,366.29,346.63,329.21\n\nPOC values of 0 will not be drawn.", 
+     group="Quick Entry")
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+isPivot = input.bool(false, "Pivot Mode", tooltip="Changes primary zone to purple for pivot trading", group="Zone Settings")
+showZones = input.bool(false, "Show Zone Boxes", tooltip="Toggle shaded zone boxes and target lines on/off. Zone centerlines always show.", group="Zone Settings")
+showPOCLines = input.bool(true, "Show POC Lines", group="POC Settings")
+useGradientTransparency = input.bool(true, "Gradient Transparency by Rank", tooltip="POC1-3: 60%, POC4-7: 70%, POC8-10: 80%", group="POC Settings")
+
+// ============================================================================
+// PARSE INPUT VALUES
+// ============================================================================
+
+values = str.split(bulkInput, ",")
+
+// Zone values (indices 0-5)
+primaryHigh = str.tonumber(array.get(values, 0))
+primaryLow = str.tonumber(array.get(values, 1))
+primaryTarget = str.tonumber(array.get(values, 2))
+secondaryHigh = str.tonumber(array.get(values, 3))
+secondaryLow = str.tonumber(array.get(values, 4))
+secondaryTarget = str.tonumber(array.get(values, 5))
+
+// POC values (indices 6-15) with bounds checking
+poc1 = array.size(values) > 6 ? str.tonumber(array.get(values, 6)) : 0.0
+poc2 = array.size(values) > 7 ? str.tonumber(array.get(values, 7)) : 0.0
+poc3 = array.size(values) > 8 ? str.tonumber(array.get(values, 8)) : 0.0
+poc4 = array.size(values) > 9 ? str.tonumber(array.get(values, 9)) : 0.0
+poc5 = array.size(values) > 10 ? str.tonumber(array.get(values, 10)) : 0.0
+poc6 = array.size(values) > 11 ? str.tonumber(array.get(values, 11)) : 0.0
+poc7 = array.size(values) > 12 ? str.tonumber(array.get(values, 12)) : 0.0
+poc8 = array.size(values) > 13 ? str.tonumber(array.get(values, 13)) : 0.0
+poc9 = array.size(values) > 14 ? str.tonumber(array.get(values, 14)) : 0.0
+poc10 = array.size(values) > 15 ? str.tonumber(array.get(values, 15)) : 0.0
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+primaryBlue = color.new(#90bff9, 90)
+secondaryRed = color.new(#faa1a4, 90)
+pivotPurple = color.new(#b19cd9, 90)
+blueLineColor = color.new(#90bff9, 0)
+redLineColor = color.new(#faa1a4, 0)
+
+// POC colors with gradient transparency
+pocColorHigh = color.new(#ffffff, 60)   // POC 1-3: more visible
+pocColorMid = color.new(#ffffff, 70)    // POC 4-7: standard
+pocColorLow = color.new(#ffffff, 80)    // POC 8-10: less visible
+pocColorFlat = color.new(#ffffff, 70)   // Single transparency option
+
+// ============================================================================
+// ZONE CENTERLINES (always visible)
+// ============================================================================
+
+primaryCenterLineColor = isPivot ? color.new(#b19cd9, 0) : blueLineColor
+primaryCenter = (primaryHigh != 0 and primaryLow != 0) ? (primaryHigh + primaryLow) / 2 : na
+secondaryCenter = (secondaryHigh != 0 and secondaryLow != 0) ? (secondaryHigh + secondaryLow) / 2 : na
+
+plot(primaryCenter,
+     "Primary Zone Center",
+     color=primaryCenterLineColor,
+     linewidth=2,
+     style=plot.style_line,
+     trackprice=true,
+     show_last=9999)
+
+plot(secondaryCenter,
+     "Secondary Zone Center",
+     color=redLineColor,
+     linewidth=2,
+     style=plot.style_line,
+     trackprice=true,
+     show_last=9999)
+
+// ============================================================================
+// ZONE BOXES (toggled via Show Zone Boxes)
+// ============================================================================
+
+primaryZoneColor = isPivot ? pivotPurple : primaryBlue
+
+var box primaryBox = na
+var box secondaryBox = na
+
+if barstate.islast
+    if not na(primaryBox)
+        box.delete(primaryBox)
+    if not na(secondaryBox)
+        box.delete(secondaryBox)
+
+    if showZones
+        if primaryHigh != 0 and primaryLow != 0
+            primaryBox := box.new(
+                 left=bar_index - 500,
+                 top=primaryHigh,
+                 right=bar_index + 500,
+                 bottom=primaryLow,
+                 bgcolor=primaryZoneColor,
+                 border_color=na,
+                 border_width=0,
+                 extend=extend.both
+             )
+
+        if secondaryHigh != 0 and secondaryLow != 0
+            secondaryBox := box.new(
+                 left=bar_index - 500,
+                 top=secondaryHigh,
+                 right=bar_index + 500,
+                 bottom=secondaryLow,
+                 bgcolor=secondaryRed,
+                 border_color=na,
+                 border_width=0,
+                 extend=extend.both
+             )
+
+// ============================================================================
+// PRICE TARGET LINES (toggled via Show Zone Boxes)
+// ============================================================================
+
+plot(showZones and primaryTarget != 0 ? primaryTarget : na,
+     "Primary Target",
+     color=blueLineColor,
+     linewidth=2,
+     style=plot.style_line,
+     trackprice=true,
+     show_last=9999)
+
+plot(showZones and secondaryTarget != 0 ? secondaryTarget : na,
+     "Secondary Target",
+     color=redLineColor,
+     linewidth=2,
+     style=plot.style_line,
+     trackprice=true,
+     show_last=9999)
+
+// ============================================================================
+// POC LINES AND LABELS
+// ============================================================================
+
+// Persistent line and label variables
+var line pocLine1 = na, var label pocLabel1 = na
+var line pocLine2 = na, var label pocLabel2 = na
+var line pocLine3 = na, var label pocLabel3 = na
+var line pocLine4 = na, var label pocLabel4 = na
+var line pocLine5 = na, var label pocLabel5 = na
+var line pocLine6 = na, var label pocLabel6 = na
+var line pocLine7 = na, var label pocLabel7 = na
+var line pocLine8 = na, var label pocLabel8 = na
+var line pocLine9 = na, var label pocLabel9 = na
+var line pocLine10 = na, var label pocLabel10 = na
+
+// Helper function to get POC color based on rank
+getPocColor(int rank) =>
+    if useGradientTransparency
+        if rank <= 3
+            pocColorHigh
+        else if rank <= 7
+            pocColorMid
+        else
+            pocColorLow
+    else
+        pocColorFlat
+
+// Draw POC lines and labels
+if barstate.islast
+    // Clean up existing lines and labels
+    line.delete(pocLine1), label.delete(pocLabel1)
+    line.delete(pocLine2), label.delete(pocLabel2)
+    line.delete(pocLine3), label.delete(pocLabel3)
+    line.delete(pocLine4), label.delete(pocLabel4)
+    line.delete(pocLine5), label.delete(pocLabel5)
+    line.delete(pocLine6), label.delete(pocLabel6)
+    line.delete(pocLine7), label.delete(pocLabel7)
+    line.delete(pocLine8), label.delete(pocLabel8)
+    line.delete(pocLine9), label.delete(pocLabel9)
+    line.delete(pocLine10), label.delete(pocLabel10)
+    
+    if showPOCLines
+        // POC 1
+        if poc1 != 0 and not na(poc1)
+            pocLine1 := line.new(bar_index - 500, poc1, bar_index + 500, poc1, 
+                 color=getPocColor(1), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel1 := label.new(bar_index + 20, poc1, "POC1: $" + str.tostring(poc1, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(1), size=size.small, textalign=text.align_left)
+        
+        // POC 2
+        if poc2 != 0 and not na(poc2)
+            pocLine2 := line.new(bar_index - 500, poc2, bar_index + 500, poc2, 
+                 color=getPocColor(2), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel2 := label.new(bar_index + 20, poc2, "POC2: $" + str.tostring(poc2, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(2), size=size.small, textalign=text.align_left)
+        
+        // POC 3
+        if poc3 != 0 and not na(poc3)
+            pocLine3 := line.new(bar_index - 500, poc3, bar_index + 500, poc3, 
+                 color=getPocColor(3), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel3 := label.new(bar_index + 20, poc3, "POC3: $" + str.tostring(poc3, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(3), size=size.small, textalign=text.align_left)
+        
+        // POC 4
+        if poc4 != 0 and not na(poc4)
+            pocLine4 := line.new(bar_index - 500, poc4, bar_index + 500, poc4, 
+                 color=getPocColor(4), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel4 := label.new(bar_index + 20, poc4, "POC4: $" + str.tostring(poc4, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(4), size=size.small, textalign=text.align_left)
+        
+        // POC 5
+        if poc5 != 0 and not na(poc5)
+            pocLine5 := line.new(bar_index - 500, poc5, bar_index + 500, poc5, 
+                 color=getPocColor(5), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel5 := label.new(bar_index + 20, poc5, "POC5: $" + str.tostring(poc5, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(5), size=size.small, textalign=text.align_left)
+        
+        // POC 6
+        if poc6 != 0 and not na(poc6)
+            pocLine6 := line.new(bar_index - 500, poc6, bar_index + 500, poc6, 
+                 color=getPocColor(6), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel6 := label.new(bar_index + 20, poc6, "POC6: $" + str.tostring(poc6, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(6), size=size.small, textalign=text.align_left)
+        
+        // POC 7
+        if poc7 != 0 and not na(poc7)
+            pocLine7 := line.new(bar_index - 500, poc7, bar_index + 500, poc7, 
+                 color=getPocColor(7), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel7 := label.new(bar_index + 20, poc7, "POC7: $" + str.tostring(poc7, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(7), size=size.small, textalign=text.align_left)
+        
+        // POC 8
+        if poc8 != 0 and not na(poc8)
+            pocLine8 := line.new(bar_index - 500, poc8, bar_index + 500, poc8, 
+                 color=getPocColor(8), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel8 := label.new(bar_index + 20, poc8, "POC8: $" + str.tostring(poc8, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(8), size=size.small, textalign=text.align_left)
+        
+        // POC 9
+        if poc9 != 0 and not na(poc9)
+            pocLine9 := line.new(bar_index - 500, poc9, bar_index + 500, poc9, 
+                 color=getPocColor(9), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel9 := label.new(bar_index + 20, poc9, "POC9: $" + str.tostring(poc9, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(9), size=size.small, textalign=text.align_left)
+        
+        // POC 10
+        if poc10 != 0 and not na(poc10)
+            pocLine10 := line.new(bar_index - 500, poc10, bar_index + 500, poc10, 
+                 color=getPocColor(10), style=line.style_dashed, width=1, extend=extend.both)
+            pocLabel10 := label.new(bar_index + 20, poc10, "POC10: $" + str.tostring(poc10, "#.##"),
+                 style=label.style_none, textcolor=getPocColor(10), size=size.small, textalign=text.align_left)

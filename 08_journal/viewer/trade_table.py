@@ -1,235 +1,163 @@
 """
-Trade Table Widget for Journal Viewer
-Epoch Trading System - XIII Trading LLC
+Epoch Trading System - Journal Trade Table
+QTableWidget with checkboxes and 5 fixed-width data columns.
+Multi-row selection via checkboxes triggers export; single-row click triggers chart rendering.
+Modeled on 11_trade_reel/ui/highlight_table.py.
 
-Displays journal trades in a sortable table.
-Single-row selection triggers chart rendering (no checkboxes).
-Adapted from 11_trade_reel/ui/highlight_table.py.
+Columns: [checkbox] | Date | Ticker | Dir | Entry | Seq
 """
 
-from typing import List, Dict, Optional
-from decimal import Decimal
-
 from PyQt6.QtWidgets import (
-    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
+    QFrame, QVBoxLayout, QTableWidget, QTableWidgetItem,
+    QHeaderView, QAbstractItemView, QCheckBox, QWidget, QHBoxLayout,
 )
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QColor, QFont
+from typing import List, Optional
 
 from .config import TV_COLORS
+from .trade_adapter import JournalHighlight
 
 
-# Column configuration
-COLUMNS = [
-    ('Date', 90),
-    ('Ticker', 60),
-    ('Dir', 55),
-    ('Entry', 70),
-    ('Exit', 70),
-    ('PnL', 65),
-    ('Qty', 45),
-    ('R', 45),
-    ('Outcome', 60),
-]
+# Fixed columns: checkbox + 5 data columns
+COLUMNS = ['', 'Date', 'Ticker', 'Dir', 'Entry', 'Seq']
+COL_WIDTHS = {
+    0: 30,    # Checkbox
+    1: 95,    # Date
+    2: 55,    # Ticker
+    3: 55,    # Direction
+    4: 55,    # Entry time
+    5: 40,    # Sequence number
+}
 
 
-class TradeTable(QTableWidget):
-    """
-    Table widget displaying journal trades.
-    Single-row selection emits trade row dict.
-    """
+class TradeTable(QFrame):
+    """Table displaying journal trades with selection checkboxes."""
 
-    # Emitted when a row is selected, with the trade row dict
-    selection_changed = pyqtSignal(object)
+    selection_changed = pyqtSignal(object)  # Emits JournalHighlight or None
+    checked_changed = pyqtSignal(list)      # Emits list of checked trade_ids
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._trades: List[Dict] = []
-        self._setup_table()
+        self._trades: List[JournalHighlight] = []
+        self._checkboxes: List[QCheckBox] = []
+        self._setup_ui()
 
-    def _setup_table(self):
-        """Configure table appearance and behavior."""
-        self.setColumnCount(len(COLUMNS))
-        self.setHorizontalHeaderLabels([col[0] for col in COLUMNS])
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        # Set column widths
-        for i, (_, width) in enumerate(COLUMNS):
-            self.setColumnWidth(i, width)
+        self._table = QTableWidget()
+        self._table.setColumnCount(len(COLUMNS))
+        self._table.setHorizontalHeaderLabels(COLUMNS)
+        self._table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self._table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self._table.setAlternatingRowColors(True)
+        self._table.setShowGrid(True)
+        self._table.verticalHeader().setVisible(False)
+        self._table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
-        # Appearance
-        self.setAlternatingRowColors(True)
-        self.setShowGrid(True)
-        self.verticalHeader().setVisible(False)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSortingEnabled(True)
+        # Fixed column widths -- set once at startup, never resized
+        header = self._table.horizontalHeader()
+        header.setStretchLastSection(False)
+        for col, width in COL_WIDTHS.items():
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
+            self._table.setColumnWidth(col, width)
 
-        # Header
-        header = self.horizontalHeader()
-        header.setStretchLastSection(True)
-        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Lock table width to exactly the sum of column widths + frame
+        total_w = sum(COL_WIDTHS.values()) + 2  # +2 for frame border
+        self._table.setFixedWidth(total_w)
+        self.setFixedWidth(total_w)
 
-        # Row height
-        self.verticalHeader().setDefaultSectionSize(28)
+        # Row click
+        self._table.currentCellChanged.connect(self._on_row_changed)
 
-        # Connect selection signal
-        self.itemSelectionChanged.connect(self._on_selection_changed)
+        layout.addWidget(self._table)
 
-    def set_trades(self, trades: List[Dict]):
-        """
-        Populate the table with journal trade rows.
-
-        Args:
-            trades: List of trade dicts from JournalDB.get_trades_by_range()
-        """
+    def set_trades(self, trades: List[JournalHighlight]):
+        """Populate table rows -- columns are already configured."""
         self._trades = trades
-        self.setSortingEnabled(False)
-        self.setRowCount(len(trades))
+        self._checkboxes.clear()
+        self._table.setRowCount(len(trades))
 
-        for row_idx, trade in enumerate(trades):
-            self._populate_row(row_idx, trade)
+        for row, hl in enumerate(trades):
+            # Checkbox
+            cb = QCheckBox()
+            cb.stateChanged.connect(self._on_check_changed)
+            self._checkboxes.append(cb)
 
-        self.setSortingEnabled(True)
-        self.clearSelection()
+            cb_widget = QWidget()
+            cb_layout = QHBoxLayout(cb_widget)
+            cb_layout.addWidget(cb)
+            cb_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            cb_layout.setContentsMargins(0, 0, 0, 0)
+            self._table.setCellWidget(row, 0, cb_widget)
 
-    def _populate_row(self, row_idx: int, trade: Dict):
-        """Fill one table row from a trade dict."""
+            # Date
+            self._set_item(row, 1, str(hl.date))
 
-        def to_float(val) -> Optional[float]:
-            if val is None:
-                return None
-            if isinstance(val, Decimal):
-                return float(val)
-            return float(val)
+            # Ticker
+            self._set_item(row, 2, hl.ticker, bold=True)
 
-        direction = (trade.get('direction') or '').upper()
-        entry_price = to_float(trade.get('entry_price'))
-        exit_price = to_float(trade.get('exit_price'))
-        pnl = to_float(trade.get('pnl_dollars'))
-        entry_qty = trade.get('entry_qty', 0) or 0
-        outcome = (trade.get('outcome') or '').upper()
-        trade_date = trade.get('trade_date') or trade.get('date')
-        # Read pre-computed M5 max R from DB (falls back to 0 if not computed)
-        max_r = trade.get('m5_max_r', 0) or trade.get('max_r_achieved', 0) or 0
+            # Direction (color-coded)
+            dir_color = TV_COLORS['bull'] if hl.direction == 'LONG' else TV_COLORS['bear']
+            self._set_item(row, 3, hl.direction, color=dir_color, bold=True)
 
-        # Determine outcome from PnL if not set
-        if not outcome and pnl is not None:
-            outcome = 'WIN' if pnl > 0 else 'LOSS'
+            # Entry time (HH:MM)
+            entry_str = hl.entry_time.strftime('%H:%M') if hl.entry_time else ''
+            self._set_item(row, 4, entry_str)
 
-        # Colors
-        dir_color = QColor(TV_COLORS['bull']) if direction == 'LONG' else QColor(TV_COLORS['bear'])
-        pnl_color = QColor(TV_COLORS['bull']) if (pnl and pnl > 0) else QColor(TV_COLORS['bear'])
-        outcome_color = QColor(TV_COLORS['bull']) if outcome == 'WIN' else QColor(TV_COLORS['bear'])
+            # Sequence number (row index, 1-based)
+            self._set_item(row, 5, str(row + 1))
 
-        items = []
+        self._table.resizeRowsToContents()
 
-        # Date
-        date_str = str(trade_date) if trade_date else ""
-        items.append(self._make_item(date_str))
-
-        # Ticker
-        ticker_item = self._make_item((trade.get('symbol') or '').upper())
-        ticker_item.setFont(QFont("Trebuchet MS", 10, QFont.Weight.Bold))
-        items.append(ticker_item)
-
-        # Direction
-        dir_item = self._make_item(direction)
-        dir_item.setForeground(dir_color)
-        items.append(dir_item)
-
-        # Entry price
-        entry_str = f"${entry_price:.2f}" if entry_price else ""
-        items.append(self._make_item(entry_str))
-
-        # Exit price
-        exit_str = f"${exit_price:.2f}" if exit_price else ""
-        items.append(self._make_item(exit_str))
-
-        # PnL ($/share)
-        if pnl is not None and entry_qty:
-            pnl_per_share = pnl / entry_qty if entry_qty > 0 else 0
-            pnl_str = f"${pnl_per_share:+.2f}"
-        elif pnl is not None:
-            pnl_str = f"${pnl:+.2f}"
-        else:
-            pnl_str = ""
-        pnl_item = self._make_item(pnl_str)
-        pnl_item.setForeground(pnl_color)
-        items.append(pnl_item)
-
-        # Qty
-        items.append(self._make_item(str(entry_qty)))
-
-        # R (max R achieved, will be computed later)
-        r_str = f"R{max_r}" if max_r > 0 else ""
-        items.append(self._make_item(r_str))
-
-        # Outcome
-        outcome_item = self._make_item(outcome)
-        outcome_item.setForeground(outcome_color)
-        outcome_item.setFont(QFont("Trebuchet MS", 9, QFont.Weight.Bold))
-        items.append(outcome_item)
-
-        # Set all items in row
-        for col_idx, item in enumerate(items):
-            item.setData(Qt.ItemDataRole.UserRole, row_idx)  # Store row index
-            self.setItem(row_idx, col_idx, item)
-
-    def _make_item(self, text: str) -> QTableWidgetItem:
-        """Create a centered, non-editable table item."""
+    def _set_item(self, row: int, col: int, text: str,
+                  color: Optional[str] = None, bold: bool = False):
         item = QTableWidgetItem(text)
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        return item
+        if color:
+            item.setForeground(QColor(color))
+        if bold:
+            font = QFont()
+            font.setBold(True)
+            item.setFont(font)
+        self._table.setItem(row, col, item)
 
-    def _on_selection_changed(self):
-        """Handle row selection change."""
-        selected = self.selectedItems()
-        if not selected:
-            self.selection_changed.emit(None)
-            return
-
-        # Get the original trade index from UserRole
-        row_idx = selected[0].data(Qt.ItemDataRole.UserRole)
-        if row_idx is not None and 0 <= row_idx < len(self._trades):
-            self.selection_changed.emit(self._trades[row_idx])
+    def _on_row_changed(self, row, col, prev_row, prev_col):
+        if 0 <= row < len(self._trades):
+            self.selection_changed.emit(self._trades[row])
         else:
             self.selection_changed.emit(None)
 
-    def update_trade_r(self, trade_id: str, max_r: int, pnl_r: Optional[float] = None):
-        """
-        Update the R column for a specific trade after ATR calculation.
+    def _on_check_changed(self):
+        self.checked_changed.emit(self.get_checked_ids())
 
-        Args:
-            trade_id: The trade_id to update
-            max_r: Max R achieved value
-            pnl_r: PnL in R terms
-        """
-        for row_idx in range(self.rowCount()):
-            item = self.item(row_idx, 0)
-            if item is None:
-                continue
-            orig_idx = item.data(Qt.ItemDataRole.UserRole)
-            if orig_idx is not None and orig_idx < len(self._trades):
-                if self._trades[orig_idx].get('trade_id') == trade_id:
-                    # Update R column (index 7)
-                    r_str = f"R{max_r}" if max_r > 0 else ""
-                    r_item = self._make_item(r_str)
-                    r_item.setData(Qt.ItemDataRole.UserRole, orig_idx)
-                    self.setItem(row_idx, 7, r_item)
-                    break
+    def get_checked_ids(self) -> List[str]:
+        """Return trade_ids of checked rows."""
+        ids = []
+        for i, cb in enumerate(self._checkboxes):
+            if cb.isChecked() and i < len(self._trades):
+                ids.append(self._trades[i].trade_id)
+        return ids
 
-    def get_selected_trade(self) -> Optional[Dict]:
-        """Get the currently selected trade dict, or None."""
-        selected = self.selectedItems()
-        if not selected:
-            return None
-        row_idx = selected[0].data(Qt.ItemDataRole.UserRole)
-        if row_idx is not None and 0 <= row_idx < len(self._trades):
-            return self._trades[row_idx]
+    def get_checked_highlights(self) -> List[JournalHighlight]:
+        """Return JournalHighlight objects for checked rows."""
+        result = []
+        for i, cb in enumerate(self._checkboxes):
+            if cb.isChecked() and i < len(self._trades):
+                result.append(self._trades[i])
+        return result
+
+    def select_all(self):
+        for cb in self._checkboxes:
+            cb.setChecked(True)
+
+    def deselect_all(self):
+        for cb in self._checkboxes:
+            cb.setChecked(False)
+
+    def get_trade_at(self, row: int) -> Optional[JournalHighlight]:
+        if 0 <= row < len(self._trades):
+            return self._trades[row]
         return None
-
-    def clear_trades(self):
-        """Clear all trades from the table."""
-        self._trades = []
-        self.setRowCount(0)

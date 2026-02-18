@@ -335,11 +335,11 @@ def parse_response(response_text, is_v2=True):
     vol_roc = float(roc_match.group(1)) if roc_match else None
     vol_roc_status = roc_match.group(2).upper() if roc_match else None
 
-    sma_match = re.search(r'SMA:\s*(BULL|BEAR|NEUT)', response_text, re.IGNORECASE)
-    sma = sma_match.group(1).upper() if sma_match else None
+    sma_match = re.search(r'SMA:\s*(B\+|B-|N)', response_text)
+    sma = sma_match.group(1) if sma_match else None
 
-    h1_match = re.search(r'H1\s*Struct(?:ure)?:\s*(BULL|BEAR|NEUT)', response_text, re.IGNORECASE)
-    h1_struct = h1_match.group(1).upper() if h1_match else None
+    h1_match = re.search(r'H1\s*Struct(?:ure)?:\s*(B\+|B-|N)', response_text)
+    h1_struct = h1_match.group(1) if h1_match else None
 
     # v2.0 uses REASONING instead of SNAPSHOT
     snapshot_match = re.search(r'(?:SNAPSHOT|REASONING):\s*(.+?)(?:\n\n|$)', response_text, re.IGNORECASE | re.DOTALL)

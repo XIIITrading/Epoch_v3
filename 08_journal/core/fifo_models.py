@@ -15,6 +15,7 @@ Separate from models.py to avoid breaking the existing Streamlit app.
 Reuses Fill, FillSide, TradeDirection, TradeOutcome from models.py.
 """
 
+import json
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field, computed_field
 from typing import Optional, List, Dict
@@ -221,6 +222,10 @@ class FIFOTrade(BaseModel):
             "is_closed": self.is_closed,
             "trade_seq": self.trade_seq,
             "processing_mode": "FIFO",
+            "exit_portions_json": json.dumps([
+                {"price": round(p.price, 4), "qty": p.qty, "time": p.time.strftime("%H:%M:%S")}
+                for p in self.exit_portions
+            ]) if self.exit_portions else None,
         }
 
 

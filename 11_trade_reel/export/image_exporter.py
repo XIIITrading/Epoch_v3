@@ -229,7 +229,7 @@ def _render_indicator_table(
         if ind_name == 'Candle %':
             return _fmt_candle_range(row.get('candle_range_pct')), _color_candle_range(row.get('candle_range_pct'))
         elif ind_name == 'Vol Delta':
-            return _fmt_vol_delta(row.get('vol_delta')), _color_vol_delta(row.get('vol_delta'))
+            return _fmt_vol_delta(row.get('vol_delta_roll')), _color_vol_delta(row.get('vol_delta_roll'))
         elif ind_name == 'Vol ROC':
             return _fmt_vol_roc(row.get('vol_roc')), _color_vol_roc(row.get('vol_roc'))
         elif ind_name == 'SMA':
@@ -359,12 +359,13 @@ def export_highlight_image(
     output_dir: Optional[Path] = None,
     h1_prior_fig: Optional[go.Figure] = None,
     rampup_df=None,
+    posttrade_df=None,
 ) -> Optional[List[Path]]:
     """
     Export composite marketing image(s) for a platform.
 
     Instagram: 2 images (H1 prior + M15|M1)
-    Discord:   Weekly+Daily, M1RampUp+Table, M15+M1Action (3 pages)
+    Discord:   4 pages (Weekly+Daily, H1+M15, M1PreTrade+RampUpTable, M1Action+PostTradeTable)
     X/StockTwits: H1 prior (40%) + M15|M1 (60%)
 
     Args:
@@ -379,7 +380,8 @@ def export_highlight_image(
         platform: 'twitter', 'instagram', 'stocktwits', 'discord'
         output_dir: Output directory (defaults to EXPORT_DIR)
         h1_prior_fig: H1 chart sliced to hour before entry
-        rampup_df: DataFrame of M1 indicator bars (for Discord table)
+        rampup_df: DataFrame of M1 indicator bars (for Discord ramp-up table)
+        posttrade_df: DataFrame of M1 post-trade indicator bars (for Discord post-trade table)
 
     Returns:
         List of exported file paths, or None on failure
@@ -421,23 +423,25 @@ def export_highlight_image(
         return results if results else None
 
     # -----------------------------------------------------------------
-    # DISCORD: 3 images (1920x1080 each)
-    #   Each page: top chart 45% / charcoal caption gap 10% / bottom chart 45%
-    #   Page 1: Daily + H1 Pre-trade
-    #   Page 2: M1 Ramp-Up Chart + M1 Ramp-Up Indicator Table
-    #   Page 3: M15 + M1 Action
+    # DISCORD: 4 images (1920x1080 each)
+    #   Each page: top chart 45% / black gap 10% / bottom chart 45%
+    #   Page 1: Weekly + Daily
+    #   Page 2: H1 (last candle 08:00) + M15 (last candle 09:15)
+    #   Page 3: M1 Pre-Trade + Pre-Trade Ramp-Up Table
+    #   Page 4: M1 Action + Post-Trade Ramp Down Table
     # -----------------------------------------------------------------
     if platform == 'discord':
         h1_for_export = h1_prior_fig if h1_prior_fig is not None else h1_fig
 
         # Render all chart images
+        weekly_img = _render_fig_to_image(weekly_fig)
         daily_img = _render_fig_to_image(daily_fig)
         h1_img = _render_fig_to_image(h1_for_export)
-        rampup_chart_img = _render_fig_to_image(m1_rampup_fig)
         m15_img = _render_fig_to_image(m15_fig)
+        rampup_chart_img = _render_fig_to_image(m1_rampup_fig)
         m1_img = _render_fig_to_image(m1_fig)
 
-        if not all([daily_img, h1_img, m15_img, m1_img]):
+        if not all([weekly_img, daily_img, h1_img, m15_img, m1_img]):
             logger.error("Failed to render one or more charts")
             return None
 
@@ -446,22 +450,18 @@ def export_highlight_image(
         content_w = canvas_w - inner_pad * 2
         full_h = canvas_h - inner_pad * 2
         section_h = int(full_h * 0.45)
-        gap_h = full_h - section_h * 2       # ~10% charcoal caption space
-        charcoal = BRAND_COLORS['charcoal']   # #1C1C1C
+        gap_h = full_h - section_h * 2       # ~10% black space
 
         def _build_discord_page(top_img, bottom_img):
-            """Compose a single Discord page: top 45% | charcoal gap 10% | bottom 45%."""
+            """Compose a single Discord page: top 45% | black gap 10% | bottom 45%."""
             page = Image.new('RGB', (canvas_w, canvas_h), color='#000000')
-            draw = ImageDraw.Draw(page)
 
             # Top chart (45%)
             if top_img is not None:
                 resized = top_img.resize((content_w, section_h), Image.LANCZOS)
                 page.paste(resized, (inner_pad, inner_pad))
 
-            # Charcoal caption gap (10%) — full width
-            gap_y = inner_pad + section_h
-            draw.rectangle([0, gap_y, canvas_w, gap_y + gap_h], fill=charcoal)
+            # Black gap (10%) — already black from canvas, no draw needed
 
             # Bottom chart/table (45%)
             if bottom_img is not None:
@@ -470,19 +470,23 @@ def export_highlight_image(
 
             return page
 
-        # Page 1: Daily + H1
-        img1 = _build_discord_page(daily_img, h1_img)
+        # Page 1: Weekly + Daily
+        img1 = _build_discord_page(weekly_img, daily_img)
 
-        # Page 2: M1 Ramp-Up Chart + Indicator Table
+        # Page 2: H1 (last candle 08:00) + M15 (last candle 09:15)
+        img2 = _build_discord_page(h1_img, m15_img)
+
+        # Page 3: M1 Pre-Trade + Pre-Trade Ramp-Up Table
         rampup_table_img = _render_indicator_table(rampup_df, content_w, section_h)
-        img2 = _build_discord_page(rampup_chart_img, rampup_table_img)
+        img3 = _build_discord_page(rampup_chart_img, rampup_table_img)
 
-        # Page 3: M15 + M1 Action
-        img3 = _build_discord_page(m15_img, m1_img)
+        # Page 4: M1 Action + Post-Trade Ramp Down Table
+        posttrade_table_img = _render_indicator_table(posttrade_df, content_w, section_h)
+        img4 = _build_discord_page(m1_img, posttrade_table_img)
 
-        # Save all 3 images
+        # Save all 4 images
         results = []
-        for idx, img in enumerate([img1, img2, img3], start=1):
+        for idx, img in enumerate([img1, img2, img3, img4], start=1):
             filename = f"{highlight.ticker}_{date_str}_{platform}_{idx}.png"
             output_path = out_dir / filename
             try:

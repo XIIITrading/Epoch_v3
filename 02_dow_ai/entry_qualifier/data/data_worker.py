@@ -170,7 +170,7 @@ class DataWorker(QThread):
 
         # Check if we have M1 data to determine current hour
         if not m1_bars:
-            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}]
+            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}]
 
         # Get current H1 bar timestamp (floor to hour)
         latest_m1_ts = m1_bars[-1].get('timestamp', 0)
@@ -193,7 +193,7 @@ class DataWorker(QThread):
                 _h1_cache.set_bars(ticker, h1_bars)
             elif h1_bars is None:
                 # No cached data and fetch failed - return neutral
-                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}
+                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}
                         for _ in m1_bars]
 
         # Calculate structure for each M1 bar
@@ -208,7 +208,7 @@ class DataWorker(QThread):
         global _m5_cache
 
         if not m1_bars:
-            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}]
+            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}]
 
         # Get current M5 bar timestamp (floor to 5-minute boundary)
         latest_m1_ts = m1_bars[-1].get('timestamp', 0)
@@ -228,7 +228,7 @@ class DataWorker(QThread):
                 m5_bars = result['bars']
                 _m5_cache.set_bars(ticker, m5_bars)
             elif m5_bars is None:
-                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}
+                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}
                         for _ in m1_bars]
 
         return calculate_structure_for_bars(m5_bars, m1_bars)
@@ -242,7 +242,7 @@ class DataWorker(QThread):
         global _m15_cache
 
         if not m1_bars:
-            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}]
+            return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}]
 
         # Get current M15 bar timestamp (floor to 15-minute boundary)
         latest_m1_ts = m1_bars[-1].get('timestamp', 0)
@@ -262,7 +262,7 @@ class DataWorker(QThread):
                 m15_bars = result['bars']
                 _m15_cache.set_bars(ticker, m15_bars)
             elif m15_bars is None:
-                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}
+                return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}
                         for _ in m1_bars]
 
         return calculate_structure_for_bars(m15_bars, m1_bars)

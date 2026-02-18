@@ -392,7 +392,11 @@ class BarFetchThread(QThread):
 
 
 class ExportThread(QThread):
-    """Export highlight images in background."""
+    """Export highlight images in background.
+
+    Uses pre-built figures from the UI cache when available.
+    Falls back to full fetch + build for uncached highlights.
+    """
 
     progress = pyqtSignal(int, int)       # current, total
     finished = pyqtSignal(int, str)       # count, output_dir
@@ -403,12 +407,14 @@ class ExportThread(QThread):
         highlights: List[HighlightTrade],
         loader: HighlightLoader,
         platform: str,
+        figs_cache: Optional[dict] = None,
         parent=None,
     ):
         super().__init__(parent)
         self._highlights = highlights
         self._loader = loader
         self._platform = platform
+        self._figs_cache = figs_cache or {}
 
     def run(self):
         try:
@@ -420,22 +426,42 @@ class ExportThread(QThread):
             for i, hl in enumerate(self._highlights):
                 self.progress.emit(i + 1, total)
 
+                # Use cached figures if available (built during UI preview)
+                cached = self._figs_cache.get(hl.trade_id)
+                if cached:
+                    logger.info(f"Export {hl.ticker} {hl.date}: using cached figures")
+                    paths = export_highlight_image(
+                        cached['weekly_fig'],
+                        cached['daily_fig'],
+                        cached['h1_prior_fig'],
+                        cached['m15_prior_fig'],
+                        cached['m5_entry_fig'],
+                        cached['m1_fig'],
+                        cached['m1_rampup_fig'],
+                        hl,
+                        self._platform,
+                        out_dir,
+                        rampup_df=cached.get('rampup_df'),
+                        posttrade_df=cached.get('posttrade_df'),
+                    )
+                    if paths:
+                        exported += 1
+                    continue
+
+                # Fallback: full fetch + build for uncached highlights
+                logger.info(f"Export {hl.ticker} {hl.date}: fetching data (not cached)")
                 ticker = hl.ticker.upper().strip()
                 trade_date = hl.date
 
-                # Fetch anchor date for daily + VbP
                 anchor_date = self._loader.fetch_epoch_start_date(ticker, trade_date)
 
-                # Fetch weekly bars from Polygon
                 bars_weekly = _fetch_weekly_bars(ticker, trade_date, lookback_weeks=100)
 
-                # Fetch daily bars
                 bars_daily = pd.DataFrame()
                 if anchor_date:
                     day_before = trade_date - timedelta(days=1)
                     bars_daily = _fetch_daily_bars(ticker, anchor_date, day_before)
 
-                # Fetch intraday bars
                 bars_h1 = _fetch_bars(ticker, trade_date, tf_minutes=60, lookback_days=50)
                 bars_m15 = _fetch_bars(ticker, trade_date, tf_minutes=15, lookback_days=18)
                 bars_m5 = _fetch_bars(ticker, trade_date, tf_minutes=5, lookback_days=3)
@@ -443,12 +469,14 @@ class ExportThread(QThread):
                 zones = self._loader.fetch_zones_for_trade(ticker, trade_date)
                 pocs = self._loader.fetch_hvn_pocs(ticker, trade_date)
 
-                # Fetch ramp-up data
                 rampup_df = None
                 if hl.entry_time:
                     rampup_df = fetch_rampup_data(ticker, trade_date, hl.entry_time)
 
-                # Fetch VbP bars from epoch anchor
+                posttrade_df = None
+                if hl.entry_time:
+                    posttrade_df = fetch_posttrade_data(ticker, trade_date, hl.entry_time)
+
                 vbp_bars = pd.DataFrame()
                 if anchor_date:
                     lookback = (trade_date - anchor_date).days + 1
@@ -458,11 +486,9 @@ class ExportThread(QThread):
                     logger.warning(f"No M5 bars for {ticker}, skipping")
                     continue
 
-                # Compute volume profile ONCE for this highlight
                 vbp_source = vbp_bars if not vbp_bars.empty else None
                 vp_dict = build_volume_profile(vbp_source) if vbp_source is not None else {}
 
-                # Build all 7 charts
                 weekly_fig = build_weekly_chart(bars_weekly, hl, zones)
                 daily_fig = build_daily_chart(bars_daily, hl, zones, pocs=pocs, anchor_date=anchor_date, volume_profile_dict=vp_dict)
                 h1_prior_fig = _build_h1_prior_fig(bars_h1, hl, zones, pocs, vp_dict)
@@ -470,15 +496,14 @@ class ExportThread(QThread):
                 m5_entry_fig = build_m5_entry_chart(bars_m5, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
                 m1_fig = build_m1_chart(bars_m1, hl, zones)
 
-                # Compute intraday value VbP (04:00 ET → entry) for M1 ramp-up chart
                 intraday_vbp = _compute_intraday_vbp(bars_m1, hl)
                 m1_rampup_fig = build_m1_rampup_chart(bars_m1, hl, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
 
-                # Export composite (returns list of paths)
                 paths = export_highlight_image(
                     weekly_fig, daily_fig, h1_prior_fig, m15_prior_fig, m5_entry_fig, m1_fig,
                     m1_rampup_fig, hl, self._platform, out_dir,
                     rampup_df=rampup_df,
+                    posttrade_df=posttrade_df,
                 )
                 if paths:
                     exported += 1
@@ -502,6 +527,7 @@ class TradeReelWindow(BaseWindow):
         self._loader = get_highlight_loader()
         self._current_highlight: Optional[HighlightTrade] = None
         self._current_bars = {}  # Cache: {trade_id: (weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)}
+        self._current_figs = {}  # Cache: {trade_id: dict with built figures + DataFrames ready for export}
         self._active_threads: list = []
 
         self._setup_trade_reel_ui()
@@ -701,6 +727,20 @@ class TradeReelWindow(BaseWindow):
                 m5_entry_fig, m1_rampup_fig, m1_fig, highlight,
             )
 
+            # Cache built figures for export (avoids re-fetching + rebuilding)
+            self._current_figs[highlight.trade_id] = {
+                'weekly_fig': weekly_fig,
+                'daily_fig': daily_fig,
+                'h1_prior_fig': h1_prior_fig,
+                'm15_prior_fig': m15_prior_fig,
+                'm5_entry_fig': m5_entry_fig,
+                'm1_fig': m1_fig,
+                'm1_rampup_fig': m1_rampup_fig,
+                'rampup_df': rampup_df,
+                'posttrade_df': posttrade_df,
+                'highlight': highlight,
+            }
+
             # Show ramp-up indicator table
             if rampup_df is not None:
                 self._chart_preview.show_rampup(rampup_df)
@@ -748,7 +788,7 @@ class TradeReelWindow(BaseWindow):
         self._export_bar.set_exporting(True)
         self.statusBar().showMessage(f"Exporting {len(checked)} highlights for {platform}...")
 
-        thread = ExportThread(checked, self._loader, platform, parent=self)
+        thread = ExportThread(checked, self._loader, platform, figs_cache=self._current_figs, parent=self)
         thread.progress.connect(self._export_bar.show_export_progress)
         thread.finished.connect(lambda count, path: self._on_export_finished(count, path, platform))
         thread.error.connect(self._on_export_error)
@@ -789,7 +829,7 @@ class TradeReelWindow(BaseWindow):
             f"Exporting {platform} ({self._export_all_done + 1}/{self._export_all_total})..."
         )
 
-        thread = ExportThread(checked, self._loader, platform, parent=self)
+        thread = ExportThread(checked, self._loader, platform, figs_cache=self._current_figs, parent=self)
         thread.progress.connect(self._export_bar.show_export_progress)
         thread.finished.connect(
             lambda count, path: self._on_export_all_platform_done(count, path, platform)

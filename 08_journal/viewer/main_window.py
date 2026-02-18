@@ -1,24 +1,34 @@
 """
-Journal Viewer Main Window
-Epoch Trading System - XIII Trading LLC
+Epoch Trading System - Journal Viewer Main Window
+XIII Trading LLC
 
-PyQt6 window with trade table + chart preview.
-Replicates the 11_trade_reel UI with journal trade data.
+1:1 clone of 11_trade_reel/ui/main_window.py adapted for journal trades.
+Uses FilterPanel + TradeTable (left) | ChartPreview (right, scrollable).
 
 Layout:
     JournalViewerWindow (QMainWindow, 1600x950)
-    +-- Left Panel (380px fixed)
-    |   +-- Filter Controls (Date From/To, Symbol, Direction, Load btn)
-    |   +-- Trade Table (sortable rows from journal_trades)
-    +-- Right Panel (expandable)
-    |   +-- Trade Summary Header
-    |   +-- Chart Preview (scrollable, 5 rows of charts + indicator table)
+    +-- Left Combined (fixed width)
+    |   +-- FilterPanel (260px)
+    |   +-- TradeTable (fixed columns, with checkboxes)
+    +-- Right Panel (expandable, scrollable)
+    |   +-- ChartPreview (6-row layout)
+    +-- ExportBar (Discord export button, select/deselect)
     +-- Status Bar
 
 Threading:
-    - TradeLoadThread:  Background DB query for journal trades
-    - BarFetchThread:   Fetch bars + zones + POCs + rampup indicators + ATR/R-levels
-    - Cache:            {trade_id: (bars + computed highlight + rampup_df)} for instant revisit
+    - TradeLoadThread:  Background DB query via JournalTradeLoader
+    - BarFetchThread:   Fetch Weekly/Daily/H1/M15/M5/M1 bars + zones + POCs
+                        + rampup + posttrade indicator data + VbP
+    - ExportThread:     Export checked trades as Discord images (4 PNGs each)
+    - Cache:            {trade_id: full bar/chart data tuple} for instant revisit
+    - Figure Cache:     {trade_id: built Plotly figures + DataFrames} for export
+
+Charts (imported from 11_trade_reel):
+    - Weekly, Daily, H1 Prior, M15 Prior, M5 Entry, M1 Ramp-Up
+
+Journal-specific chart:
+    - M1 Action (from charts/m1_journal_chart.py) with multiple exit triangles,
+      all R-level lines drawn, window = entry-30 to last_exit+30
 """
 
 import sys
@@ -32,16 +42,20 @@ import pytz
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
-    QLabel, QComboBox, QDateEdit, QPushButton, QStatusBar, QFrame,
+    QStatusBar,
 )
-from PyQt6.QtCore import QThread, pyqtSignal, Qt, QDate
+from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 
-from .config import TV_COLORS, TV_DARK_QSS, DISPLAY_TIMEZONE, TRADE_REEL_DIR
-from .trade_table import TradeTable
+from .config import TV_COLORS, TV_DARK_QSS, DISPLAY_TIMEZONE, TRADE_REEL_DIR, EXPORT_DIR
+from .filter_panel import FilterPanel
+from .trade_table import TradeTable, COL_WIDTHS
 from .chart_preview import ChartPreview
+from .export_bar import ExportBar
 from .trade_adapter import build_journal_highlight, JournalHighlight
 from .bar_fetcher import fetch_bars, fetch_daily_bars
+from .rampup_table import fetch_rampup_data
+from .posttrade_table import fetch_posttrade_data
 
 # Add 11_trade_reel to path for chart imports
 sys.path.insert(0, str(TRADE_REEL_DIR))
@@ -49,19 +63,170 @@ sys.path.insert(0, str(TRADE_REEL_DIR))
 # Import chart builders from 11_trade_reel (no duplication)
 from charts import theme  # noqa: F401 - registers tradingview_dark template
 from charts.volume_profile import build_volume_profile
+from charts.weekly_chart import build_weekly_chart
 from charts.daily_chart import build_daily_chart
 from charts.h1_chart import build_h1_chart
 from charts.m15_chart import build_m15_chart
 from charts.m5_entry_chart import build_m5_entry_chart
-from charts.m1_chart import build_m1_chart
 from charts.m1_rampup_chart import build_m1_rampup_chart
-from ui.rampup_table import fetch_rampup_data
+from export.image_exporter import export_highlight_image
 
-# Import JournalDB from data layer
+# Import journal-specific M1 chart via importlib to avoid namespace collision
+# (both 11_trade_reel/charts/ and 08_journal/charts/ would conflict as 'charts')
+import importlib.util as _ilu
+_journal_chart_path = Path(__file__).parent.parent / "charts" / "m1_journal_chart.py"
+_spec = _ilu.spec_from_file_location("m1_journal_chart", str(_journal_chart_path))
+_m1_journal_mod = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_m1_journal_mod)
+build_m1_journal_chart = _m1_journal_mod.build_m1_journal_chart
+
+# Import JournalTradeLoader
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from data.journal_db import JournalDB
+from data.journal_loader import get_journal_loader, JournalTradeLoader
 
 logger = logging.getLogger(__name__)
+
+_TZ = pytz.timezone(DISPLAY_TIMEZONE)
+
+
+# =============================================================================
+# WEEKLY BAR FETCHER (Polygon API)
+# =============================================================================
+
+def _fetch_weekly_bars(ticker: str, end_date: date, lookback_weeks: int = 100) -> pd.DataFrame:
+    """Fetch weekly bars from Polygon API."""
+    import requests
+    import time as time_module
+    from .config import POLYGON_API_KEY, API_DELAY, API_RETRIES, API_RETRY_DELAY
+
+    start = end_date - timedelta(weeks=lookback_weeks)
+    url = (
+        f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range"
+        f"/1/week/{start:%Y-%m-%d}/{end_date:%Y-%m-%d}"
+    )
+    params = {'apiKey': POLYGON_API_KEY, 'adjusted': 'true', 'sort': 'asc', 'limit': 50000}
+
+    for attempt in range(API_RETRIES):
+        try:
+            resp = requests.get(url, params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+
+            if data.get('status') not in ('OK', 'DELAYED') or not data.get('results'):
+                return pd.DataFrame()
+
+            df = pd.DataFrame(data['results'])
+            df = df.rename(columns={'t': 'timestamp', 'o': 'open', 'h': 'high', 'l': 'low', 'c': 'close', 'v': 'volume'})
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms', utc=True)
+            df['timestamp'] = df['timestamp'].dt.tz_convert(DISPLAY_TIMEZONE)
+            df.set_index('timestamp', inplace=True)
+            df = df[['open', 'high', 'low', 'close', 'volume']]
+
+            time_module.sleep(API_DELAY)
+            return df
+
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Weekly bar fetch attempt {attempt + 1} failed: {e}")
+            if attempt < API_RETRIES - 1:
+                time_module.sleep(API_RETRY_DELAY)
+        except Exception as e:
+            logger.error(f"Unexpected weekly bar fetch error: {e}")
+            break
+
+    return pd.DataFrame()
+
+
+# =============================================================================
+# INTRADAY VBP HELPER
+# =============================================================================
+
+def _compute_intraday_vbp(bars_m1: pd.DataFrame, highlight: JournalHighlight) -> dict:
+    """
+    Compute intraday value volume profile from M1 bars: 04:00 ET -> entry_time.
+    Used for the M1 ramp-up chart sidebar.
+    """
+    if bars_m1 is None or bars_m1.empty or not highlight.entry_time:
+        return {}
+
+    try:
+        start_dt = _TZ.localize(datetime.combine(
+            highlight.date,
+            datetime.min.time().replace(hour=4, minute=0),
+        ))
+        entry_dt = _TZ.localize(datetime.combine(highlight.date, highlight.entry_time))
+
+        mask = (bars_m1.index >= start_dt) & (bars_m1.index < entry_dt)
+        intraday_bars = bars_m1.loc[mask]
+
+        if intraday_bars.empty:
+            return {}
+
+        return build_volume_profile(intraday_bars)
+    except Exception as e:
+        logger.warning(f"Intraday VbP computation failed: {e}")
+        return {}
+
+
+# =============================================================================
+# H1 / M15 PRIOR BUILDERS
+# =============================================================================
+
+def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
+    """Build H1 chart sliced to end at 08:00 bar (covering 08:00-09:00).
+    Fixed cutoff at 08:00 regardless of entry time.
+    """
+    if bars_h1 is None or (isinstance(bars_h1, pd.DataFrame) and bars_h1.empty):
+        logger.warning(f"H1 prior: no bars available for {highlight.ticker}")
+        return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    cutoff = _TZ.localize(datetime.combine(
+        highlight.date,
+        datetime.min.time().replace(hour=8, minute=0),
+    ))
+    h1_prior = bars_h1[bars_h1.index <= cutoff]
+
+    if h1_prior.empty:
+        logger.warning(f"H1 prior: cutoff {cutoff} filtered out all {len(bars_h1)} bars, showing all")
+        return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    h1_hours = h1_prior.index.hour
+    premarket_count = int((h1_hours < 9).sum())
+    afterhours_count = int((h1_hours >= 16).sum())
+    logger.info(
+        f"H1 prior: {len(h1_prior)} bars after cutoff (tail 120), "
+        f"premarket={premarket_count}, afterhours={afterhours_count}, "
+        f"range={h1_prior.index[0]} -> {h1_prior.index[-1]}"
+    )
+    return build_h1_chart(h1_prior, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+
+def _build_m15_prior_fig(bars_m15, highlight, zones, pocs, vp_dict):
+    """Build M15 chart sliced to end at 09:15 bar (covering 09:15-09:30).
+    Fixed cutoff at 09:15 regardless of entry time.
+    """
+    if bars_m15 is None or (isinstance(bars_m15, pd.DataFrame) and bars_m15.empty):
+        logger.warning(f"M15 prior: no bars available for {highlight.ticker}")
+        return build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    cutoff = _TZ.localize(datetime.combine(
+        highlight.date,
+        datetime.min.time().replace(hour=9, minute=15),
+    ))
+    m15_prior = bars_m15[bars_m15.index <= cutoff]
+
+    if m15_prior.empty:
+        logger.warning(f"M15 prior: cutoff {cutoff} filtered out all {len(bars_m15)} bars, showing all")
+        return build_m15_chart(bars_m15, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+    m15_hours = m15_prior.index.hour
+    premarket_count = int((m15_hours < 9).sum())
+    afterhours_count = int((m15_hours >= 16).sum())
+    logger.info(
+        f"M15 prior: {len(m15_prior)} bars after cutoff (tail 90), "
+        f"premarket={premarket_count}, afterhours={afterhours_count}, "
+        f"range={m15_prior.index[0]} -> {m15_prior.index[-1]}"
+    )
+    return build_m15_chart(m15_prior, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
 
 
 # =============================================================================
@@ -69,109 +234,74 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 class TradeLoadThread(QThread):
-    """Load journal trades from database in background."""
+    """Load journal trades from database in background via JournalTradeLoader."""
 
-    finished = pyqtSignal(list)     # List[Dict] (trade rows)
+    finished = pyqtSignal(list)     # List[JournalHighlight]
     error = pyqtSignal(str)
 
-    def __init__(self, date_from: date, date_to: date,
-                 symbol: str = None, direction: str = None, parent=None):
+    def __init__(self, loader: JournalTradeLoader, filters: dict, parent=None):
         super().__init__(parent)
-        self._date_from = date_from
-        self._date_to = date_to
-        self._symbol = symbol
-        self._direction = direction
+        self._loader = loader
+        self._filters = filters
 
     def run(self):
         try:
-            with JournalDB() as db:
-                trades = db.get_trades_by_range(
-                    date_from=self._date_from,
-                    date_to=self._date_to,
-                    symbol=self._symbol,
-                )
+            rows = self._loader.fetch_trades(
+                date_from=self._filters.get('date_from'),
+                date_to=self._filters.get('date_to'),
+                symbol=self._filters.get('ticker'),
+                direction=self._filters.get('direction'),
+                account=self._filters.get('account'),
+            )
 
-            # Filter by direction if specified
-            if self._direction and self._direction != 'ALL':
-                trades = [t for t in trades
-                          if (t.get('direction') or '').upper() == self._direction.upper()]
+            # Convert raw DB rows into JournalHighlight objects
+            highlights = []
+            for row in rows:
+                try:
+                    hl = build_journal_highlight(row=row)
+                    highlights.append(hl)
+                except Exception as e:
+                    logger.warning(f"Failed to build highlight for {row.get('trade_id', '?')}: {e}")
 
-            self.finished.emit(trades)
+            self.finished.emit(highlights)
         except Exception as e:
             self.error.emit(str(e))
 
 
 class BarFetchThread(QThread):
     """
-    Fetch bars + zones + POCs + rampup indicators from Polygon + DB,
-    then compute ATR/R-levels.
+    Fetch Weekly/Daily/H1/M15/M5/M1 bars + zones + POCs + rampup + posttrade
+    + VbP from Polygon + DB.
 
-    Emits: (highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
-            zones, pocs, vbp_bars, anchor_date, rampup_df)
+    Emits 12 objects matching trade_reel pattern:
+        bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
+        zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date
     """
 
     finished = pyqtSignal(
         object, object, object, object, object, object,
-        list, list, object, object, object,
+        list, list, object, object, object, object,
     )
     error = pyqtSignal(str)
 
-    def __init__(self, trade_row: Dict, parent=None):
+    def __init__(self, highlight: JournalHighlight, loader: JournalTradeLoader, parent=None):
         super().__init__(parent)
-        self._trade_row = trade_row
+        self._hl = highlight
+        self._loader = loader
 
     def run(self):
         try:
-            row = self._trade_row
-            ticker = (row.get('symbol') or '').upper().strip()
-            trade_date = row.get('trade_date') or row.get('date')
+            ticker = self._hl.ticker.upper().strip()
+            trade_date = self._hl.date
 
-            logger.info(f"Fetching bars for {ticker} {trade_date}...")
+            # Fetch anchor date (needed for daily chart + VbP)
+            anchor_date = self._loader.fetch_epoch_start_date(ticker, trade_date)
 
-            # Fetch zones and POCs from DB
-            zones = []
-            pocs = []
-            anchor_date = None
+            # Fetch weekly bars (100 weeks lookback)
+            bars_weekly = _fetch_weekly_bars(ticker, trade_date, lookback_weeks=100)
+            logger.info(f"Weekly: {ticker} ({len(bars_weekly)} bars)")
 
-            with JournalDB() as db:
-                zones = db.get_zones_for_ticker(ticker, trade_date)
-
-            # Fetch POCs and anchor_date from hvn_pocs (via direct query)
-            try:
-                import psycopg2
-                from psycopg2.extras import RealDictCursor
-                from data.journal_db import DB_CONFIG
-
-                conn = psycopg2.connect(**DB_CONFIG)
-                try:
-                    with conn.cursor() as cur:
-                        # Fetch POCs
-                        cur.execute("""
-                            SELECT poc_1, poc_2, poc_3, poc_4, poc_5,
-                                   poc_6, poc_7, poc_8, poc_9, poc_10
-                            FROM hvn_pocs
-                            WHERE ticker = %s AND date = %s
-                            LIMIT 1
-                        """, (ticker, trade_date))
-                        poc_row = cur.fetchone()
-                        if poc_row:
-                            pocs = [float(p) for p in poc_row if p is not None]
-
-                        # Fetch anchor date
-                        cur.execute("""
-                            SELECT epoch_start_date FROM hvn_pocs
-                            WHERE ticker = %s AND date = %s
-                            LIMIT 1
-                        """, (ticker, trade_date))
-                        anchor_row = cur.fetchone()
-                        if anchor_row and anchor_row[0]:
-                            anchor_date = anchor_row[0]
-                finally:
-                    conn.close()
-            except Exception as e:
-                logger.warning(f"Could not fetch POCs/anchor: {e}")
-
-            # Fetch daily bars (epoch anchor -> day before trade)
+            # Fetch daily bars: epoch_start_date -> day before trade
             bars_daily = pd.DataFrame()
             if anchor_date:
                 day_before = trade_date - timedelta(days=1)
@@ -180,43 +310,63 @@ class BarFetchThread(QThread):
 
             # Fetch intraday bars for 4 timeframes
             bars_h1 = fetch_bars(ticker, trade_date, tf_minutes=60, lookback_days=50)
+            if not bars_h1.empty:
+                h1_hours = bars_h1.index.hour
+                h1_premarket = int((h1_hours < 9).sum())
+                h1_afterhours = int((h1_hours >= 16).sum())
+                logger.info(
+                    f"H1: {ticker} ({len(bars_h1)} bars, "
+                    f"first={bars_h1.index[0]}, last={bars_h1.index[-1]}, "
+                    f"premarket={h1_premarket}, afterhours={h1_afterhours})"
+                )
+            else:
+                logger.warning(f"H1: {ticker} - NO BARS returned from Polygon")
+
             bars_m15 = fetch_bars(ticker, trade_date, tf_minutes=15, lookback_days=18)
+            if not bars_m15.empty:
+                m15_hours = bars_m15.index.hour
+                m15_premarket = int((m15_hours < 9).sum())
+                m15_afterhours = int((m15_hours >= 16).sum())
+                logger.info(
+                    f"M15: {ticker} ({len(bars_m15)} bars, "
+                    f"first={bars_m15.index[0]}, last={bars_m15.index[-1]}, "
+                    f"premarket={m15_premarket}, afterhours={m15_afterhours})"
+                )
+            else:
+                logger.warning(f"M15: {ticker} - NO BARS returned from Polygon")
+
             bars_m5 = fetch_bars(ticker, trade_date, tf_minutes=5, lookback_days=3)
             bars_m1 = fetch_bars(ticker, trade_date, tf_minutes=1, lookback_days=2)
 
-            # Fetch VbP bars from epoch anchor
+            # Fetch zones
+            zones = self._loader.fetch_zones_for_trade(ticker, trade_date)
+
+            # Fetch HVN POC prices
+            pocs = self._loader.fetch_hvn_pocs(ticker, trade_date)
+            logger.info(f"POCs: {ticker} {trade_date} -> {len(pocs)} POCs")
+
+            # Fetch M1 ramp-up indicator data (up to entry)
+            rampup_df = None
+            if self._hl.entry_time:
+                rampup_df = fetch_rampup_data(ticker, trade_date, self._hl.entry_time)
+
+            # Fetch M1 post-trade indicator data (entry onward)
+            posttrade_df = None
+            if self._hl.entry_time:
+                posttrade_df = fetch_posttrade_data(ticker, trade_date, self._hl.entry_time)
+
+            # Fetch VbP bars from epoch anchor -> trade_date (M15 granularity)
             vbp_bars = pd.DataFrame()
             if anchor_date:
                 lookback = (trade_date - anchor_date).days + 1
                 vbp_bars = fetch_bars(ticker, trade_date, tf_minutes=15, lookback_days=lookback)
                 logger.info(f"VbP: {ticker} anchor={anchor_date} -> {trade_date} ({lookback}d, {len(vbp_bars)} bars)")
-
-            # Build JournalHighlight with ATR + R-level computation
-            highlight = build_journal_highlight(
-                row=row,
-                bars_m5=bars_m5,
-                bars_m1=bars_m1,
-                zones=zones,
-            )
-
-            # Fetch rampup indicator data from m1_indicator_bars_2 (45 bars)
-            rampup_df = pd.DataFrame()
-            entry_time = row.get('entry_time')
-            if entry_time is not None:
-                try:
-                    rampup_df = fetch_rampup_data(
-                        ticker=ticker,
-                        trade_date=trade_date,
-                        entry_time=entry_time,
-                        num_bars=45,
-                    )
-                    logger.info(f"Rampup: {ticker} {trade_date} -> {len(rampup_df)} indicator bars")
-                except Exception as e:
-                    logger.warning(f"Could not fetch rampup data: {e}")
+            else:
+                logger.warning(f"No epoch_start_date found for {ticker} {trade_date}, VbP will use display bars")
 
             self.finished.emit(
-                highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
-                zones, pocs, vbp_bars, anchor_date, rampup_df,
+                bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
+                zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date,
             )
 
         except Exception as e:
@@ -224,29 +374,127 @@ class BarFetchThread(QThread):
             self.error.emit(str(e))
 
 
-# =============================================================================
-# H1 PRIOR BUILDER
-# =============================================================================
+class ExportThread(QThread):
+    """Export journal trade images in background.
 
-def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
-    """Build H1 chart sliced to end at the H1 candle before entry."""
-    _tz = pytz.timezone(DISPLAY_TIMEZONE)
+    Uses pre-built figures from the UI cache when available.
+    Falls back to full fetch + build for uncached highlights.
+    Modeled on 11_trade_reel/ui/main_window.py ExportThread.
+    """
 
-    if bars_h1 is None or (isinstance(bars_h1, pd.DataFrame) and bars_h1.empty):
-        return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+    progress = pyqtSignal(int, int)       # current, total
+    finished = pyqtSignal(int, str)       # count, output_dir
+    error = pyqtSignal(str)
 
-    entry_hour = highlight.entry_time.hour if highlight.entry_time else 9
-    cutoff_hour = max(entry_hour - 1, 4)
-    cutoff = _tz.localize(datetime.combine(
-        highlight.date,
-        datetime.min.time().replace(hour=cutoff_hour, minute=0),
-    ))
-    h1_prior = bars_h1[bars_h1.index <= cutoff]
+    def __init__(
+        self,
+        highlights: List[JournalHighlight],
+        loader: 'JournalTradeLoader',
+        platform: str,
+        figs_cache: Optional[dict] = None,
+        parent=None,
+    ):
+        super().__init__(parent)
+        self._highlights = highlights
+        self._loader = loader
+        self._platform = platform
+        self._figs_cache = figs_cache or {}
 
-    if h1_prior.empty:
-        return build_h1_chart(bars_h1, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+    def run(self):
+        try:
+            exported = 0
+            total = len(self._highlights)
+            out_dir = EXPORT_DIR / self._platform
+            out_dir.mkdir(parents=True, exist_ok=True)
 
-    return build_h1_chart(h1_prior, highlight, zones, pocs=pocs, volume_profile_dict=vp_dict)
+            for i, hl in enumerate(self._highlights):
+                self.progress.emit(i + 1, total)
+
+                # Use cached figures if available (built during UI preview)
+                cached = self._figs_cache.get(hl.trade_id)
+                if cached:
+                    logger.info(f"Export {hl.ticker} {hl.date}: using cached figures")
+                    paths = export_highlight_image(
+                        cached['weekly_fig'],
+                        cached['daily_fig'],
+                        cached['h1_prior_fig'],
+                        cached['m15_prior_fig'],
+                        cached['m5_entry_fig'],
+                        cached['m1_fig'],
+                        cached['m1_rampup_fig'],
+                        hl,
+                        self._platform,
+                        out_dir,
+                        rampup_df=cached.get('rampup_df'),
+                        posttrade_df=cached.get('posttrade_df'),
+                    )
+                    if paths:
+                        exported += 1
+                    continue
+
+                # Fallback: full fetch + build for uncached highlights
+                logger.info(f"Export {hl.ticker} {hl.date}: fetching data (not cached)")
+                ticker = hl.ticker.upper().strip()
+                trade_date = hl.date
+
+                anchor_date = self._loader.fetch_epoch_start_date(ticker, trade_date)
+
+                bars_weekly = _fetch_weekly_bars(ticker, trade_date, lookback_weeks=100)
+
+                bars_daily = pd.DataFrame()
+                if anchor_date:
+                    day_before = trade_date - timedelta(days=1)
+                    bars_daily = fetch_daily_bars(ticker, anchor_date, day_before)
+
+                bars_h1 = fetch_bars(ticker, trade_date, tf_minutes=60, lookback_days=50)
+                bars_m15 = fetch_bars(ticker, trade_date, tf_minutes=15, lookback_days=18)
+                bars_m5 = fetch_bars(ticker, trade_date, tf_minutes=5, lookback_days=3)
+                bars_m1 = fetch_bars(ticker, trade_date, tf_minutes=1, lookback_days=2)
+                zones = self._loader.fetch_zones_for_trade(ticker, trade_date)
+                pocs = self._loader.fetch_hvn_pocs(ticker, trade_date)
+
+                rampup_df = None
+                if hl.entry_time:
+                    rampup_df = fetch_rampup_data(ticker, trade_date, hl.entry_time)
+
+                posttrade_df = None
+                if hl.entry_time:
+                    posttrade_df = fetch_posttrade_data(ticker, trade_date, hl.entry_time)
+
+                vbp_bars = pd.DataFrame()
+                if anchor_date:
+                    lookback = (trade_date - anchor_date).days + 1
+                    vbp_bars = fetch_bars(ticker, trade_date, tf_minutes=15, lookback_days=lookback)
+
+                if bars_m5.empty:
+                    logger.warning(f"No M5 bars for {ticker}, skipping")
+                    continue
+
+                vbp_source = vbp_bars if not vbp_bars.empty else None
+                vp_dict = build_volume_profile(vbp_source) if vbp_source is not None else {}
+
+                weekly_fig = build_weekly_chart(bars_weekly, hl, zones)
+                daily_fig = build_daily_chart(bars_daily, hl, zones, pocs=pocs, anchor_date=anchor_date, volume_profile_dict=vp_dict)
+                h1_prior_fig = _build_h1_prior_fig(bars_h1, hl, zones, pocs, vp_dict)
+                m15_prior_fig = _build_m15_prior_fig(bars_m15, hl, zones, pocs, vp_dict)
+                m5_entry_fig = build_m5_entry_chart(bars_m5, hl, zones, pocs=pocs, volume_profile_dict=vp_dict)
+
+                intraday_vbp = _compute_intraday_vbp(bars_m1, hl)
+                m1_rampup_fig = build_m1_rampup_chart(bars_m1, hl, zones, pocs=pocs, intraday_vbp_dict=intraday_vbp)
+                m1_fig = build_m1_journal_chart(bars_m1, hl, zones, pocs=pocs)
+
+                paths = export_highlight_image(
+                    weekly_fig, daily_fig, h1_prior_fig, m15_prior_fig, m5_entry_fig, m1_fig,
+                    m1_rampup_fig, hl, self._platform, out_dir,
+                    rampup_df=rampup_df,
+                    posttrade_df=posttrade_df,
+                )
+                if paths:
+                    exported += 1
+
+            self.finished.emit(exported, str(out_dir))
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 # =============================================================================
@@ -254,7 +502,10 @@ def _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict):
 # =============================================================================
 
 class JournalViewerWindow(QMainWindow):
-    """Journal Viewer - Trade chart viewer for FIFO journal trades."""
+    """Journal Viewer - Trade chart viewer for FIFO journal trades.
+
+    1:1 layout clone of TradeReelWindow with journal-specific data sources.
+    """
 
     def __init__(self):
         super().__init__()
@@ -262,8 +513,10 @@ class JournalViewerWindow(QMainWindow):
         self.resize(1600, 950)
         self.setStyleSheet(TV_DARK_QSS)
 
+        self._loader = get_journal_loader()
         self._current_highlight: Optional[JournalHighlight] = None
-        self._cache: Dict = {}  # {trade_id: (highlight, daily, h1, m15, m5, m1, zones, pocs, vbp, anchor, rampup_df)}
+        self._current_bars: Dict = {}  # {trade_id: (weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date)}
+        self._current_figs: Dict = {}  # {trade_id: dict with built figures + DataFrames ready for export}
         self._active_threads: list = []
 
         self._setup_ui()
@@ -274,147 +527,75 @@ class JournalViewerWindow(QMainWindow):
     # =========================================================================
 
     def _setup_ui(self):
-        """Build the main layout."""
+        """Build the main layout matching trade_reel exactly."""
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Splitter: left (filters + table) | right (charts)
+        # Splitter: left (filter + table) | right (chart preview)
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # ---- Left Panel ----
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(8, 8, 8, 8)
-        left_layout.setSpacing(6)
+        # ---- Left Combined: FilterPanel + TradeTable ----
+        left_combined = QWidget()
+        left_combined_layout = QHBoxLayout(left_combined)
+        left_combined_layout.setContentsMargins(0, 0, 0, 0)
+        left_combined_layout.setSpacing(0)
 
-        # Header
-        header = QLabel("JOURNAL VIEWER")
-        header.setFont(QFont("Trebuchet MS", 14, QFont.Weight.Bold))
-        header.setStyleSheet(f"color: {TV_COLORS['text_primary']}; padding: 4px;")
-        header.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        left_layout.addWidget(header)
+        self._filter_panel = FilterPanel()
+        left_combined_layout.addWidget(self._filter_panel)
 
-        # Filter controls frame
-        filter_frame = QFrame()
-        filter_frame.setStyleSheet(
-            f"QFrame {{ background: {TV_COLORS['bg_secondary']}; "
-            f"border: 1px solid {TV_COLORS['border']}; border-radius: 4px; }}"
-        )
-        filter_layout = QVBoxLayout(filter_frame)
-        filter_layout.setContentsMargins(8, 8, 8, 8)
-        filter_layout.setSpacing(6)
-
-        # Date From
-        date_from_row = QHBoxLayout()
-        date_from_label = QLabel("From:")
-        date_from_label.setFixedWidth(45)
-        self._date_from = QDateEdit()
-        self._date_from.setCalendarPopup(True)
-        self._date_from.setDate(QDate.currentDate().addDays(-30))
-        self._date_from.setDisplayFormat("yyyy-MM-dd")
-        date_from_row.addWidget(date_from_label)
-        date_from_row.addWidget(self._date_from)
-        filter_layout.addLayout(date_from_row)
-
-        # Date To
-        date_to_row = QHBoxLayout()
-        date_to_label = QLabel("To:")
-        date_to_label.setFixedWidth(45)
-        self._date_to = QDateEdit()
-        self._date_to.setCalendarPopup(True)
-        self._date_to.setDate(QDate.currentDate())
-        self._date_to.setDisplayFormat("yyyy-MM-dd")
-        date_to_row.addWidget(date_to_label)
-        date_to_row.addWidget(self._date_to)
-        filter_layout.addLayout(date_to_row)
-
-        # Symbol filter
-        symbol_row = QHBoxLayout()
-        symbol_label = QLabel("Symbol:")
-        symbol_label.setFixedWidth(45)
-        self._symbol_combo = QComboBox()
-        self._symbol_combo.addItem("ALL")
-        self._symbol_combo.setMinimumWidth(100)
-        symbol_row.addWidget(symbol_label)
-        symbol_row.addWidget(self._symbol_combo)
-        filter_layout.addLayout(symbol_row)
-
-        # Direction filter
-        dir_row = QHBoxLayout()
-        dir_label = QLabel("Dir:")
-        dir_label.setFixedWidth(45)
-        self._dir_combo = QComboBox()
-        self._dir_combo.addItems(["ALL", "LONG", "SHORT"])
-        self._dir_combo.setMinimumWidth(100)
-        dir_row.addWidget(dir_label)
-        dir_row.addWidget(self._dir_combo)
-        filter_layout.addLayout(dir_row)
-
-        # Load button
-        self._load_btn = QPushButton("LOAD TRADES")
-        self._load_btn.setFont(QFont("Trebuchet MS", 11, QFont.Weight.Bold))
-        self._load_btn.setMinimumHeight(36)
-        filter_layout.addWidget(self._load_btn)
-
-        # Results info
-        self._results_label = QLabel("")
-        self._results_label.setStyleSheet(f"color: {TV_COLORS['text_muted']}; font-size: 11px;")
-        self._results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        filter_layout.addWidget(self._results_label)
-
-        left_layout.addWidget(filter_frame)
-
-        # Trade table
         self._trade_table = TradeTable()
-        left_layout.addWidget(self._trade_table, stretch=1)
+        left_combined_layout.addWidget(self._trade_table)
 
-        left_panel.setFixedWidth(380)
+        # Lock left side to exact width of its fixed-width children
+        left_combined.setFixedWidth(260 + sum(COL_WIDTHS.values()) + 2)
 
-        # ---- Right Panel (Chart Preview) ----
+        # ---- Right: Chart Preview ----
         self._chart_preview = ChartPreview()
 
-        splitter.addWidget(left_panel)
+        splitter.addWidget(left_combined)
         splitter.addWidget(self._chart_preview)
-        splitter.setSizes([380, 1220])
+        splitter.setSizes([500, 1100])
 
         main_layout.addWidget(splitter, stretch=1)
+
+        # Bottom: Export bar
+        self._export_bar = ExportBar()
+        main_layout.addWidget(self._export_bar)
 
         # Status bar
         self.setStatusBar(QStatusBar())
         self.statusBar().showMessage("Ready - Select date range and click LOAD TRADES")
 
     def _connect_signals(self):
-        """Wire up signals."""
-        self._load_btn.clicked.connect(self._on_load_trades)
+        """Wire up all panel signals."""
+        # Filter -> load trades
+        self._filter_panel.load_requested.connect(self._on_load_trades)
+
+        # Table row click -> fetch bars + preview
         self._trade_table.selection_changed.connect(self._on_trade_selected)
+
+        # Checkbox changes -> enable/disable export
+        self._trade_table.checked_changed.connect(self._on_checked_changed)
+
+        # Export bar buttons
+        self._export_bar.export_requested.connect(self._on_export_requested)
+        self._export_bar.select_all_btn.clicked.connect(self._trade_table.select_all)
+        self._export_bar.deselect_btn.clicked.connect(self._trade_table.deselect_all)
 
     # =========================================================================
     # LOAD TRADES
     # =========================================================================
 
-    def _on_load_trades(self):
+    def _on_load_trades(self, filters: dict):
         """Start background trade loading."""
-        date_from = self._date_from.date().toPyDate()
-        date_to = self._date_to.date().toPyDate()
-
-        symbol = self._symbol_combo.currentText()
-        if symbol == "ALL":
-            symbol = None
-
-        direction = self._dir_combo.currentText()
-        if direction == "ALL":
-            direction = None
-
-        self._load_btn.setEnabled(False)
-        self._load_btn.setText("Loading...")
+        self._filter_panel.set_loading(True)
         self._chart_preview.show_placeholder()
-        self._results_label.setText("Loading trades...")
-        self.statusBar().showMessage(f"Loading trades {date_from} to {date_to}...")
+        self._export_bar.clear_status()
 
-        thread = TradeLoadThread(date_from, date_to, symbol, direction, parent=self)
+        thread = TradeLoadThread(self._loader, filters, parent=self)
         thread.finished.connect(self._on_trades_loaded)
         thread.error.connect(self._on_trades_error)
         thread.finished.connect(lambda: self._cleanup_thread(thread))
@@ -422,36 +603,46 @@ class JournalViewerWindow(QMainWindow):
         self._active_threads.append(thread)
         thread.start()
 
-    def _on_trades_loaded(self, trades: List[Dict]):
-        """Handle loaded trades."""
-        self._load_btn.setEnabled(True)
-        self._load_btn.setText("LOAD TRADES")
+    def _on_trades_loaded(self, highlights: List[JournalHighlight]):
+        """Handle loaded highlights."""
+        self._filter_panel.set_loading(False)
 
-        self._trade_table.set_trades(trades)
-        self._results_label.setText(f"{len(trades)} trades found")
+        # Deduplicate: roll entry_time up to the minute, keep first per group
+        seen = set()
+        unique = []
+        for hl in highlights:
+            key = (hl.date, hl.ticker, hl.direction,
+                   hl.entry_time.hour if hl.entry_time else None,
+                   hl.entry_time.minute if hl.entry_time else None)
+            if key not in seen:
+                seen.add(key)
+                unique.append(hl)
+        highlights = unique
 
-        # Update symbol dropdown
-        tickers = sorted(set(
-            (t.get('symbol') or '').upper()
-            for t in trades if t.get('symbol')
-        ))
-        current = self._symbol_combo.currentText()
-        self._symbol_combo.clear()
-        self._symbol_combo.addItem("ALL")
-        self._symbol_combo.addItems(tickers)
-        if current in tickers:
-            self._symbol_combo.setCurrentText(current)
+        self._trade_table.set_trades(highlights)
+        self._filter_panel.update_results_info(len(highlights))
+        self._export_bar.set_export_enabled(False)
 
-        if trades:
-            self.statusBar().showMessage(f"Loaded {len(trades)} trades")
+        # Update ticker dropdown from results
+        tickers = sorted(set(hl.ticker for hl in highlights))
+        self._filter_panel.populate_tickers(tickers)
+
+        # Update account dropdown from results
+        # (accounts come from the loader, not highlights)
+        try:
+            accounts = self._loader.get_available_accounts()
+            self._filter_panel.populate_accounts(accounts)
+        except Exception:
+            pass
+
+        if highlights:
+            self.statusBar().showMessage(f"Loaded {len(highlights)} journal trades")
         else:
             self.statusBar().showMessage("No trades found for the selected filters")
 
     def _on_trades_error(self, error: str):
         """Handle trade loading error."""
-        self._load_btn.setEnabled(True)
-        self._load_btn.setText("LOAD TRADES")
-        self._results_label.setText(f"Error: {error}")
+        self._filter_panel.set_loading(False)
         self.statusBar().showMessage(f"Error: {error}")
         logger.error(f"Trade load error: {error}")
 
@@ -459,36 +650,33 @@ class JournalViewerWindow(QMainWindow):
     # SELECT TRADE -> FETCH BARS -> RENDER CHARTS
     # =========================================================================
 
-    def _on_trade_selected(self, trade_row):
+    def _on_trade_selected(self, highlight):
         """Handle table row selection - fetch bars and render charts."""
-        if trade_row is None:
+        if highlight is None:
             self._chart_preview.show_placeholder()
             self._current_highlight = None
             return
 
-        trade_id = trade_row.get('trade_id', '')
+        self._current_highlight = highlight
 
         # Check cache
-        if trade_id in self._cache:
-            cached = self._cache[trade_id]
-            highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, vbp_bars, anchor_date, rampup_df = cached
-            self._current_highlight = highlight
-            self._render_charts(highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1, zones, pocs, vbp_bars, anchor_date, rampup_df)
-
-            # Update the R column in the table
-            self._trade_table.update_trade_r(trade_id, highlight.max_r_achieved, highlight.pnl_r)
+        if highlight.trade_id in self._current_bars:
+            cached = self._current_bars[highlight.trade_id]
+            weekly, daily, h1, m15, m5, m1, zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date = cached
+            self._render_charts(
+                highlight, weekly, daily, h1, m15, m5, m1,
+                zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date,
+            )
             return
 
         # Fetch bars in background
         self._chart_preview.show_loading()
-        ticker = (trade_row.get('symbol') or '').upper()
-        trade_date = trade_row.get('trade_date')
-        self.statusBar().showMessage(f"Fetching bars for {ticker} {trade_date}...")
+        self.statusBar().showMessage(f"Fetching bars for {highlight.ticker} {highlight.date}...")
 
-        thread = BarFetchThread(trade_row, parent=self)
+        thread = BarFetchThread(highlight, self._loader, parent=self)
         thread.finished.connect(
-            lambda hl, d, h1, m15, m5, m1, z, p, vbp, anch, ramp:
-                self._on_bars_fetched(trade_row, hl, d, h1, m15, m5, m1, z, p, vbp, anch, ramp)
+            lambda w, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch:
+                self._on_bars_fetched(highlight, w, d, h1, m15, m5, m1, z, p, r, pt, vbp, anch)
         )
         thread.error.connect(self._on_bars_error)
         thread.finished.connect(lambda *_: self._cleanup_thread(thread))
@@ -496,33 +684,42 @@ class JournalViewerWindow(QMainWindow):
         self._active_threads.append(thread)
         thread.start()
 
-    def _on_bars_fetched(self, trade_row, highlight, bars_daily, bars_h1, bars_m15,
-                         bars_m5, bars_m1, zones, pocs, vbp_bars, anchor_date, rampup_df):
+    def _on_bars_fetched(self, highlight, bars_weekly, bars_daily, bars_h1, bars_m15,
+                         bars_m5, bars_m1, zones, pocs, rampup_df, posttrade_df,
+                         vbp_bars, anchor_date):
         """Handle fetched bar data."""
-        trade_id = trade_row.get('trade_id', '')
-
-        # Cache the results (including rampup indicator data)
-        self._cache[trade_id] = (
-            highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
-            zones, pocs, vbp_bars, anchor_date, rampup_df,
+        # Cache the bars
+        self._current_bars[highlight.trade_id] = (
+            bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
+            zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date,
         )
 
-        # Update the R column in the table
-        self._trade_table.update_trade_r(trade_id, highlight.max_r_achieved, highlight.pnl_r)
-
-        # Only render if this is still the selected trade
-        selected = self._trade_table.get_selected_trade()
-        if selected and selected.get('trade_id') == trade_id:
-            self._current_highlight = highlight
-            self._render_charts(
-                highlight, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
-                zones, pocs, vbp_bars, anchor_date, rampup_df,
+        # If highlight didn't have pre-computed ATR data, compute on-the-fly
+        if highlight.stop_price is None and bars_m5 is not None and not bars_m5.empty:
+            highlight = build_journal_highlight(
+                row=self._highlight_to_row(highlight),
+                bars_m5=bars_m5,
+                bars_m1=bars_m1,
+                zones=zones,
+            )
+            # Update cache with enriched highlight
+            self._current_bars[highlight.trade_id] = (
+                bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
+                zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date,
             )
 
-    def _render_charts(self, highlight, bars_daily, bars_h1, bars_m15, bars_m5,
-                       bars_m1, zones, pocs=None, vbp_bars=None, anchor_date=None,
-                       rampup_df=None):
-        """Build and display all 7 charts + rampup indicator table for a trade."""
+        # Only render if this is still the selected highlight
+        if self._current_highlight and self._current_highlight.trade_id == highlight.trade_id:
+            self._current_highlight = highlight
+            self._render_charts(
+                highlight, bars_weekly, bars_daily, bars_h1, bars_m15, bars_m5, bars_m1,
+                zones, pocs, rampup_df, posttrade_df, vbp_bars, anchor_date,
+            )
+
+    def _render_charts(self, highlight, bars_weekly, bars_daily, bars_h1, bars_m15,
+                       bars_m5, bars_m1, zones, pocs=None, rampup_df=None,
+                       posttrade_df=None, vbp_bars=None, anchor_date=None):
+        """Build and display all charts for a highlight."""
         try:
             if bars_m5 is None or (isinstance(bars_m5, pd.DataFrame) and bars_m5.empty):
                 self._chart_preview.show_error("No M5 bar data available")
@@ -532,89 +729,169 @@ class JournalViewerWindow(QMainWindow):
             vbp_source = vbp_bars if (vbp_bars is not None and not vbp_bars.empty) else None
             vp_dict = build_volume_profile(vbp_source) if vbp_source is not None else {}
 
-            # Build all 6 chart figures
+            # Build all 7 charts
+
+            # Row 1: Weekly + Daily
+            weekly_fig = build_weekly_chart(bars_weekly, highlight, zones)
             daily_fig = build_daily_chart(
                 bars_daily, highlight, zones,
                 pocs=pocs, anchor_date=anchor_date, volume_profile_dict=vp_dict,
             )
-            h1_fig = build_h1_chart(
-                bars_h1, highlight, zones,
-                pocs=pocs, volume_profile_dict=vp_dict,
-            )
-            m15_fig = build_m15_chart(
-                bars_m15, highlight, zones,
-                pocs=pocs, volume_profile_dict=vp_dict,
-            )
+
+            # Row 2: H1 Prior + M15 Prior
+            h1_prior_fig = _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict)
+            m15_prior_fig = _build_m15_prior_fig(bars_m15, highlight, zones, pocs, vp_dict)
+
+            # Row 3: M5 Entry + M1 Ramp-Up
             m5_entry_fig = build_m5_entry_chart(
                 bars_m5, highlight, zones,
                 pocs=pocs, volume_profile_dict=vp_dict,
             )
-            m1_fig = build_m1_chart(bars_m1, highlight, zones)
 
-            # M1 rampup CHART (Row 4): uses Polygon M1 bars leading up to entry
-            rampup_chart_df = self._build_rampup_df(bars_m1, highlight)
-            m1_rampup_fig = build_m1_rampup_chart(rampup_chart_df, highlight, zones, pocs=pocs)
-
-            # Build H1 prior figure
-            h1_prior_fig = _build_h1_prior_fig(bars_h1, highlight, zones, pocs, vp_dict)
-
-            # Render to preview
-            self._chart_preview.show_charts(
-                daily_fig, h1_fig, m15_fig, m5_entry_fig, m1_fig, m1_rampup_fig,
-                highlight, h1_prior_fig=h1_prior_fig,
+            # Compute intraday VbP (04:00 ET -> entry) for M1 ramp-up chart
+            intraday_vbp = _compute_intraday_vbp(bars_m1, highlight)
+            m1_rampup_fig = build_m1_rampup_chart(
+                bars_m1, highlight, zones,
+                pocs=pocs, intraday_vbp_dict=intraday_vbp,
             )
 
-            # Row 5: Rampup indicator table (from m1_indicator_bars_2 DB data)
-            self._chart_preview.show_rampup(rampup_df)
+            # Row 6: M1 Journal Action chart (journal-specific, not trade_reel M1)
+            m1_fig = build_m1_journal_chart(bars_m1, highlight, zones, pocs=pocs)
+
+            # Render all charts to the preview panel
+            self._chart_preview.show_charts(
+                weekly_fig, daily_fig, h1_prior_fig, m15_prior_fig,
+                m5_entry_fig, m1_rampup_fig, m1_fig, highlight,
+            )
+
+            # Cache built figures for export (avoids re-fetching + rebuilding)
+            self._current_figs[highlight.trade_id] = {
+                'weekly_fig': weekly_fig,
+                'daily_fig': daily_fig,
+                'h1_prior_fig': h1_prior_fig,
+                'm15_prior_fig': m15_prior_fig,
+                'm5_entry_fig': m5_entry_fig,
+                'm1_fig': m1_fig,
+                'm1_rampup_fig': m1_rampup_fig,
+                'rampup_df': rampup_df,
+                'posttrade_df': posttrade_df,
+                'highlight': highlight,
+            }
+
+            # Row 4: Ramp-up indicator table
+            if rampup_df is not None:
+                self._chart_preview.show_rampup(rampup_df)
+
+            # Row 5: Post-trade indicator table
+            if posttrade_df is not None:
+                self._chart_preview.show_posttrade(posttrade_df)
+
+            # Status bar summary
+            dir_str = highlight.direction
+            pnl_str = f"{highlight.pnl_r:+.2f}R" if highlight.pnl_r else ""
+            pnl_dollar_str = f"${highlight.pnl_dollars:+.2f}" if highlight.pnl_dollars else ""
+            atr_str = f"ATR ${highlight.m5_atr_value:.4f}" if highlight.m5_atr_value else "ATR N/A"
 
             self.statusBar().showMessage(
                 f"{highlight.ticker} {highlight.date} - {highlight.star_display} | "
-                f"{highlight.direction} | "
-                f"Entry ${highlight.entry_price:.2f} | "
-                f"ATR: {'${:.4f}'.format(highlight.m5_atr_value) if highlight.m5_atr_value else 'N/A'}"
+                f"{dir_str} | Entry ${highlight.entry_price:.2f} | "
+                f"{atr_str} | {pnl_str} {pnl_dollar_str}"
             )
 
         except Exception as e:
             self._chart_preview.show_error(str(e))
             logger.error(f"Chart render error: {e}", exc_info=True)
 
-    def _build_rampup_df(self, bars_m1, highlight) -> Optional[pd.DataFrame]:
-        """
-        Build a rampup-style DataFrame from M1 bars leading up to entry.
-
-        The m1_rampup_chart expects a DataFrame with columns:
-        bar_date, bar_time, open, high, low, close, volume.
-        We extract the 45 M1 bars before entry time.
-        """
-        if bars_m1 is None or bars_m1.empty or highlight.entry_time is None:
-            return None
-
-        try:
-            _tz = pytz.timezone(DISPLAY_TIMEZONE)
-            entry_dt = _tz.localize(datetime.combine(highlight.date, highlight.entry_time))
-
-            # Get 45 bars before entry
-            pre_entry = bars_m1[bars_m1.index < entry_dt].tail(45)
-
-            if pre_entry.empty:
-                return None
-
-            # Build DataFrame in the format m1_rampup_chart expects
-            df = pre_entry.copy()
-            df['bar_date'] = df.index.date
-            df['bar_time'] = df.index.time
-            df = df.reset_index(drop=True)
-
-            return df
-
-        except Exception as e:
-            logger.warning(f"Error building rampup df: {e}")
-            return None
-
     def _on_bars_error(self, error: str):
         """Handle bar fetch error."""
         self._chart_preview.show_error(error)
         self.statusBar().showMessage(f"Error fetching bars: {error}")
+
+    # =========================================================================
+    # EXPORT
+    # =========================================================================
+
+    def _on_checked_changed(self, checked_ids: list):
+        """Enable/disable export based on selections."""
+        self._export_bar.set_export_enabled(len(checked_ids) > 0)
+
+    def _on_export_requested(self, platform: str):
+        """Start export for selected highlights."""
+        checked = self._trade_table.get_checked_highlights()
+        if not checked:
+            self.statusBar().showMessage("No trades selected for export")
+            return
+
+        self._export_bar.set_exporting(True)
+        self.statusBar().showMessage(f"Exporting {len(checked)} trades for {platform}...")
+
+        thread = ExportThread(checked, self._loader, platform, figs_cache=self._current_figs, parent=self)
+        thread.progress.connect(self._export_bar.show_export_progress)
+        thread.finished.connect(lambda count, path: self._on_export_finished(count, path, platform))
+        thread.error.connect(self._on_export_error)
+        thread.finished.connect(lambda *_: self._cleanup_thread(thread))
+        thread.error.connect(lambda: self._cleanup_thread(thread))
+        self._active_threads.append(thread)
+        thread.start()
+
+    def _on_export_finished(self, count: int, output_dir: str, platform: str):
+        """Handle export completion."""
+        self._export_bar.set_exporting(False)
+        self._export_bar.show_export_result(count, output_dir)
+        self.statusBar().showMessage(f"Exported {count} images for {platform}")
+
+    def _on_export_error(self, error: str):
+        """Handle export error."""
+        self._export_bar.set_exporting(False)
+        self.statusBar().showMessage(f"Export error: {error}")
+        logger.error(f"Export error: {error}")
+
+    # =========================================================================
+    # HELPERS
+    # =========================================================================
+
+    @staticmethod
+    def _highlight_to_row(hl: JournalHighlight) -> Dict:
+        """Convert a JournalHighlight back to a dict for re-processing through build_journal_highlight."""
+        import json
+        row = {
+            'trade_id': hl.trade_id,
+            'trade_date': hl.date,
+            'symbol': hl.ticker,
+            'direction': hl.direction,
+            'entry_price': hl.entry_price,
+            'entry_time': hl.entry_time,
+            'exit_price': hl.exit_price,
+            'exit_time': hl.exit_time,
+            'pnl_dollars': hl.pnl_dollars,
+            'entry_qty': hl.entry_qty,
+            'exit_portions_json': json.dumps(hl.exit_portions) if hl.exit_portions else None,
+        }
+        # Carry over any pre-computed ATR data
+        if hl.m5_atr_value is not None:
+            row['m5_atr_value'] = hl.m5_atr_value
+            row['stop_price'] = hl.stop_price
+            row['stop_distance'] = hl.stop_distance
+            row['r1_price'] = hl.r1_price
+            row['r2_price'] = hl.r2_price
+            row['r3_price'] = hl.r3_price
+            row['r4_price'] = hl.r4_price
+            row['r5_price'] = hl.r5_price
+            row['r1_hit'] = hl.r1_hit
+            row['r2_hit'] = hl.r2_hit
+            row['r3_hit'] = hl.r3_hit
+            row['r4_hit'] = hl.r4_hit
+            row['r5_hit'] = hl.r5_hit
+            row['r1_time'] = hl.r1_time
+            row['r2_time'] = hl.r2_time
+            row['r3_time'] = hl.r3_time
+            row['r4_time'] = hl.r4_time
+            row['r5_time'] = hl.r5_time
+            row['stop_hit'] = hl.stop_hit
+            row['stop_hit_time'] = hl.stop_hit_time
+            row['max_r_achieved'] = hl.max_r_achieved
+            row['pnl_r'] = hl.pnl_r
+        return row
 
     # =========================================================================
     # CLEANUP
@@ -627,8 +904,14 @@ class JournalViewerWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Clean up on window close."""
+        # Wait for active threads
         for thread in self._active_threads:
             thread.quit()
             thread.wait(2000)
         self._active_threads.clear()
+
+        # Disconnect DB
+        if self._loader:
+            self._loader.disconnect()
+
         super().closeEvent(event)

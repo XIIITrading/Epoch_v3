@@ -833,11 +833,11 @@ Expected patterns:
 
         for row in sma_acc:
             expected = ""
-            if (row['sma'] == 'BULL' and row['direction'] == 'LONG') or \
-               (row['sma'] == 'BEAR' and row['direction'] == 'SHORT'):
+            if (row['sma'] == 'B+' and row['direction'] == 'LONG') or \
+               (row['sma'] == 'B-' and row['direction'] == 'SHORT'):
                 expected = " (aligned)"
-            elif (row['sma'] == 'BEAR' and row['direction'] == 'LONG') or \
-                 (row['sma'] == 'BULL' and row['direction'] == 'SHORT'):
+            elif (row['sma'] == 'B-' and row['direction'] == 'LONG') or \
+                 (row['sma'] == 'B+' and row['direction'] == 'SHORT'):
                 expected = " (counter)"
 
             content += "{:<8} {:<10} {:>8} {:>8} {:>9}% {:>8} {:>9}%{}\n".format(
@@ -857,8 +857,8 @@ Expected patterns:
 ================================================================================
 
 Expected patterns:
-- LONG + BULL H1 should have higher win rate (aligned)
-- SHORT + BEAR H1 should have higher win rate (aligned)
+- LONG + B+ H1 should have higher win rate (aligned)
+- SHORT + B- H1 should have higher win rate (aligned)
 
 """
         content += "\n{:<8} {:<10} {:>8} {:>8} {:>10} {:>8} {:>10}\n".format(
@@ -867,11 +867,11 @@ Expected patterns:
 
         for row in h1_acc:
             expected = ""
-            if (row['h1_struct'] == 'BULL' and row['direction'] == 'LONG') or \
-               (row['h1_struct'] == 'BEAR' and row['direction'] == 'SHORT'):
+            if (row['h1_struct'] == 'B+' and row['direction'] == 'LONG') or \
+               (row['h1_struct'] == 'B-' and row['direction'] == 'SHORT'):
                 expected = " (aligned)"
-            elif (row['h1_struct'] == 'BEAR' and row['direction'] == 'LONG') or \
-                 (row['h1_struct'] == 'BULL' and row['direction'] == 'SHORT'):
+            elif (row['h1_struct'] == 'B-' and row['direction'] == 'LONG') or \
+                 (row['h1_struct'] == 'B+' and row['direction'] == 'SHORT'):
                 expected = " (counter)"
 
             content += "{:<8} {:<10} {:>8} {:>8} {:>9}% {:>8} {:>9}%{}\n".format(

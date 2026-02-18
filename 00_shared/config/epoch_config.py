@@ -79,9 +79,9 @@ class EpochConfig:
     # ==========================================================================
     FRACTAL_LENGTH: int = 5  # Bars each side for fractal detection
     STRUCTURE_LABELS: Dict[int, str] = field(default_factory=lambda: {
-        1: 'BULL',
-        -1: 'BEAR',
-        0: 'NEUTRAL'
+        1: 'B+',
+        -1: 'B-',
+        0: 'N'
     })
 
     # ==========================================================================

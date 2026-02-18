@@ -50,7 +50,7 @@ def calculate_long_score(
     # H1 NEUTRAL: +2
     if h1_structure is not None:
         h1_value = h1_structure.value if hasattr(h1_structure, 'value') else str(h1_structure)
-        if h1_value == 'NEUT':
+        if h1_value == 'N':
             score += 2
 
     # Vol ROC >= 30%: +1
@@ -107,7 +107,7 @@ def calculate_short_score(
     # H1 NEUTRAL: +2
     if h1_structure is not None:
         h1_value = h1_structure.value if hasattr(h1_structure, 'value') else str(h1_structure)
-        if h1_value == 'NEUT':
+        if h1_value == 'N':
             score += 2
 
     # Vol ROC >= 30%: +1
@@ -123,7 +123,7 @@ def calculate_short_score(
     # For SHORT, bullish SMA config indicates we're catching a failed rally
     if sma_config is not None:
         sma_value = sma_config.value if hasattr(sma_config, 'value') else str(sma_config)
-        if sma_value == 'BULL':
+        if sma_value == 'B+':
             score += 1
 
     return score

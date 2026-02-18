@@ -137,7 +137,7 @@ def calculate_health_score(
         factors["structure"] = structure == 1
     else:
         factors["structure"] = structure == -1
-    details["structure"] = {1: "BULL", -1: "BEAR", 0: "NEUTRAL"}.get(structure, "N/A")
+    details["structure"] = {1: "B+", -1: "B-", 0: "N"}.get(structure, "N/A")
 
     # 10. Zone Proximity
     zone_distance = indicators.get("zone_distance_pct", 0)

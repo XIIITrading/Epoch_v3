@@ -1,18 +1,28 @@
 """
 ================================================================================
-EPOCH TRADING SYSTEM - MODULE 08: JOURNAL TRADE VIEWER v1.0
+EPOCH TRADING SYSTEM - MODULE 08: JOURNAL TRADE VIEWER v2.0
 Application Entry Point
 XIII Trading LLC
 ================================================================================
 
 Launches the PyQt6 Journal Trade Viewer GUI.
 
-Displays FIFO trades from journal_trades table with full chart analysis:
-- All 7 chart types (Daily, H1 Prior, H1, M15, M5 Entry, M1 Action, M1 Rampup)
+1:1 clone of 11_trade_reel (Trade Reel) adapted for journal trade data:
+- 6-row chart layout: Weekly+Daily, H1+M15, M5+M1 Ramp-Up, Pre-trade
+  indicators, Post-trade indicators, M1 Action
 - TradingView Dark theme
-- Entry/exit markers, zone overlays
-- M5 ATR(14) stop line + R-level lines computed on-the-fly
-- Volume by Price overlays
+- Entry/exit markers, zone overlays, R-level lines
+- Volume by Price overlays (epoch anchor -> trade date)
+- M5 ATR(14) stop + R-level computation (pre-computed or on-the-fly)
+- Multiple exit triangles from FIFO partial exits
+- Pre-trade and post-trade indicator tables
+
+Data sources:
+- j_trades_m5_r_win (primary, pre-computed ATR/R data)
+- journal_trades (fallback, ATR computed on-the-fly)
+- j_m1_indicator_bars (ramp-up and post-trade indicator tables)
+- zones + setups (zone overlays)
+- Polygon API (Weekly, Daily, H1, M15, M5, M1 bars)
 
 Usage:
     python journal_app.py    # Launch GUI
@@ -39,9 +49,13 @@ if _spec and _spec.origin:
     if _qt_plugins.exists():
         os.environ["QT_PLUGIN_PATH"] = str(_qt_plugins)
 
-# Add viewer package to path
-viewer_path = Path(__file__).parent / "viewer"
-sys.path.insert(0, str(viewer_path))
+# Add module directory to path for relative imports
+MODULE_DIR = Path(__file__).parent
+sys.path.insert(0, str(MODULE_DIR))
+
+# Add 11_trade_reel to path for chart imports
+TRADE_REEL_DIR = MODULE_DIR.parent / "11_trade_reel"
+sys.path.insert(0, str(TRADE_REEL_DIR))
 
 # Configure logging
 logging.basicConfig(

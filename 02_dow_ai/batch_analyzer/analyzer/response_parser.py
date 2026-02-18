@@ -25,8 +25,8 @@ class ParsedIndicators:
     vol_delta_status: Optional[str] = None  # FAVORABLE, NEUTRAL, WEAK
     vol_roc: Optional[float] = None
     vol_roc_status: Optional[str] = None  # ELEVATED, NORMAL
-    sma: Optional[str] = None  # BULL, BEAR, NEUT
-    h1_struct: Optional[str] = None  # BULL, BEAR, NEUT
+    sma: Optional[str] = None  # B+, B-, N
+    h1_struct: Optional[str] = None  # B+, B-, N
     snapshot: Optional[str] = None
 
 
@@ -137,14 +137,14 @@ class ResponseParser:
             result.vol_roc_status = roc_match.group(2).upper()
 
         # SMA: value
-        sma_match = re.search(r'SMA:\s*(BULL|BEAR|NEUT)', text, re.IGNORECASE)
+        sma_match = re.search(r'SMA:\s*(B\+|B-|N)', text)
         if sma_match:
-            result.sma = sma_match.group(1).upper()
+            result.sma = sma_match.group(1)
 
         # H1 Struct: value
-        h1_match = re.search(r'H1\s*Struct(?:ure)?:\s*(BULL|BEAR|NEUT)', text, re.IGNORECASE)
+        h1_match = re.search(r'H1\s*Struct(?:ure)?:\s*(B\+|B-|N)', text)
         if h1_match:
-            result.h1_struct = h1_match.group(1).upper()
+            result.h1_struct = h1_match.group(1)
 
         # SNAPSHOT: text
         snapshot_match = re.search(r'SNAPSHOT:\s*(.+?)(?:\n\n|$)', text, re.IGNORECASE | re.DOTALL)

@@ -66,7 +66,7 @@ def fetch_bars(
             resp.raise_for_status()
             data = resp.json()
 
-            if data.get('status') != 'OK' or not data.get('results'):
+            if data.get('status') not in ('OK', 'DELAYED') or not data.get('results'):
                 return pd.DataFrame()
 
             df = pd.DataFrame(data['results'])
@@ -127,7 +127,7 @@ def fetch_daily_bars(
             resp.raise_for_status()
             data = resp.json()
 
-            if data.get('status') != 'OK' or not data.get('results'):
+            if data.get('status') not in ('OK', 'DELAYED') or not data.get('results'):
                 return pd.DataFrame()
 
             df = pd.DataFrame(data['results'])

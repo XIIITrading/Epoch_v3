@@ -21,9 +21,9 @@ STRUCTURE_CONFIG = {
 }
 
 STRUCTURE_LABELS = {
-    1: "BULL",
-    -1: "BEAR",
-    0: "NEUTRAL",
+    1: "B+",
+    -1: "B-",
+    0: "N",
 }
 
 
@@ -32,7 +32,7 @@ STRUCTURE_LABELS = {
 # =============================================================================
 class StructureResult(NamedTuple):
     """Result of structure analysis."""
-    direction: int  # 1 = BULL, -1 = BEAR, 0 = NEUTRAL
+    direction: int  # 1 = B+, -1 = B-, 0 = N
     label: str
     last_swing_high: Optional[float]
     last_swing_low: Optional[float]
@@ -142,7 +142,7 @@ def get_market_structure(
     if len(swing_highs) < 2 or len(swing_lows) < 2:
         return StructureResult(
             direction=0,
-            label="NEUTRAL",
+            label="N",
             last_swing_high=swing_highs[-1] if swing_highs else None,
             last_swing_low=swing_lows[-1] if swing_lows else None,
             higher_highs=False,
@@ -158,13 +158,13 @@ def get_market_structure(
     # Determine structure
     if higher_highs and higher_lows:
         direction = 1
-        label = "BULL"
+        label = "B+"
     elif lower_highs and lower_lows:
         direction = -1
-        label = "BEAR"
+        label = "B-"
     else:
         direction = 0
-        label = "NEUTRAL"
+        label = "N"
 
     return StructureResult(
         direction=direction,
@@ -184,9 +184,9 @@ def get_structure_label(direction: int) -> str:
         direction: 1 for bull, -1 for bear, 0 for neutral
 
     Returns:
-        "BULL", "BEAR", or "NEUTRAL"
+        "B+", "B-", or "N"
     """
-    return STRUCTURE_LABELS.get(direction, "NEUTRAL")
+    return STRUCTURE_LABELS.get(direction, "N")
 
 
 def is_structure_aligned(

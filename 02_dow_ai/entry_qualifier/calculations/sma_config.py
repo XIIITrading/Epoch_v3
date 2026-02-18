@@ -11,9 +11,9 @@ from enum import Enum
 
 class SMAConfig(Enum):
     """SMA configuration states."""
-    BULLISH = "BULL"   # SMA9 > SMA21
-    BEARISH = "BEAR"   # SMA9 < SMA21
-    NEUTRAL = "FLAT"   # SMA9 == SMA21 (rare)
+    BULLISH = "B+"     # SMA9 > SMA21
+    BEARISH = "B-"     # SMA9 < SMA21
+    NEUTRAL = "N"      # SMA9 == SMA21 (rare)
 
 
 class PricePosition(Enum):

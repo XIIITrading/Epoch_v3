@@ -242,19 +242,19 @@ def create_ai_prediction(result: Dict[str, Any], trade: TradeForAnalysis) -> AIP
     }
 
     sma_map = {
-        'ALIGNED': 'BULL' if trade.direction == 'LONG' else 'BEAR',
-        'NEUTRAL': 'NEUT',
-        'OPPOSING': 'BEAR' if trade.direction == 'LONG' else 'BULL',
-        'BULL': 'BULL',
-        'BEAR': 'BEAR',
-        'NEUT': 'NEUT',
+        'ALIGNED': 'B+' if trade.direction == 'LONG' else 'B-',
+        'NEUTRAL': 'N',
+        'OPPOSING': 'B-' if trade.direction == 'LONG' else 'B+',
+        'B+': 'B+',
+        'B-': 'B-',
+        'N': 'N',
     }
 
     h1_map = {
-        'BULL': 'BULL',
-        'BEAR': 'BEAR',
-        'NEUT': 'NEUT',
-        'NEUTRAL': 'NEUT',
+        'B+': 'B+',
+        'B-': 'B-',
+        'N': 'N',
+        'NEUTRAL': 'N',
     }
 
     return AIPrediction(

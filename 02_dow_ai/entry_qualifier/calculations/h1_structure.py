@@ -12,9 +12,9 @@ from datetime import datetime
 
 class MarketStructure(Enum):
     """Market structure states."""
-    BULL = "BULL"      # Higher highs, higher lows
-    BEAR = "BEAR"      # Lower highs, lower lows
-    NEUTRAL = "NEUT"   # Mixed/consolidation
+    BULL = "B+"        # Higher highs, higher lows
+    BEAR = "B-"        # Lower highs, lower lows
+    NEUTRAL = "N"      # Mixed/consolidation
 
 
 def calculate_structure(bars: List[dict], lookback: int = 5) -> MarketStructure:
@@ -119,7 +119,7 @@ def calculate_structure_for_bars(
 
     if not h1_bars:
         # No H1 data available - return NEUTRAL for all
-        return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'NEUT'}
+        return [{'h1_structure': MarketStructure.NEUTRAL, 'h1_display': 'N'}
                 for _ in m1_bars]
 
     for m1_bar in m1_bars:

@@ -42,14 +42,14 @@ DIRECTION_RULES = {
     'LONG': """For LONG trades:
 - Positive Vol Delta = buying pressure (supportive)
 - Negative Vol Delta = selling pressure (opposing)
-- SMA BULL = aligned. SMA BEAR = counter-trend.
-- H1 BULL = supportive. H1 BEAR = opposing.""",
+- SMA B+ = aligned. SMA B- = counter-trend.
+- H1 B+ = supportive. H1 B- = opposing.""",
 
     'SHORT': """For SHORT trades:
 - Negative Vol Delta = selling pressure (supportive)
 - Positive Vol Delta = buying pressure (opposing)
-- SMA BEAR = aligned. SMA BULL = counter-trend.
-- H1 BEAR = supportive. H1 BULL = opposing."""
+- SMA B- = aligned. SMA B+ = counter-trend.
+- H1 B- = supportive. H1 B+ = opposing."""
 }
 
 # =============================================================================
@@ -147,7 +147,7 @@ WHEN TO SAY TRADE:
 - H1 aligned but SMA opposing = still tradeable if H1 edge (+36pp) > SMA drag
 
 WHEN TO SAY NO_TRADE:
-- H1 BULL + SHORT direction = 31.8% WR (critical blocker)
+- H1 B+ + SHORT direction = 31.8% WR (critical blocker)
 - Triple conflict (SMA opposing + H1 opposing + Vol Delta opposing)
 - Very low candle range (<0.08%) with no compensating alignment
 
@@ -369,8 +369,8 @@ def calculate_alignment_score(
 
     Args:
         direction: 'LONG' or 'SHORT'
-        sma_config: 'BULL', 'BEAR', or 'NEUT'
-        h1_structure: 'BULL', 'BEAR', or 'NEUT'
+        sma_config: 'B+', 'B-', or 'N'
+        h1_structure: 'B+', 'B-', or 'N'
         vol_delta: Average volume delta value
 
     Returns:
@@ -381,15 +381,15 @@ def calculate_alignment_score(
 
     if direction == 'LONG':
         # SMA alignment for LONG
-        if sma_config == 'BULL':
+        if sma_config == 'B+':
             score += 1
-        elif sma_config == 'BEAR':
+        elif sma_config == 'B-':
             score -= 1
 
         # H1 alignment for LONG
-        if h1_structure == 'BULL':
+        if h1_structure == 'B+':
             score += 1
-        elif h1_structure == 'BEAR':
+        elif h1_structure == 'B-':
             score -= 1
 
         # Vol Delta alignment for LONG
@@ -400,15 +400,15 @@ def calculate_alignment_score(
 
     else:  # SHORT
         # SMA alignment for SHORT
-        if sma_config == 'BEAR':
+        if sma_config == 'B-':
             score += 1
-        elif sma_config == 'BULL':
+        elif sma_config == 'B+':
             score -= 1
 
         # H1 alignment for SHORT
-        if h1_structure == 'BEAR':
+        if h1_structure == 'B-':
             score += 1
-        elif h1_structure == 'BULL':
+        elif h1_structure == 'B+':
             score -= 1  # Critical: 31.8% win rate when opposed
 
         # Vol Delta alignment for SHORT
@@ -433,8 +433,8 @@ def detect_critical_conflicts(
 
     Args:
         direction: 'LONG' or 'SHORT'
-        sma_config: 'BULL', 'BEAR', or 'NEUT'
-        h1_structure: 'BULL', 'BEAR', or 'NEUT'
+        sma_config: 'B+', 'B-', or 'N'
+        h1_structure: 'B+', 'B-', or 'N'
         vol_delta: Average volume delta value
 
     Returns:
@@ -443,12 +443,12 @@ def detect_critical_conflicts(
     conflicts = []
     vol_threshold = VOL_DELTA_THRESHOLDS['STRONG']  # 100000
 
-    # Rule 1: H1 BULL + SHORT (31.8% win rate - WORST)
-    if direction == 'SHORT' and h1_structure == 'BULL':
+    # Rule 1: H1 B+ + SHORT (31.8% win rate - WORST)
+    if direction == 'SHORT' and h1_structure == 'B+':
         conflicts.append("H1_BULL_SHORT_CONFLICT")
 
-    # Rule 2: H1 BEAR + LONG (counter-trend)
-    if direction == 'LONG' and h1_structure == 'BEAR':
+    # Rule 2: H1 B- + LONG (counter-trend)
+    if direction == 'LONG' and h1_structure == 'B-':
         conflicts.append("H1_BEAR_LONG_CONFLICT")
 
     # Rule 3: Vol Delta strong opposition
@@ -458,10 +458,10 @@ def detect_critical_conflicts(
         conflicts.append("VOL_DELTA_OPPOSES_SHORT")
 
     # Rule 4: Triple conflict (automatic NO_TRADE)
-    sma_counter = (direction == 'LONG' and sma_config == 'BEAR') or \
-                  (direction == 'SHORT' and sma_config == 'BULL')
-    h1_counter = (direction == 'LONG' and h1_structure == 'BEAR') or \
-                 (direction == 'SHORT' and h1_structure == 'BULL')
+    sma_counter = (direction == 'LONG' and sma_config == 'B-') or \
+                  (direction == 'SHORT' and sma_config == 'B+')
+    h1_counter = (direction == 'LONG' and h1_structure == 'B-') or \
+                 (direction == 'SHORT' and h1_structure == 'B+')
     vol_opposes = (direction == 'LONG' and vol_delta < -vol_threshold) or \
                   (direction == 'SHORT' and vol_delta > vol_threshold)
 
@@ -528,8 +528,8 @@ def build_alignment_analysis(
 
     Args:
         direction: LONG or SHORT
-        sma_config: SMA alignment (BULL/BEAR/NEUT)
-        h1_structure: H1 structure (BULL/BEAR/NEUT)
+        sma_config: SMA alignment (B+/B-/N)
+        h1_structure: H1 structure (B+/B-/N)
         vol_delta: Volume delta value
         vol_delta_status: Pre-calculated vol delta status
 
@@ -544,11 +544,11 @@ def build_alignment_analysis(
 
     # Build score breakdown
     if direction == 'LONG':
-        sma_contrib = "+1" if sma_config == 'BULL' else ("-1" if sma_config == 'BEAR' else "0")
-        h1_contrib = "+1" if h1_structure == 'BULL' else ("-1" if h1_structure == 'BEAR' else "0")
+        sma_contrib = "+1" if sma_config == 'B+' else ("-1" if sma_config == 'B-' else "0")
+        h1_contrib = "+1" if h1_structure == 'B+' else ("-1" if h1_structure == 'B-' else "0")
     else:  # SHORT
-        sma_contrib = "+1" if sma_config == 'BEAR' else ("-1" if sma_config == 'BULL' else "0")
-        h1_contrib = "+1" if h1_structure == 'BEAR' else ("-1" if h1_structure == 'BULL' else "0")
+        sma_contrib = "+1" if sma_config == 'B-' else ("-1" if sma_config == 'B+' else "0")
+        h1_contrib = "+1" if h1_structure == 'B-' else ("-1" if h1_structure == 'B+' else "0")
 
     vol_contrib = "+1" if vol_delta_status == 'FAVORABLE' else ("-1" if vol_delta_status == 'WEAK' else "0")
 
@@ -556,7 +556,7 @@ def build_alignment_analysis(
     if "TRIPLE_CONFLICT" in conflicts:
         recommendation = "NO_TRADE (triple conflict - all factors oppose)"
     elif "H1_BULL_SHORT_CONFLICT" in conflicts:
-        recommendation = "NO_TRADE (H1 BULL vs SHORT = 31.8% historical WR)"
+        recommendation = "NO_TRADE (H1 B+ vs SHORT = 31.8% historical WR)"
     elif score >= 2:
         recommendation = "TRADE (strong alignment)"
     elif score == 1:
@@ -603,8 +603,8 @@ def build_prompt(
         candle_range: 5-bar average candle range %
         vol_delta: 5-bar average volume delta
         vol_roc: 5-bar average volume ROC %
-        sma_config: SMA alignment (BULL/BEAR/NEUT)
-        h1_structure: H1 structure (BULL/BEAR/NEUT)
+        sma_config: SMA alignment (B+/B-/N)
+        h1_structure: H1 structure (B+/B-/N)
         direction_win_rate: Historical win rate for direction
         edge_summary: Formatted edge conditions
         zone_info: Formatted zone data
@@ -772,13 +772,13 @@ def get_vol_delta_interpretation(direction: str) -> str:
 def get_structure_interpretation(direction: str, sma_config: str, h1_structure: str) -> str:
     """Get interpretation of structure alignment for direction."""
     if direction == 'LONG':
-        aligned_sma = sma_config == 'BULL'
-        aligned_h1 = h1_structure == 'BULL'
-        target = 'BULL'
+        aligned_sma = sma_config == 'B+'
+        aligned_h1 = h1_structure == 'B+'
+        target = 'B+'
     else:
-        aligned_sma = sma_config == 'BEAR'
-        aligned_h1 = h1_structure == 'BEAR'
-        target = 'BEAR'
+        aligned_sma = sma_config == 'B-'
+        aligned_h1 = h1_structure == 'B-'
+        target = 'B-'
 
     parts = []
     if aligned_sma and aligned_h1:
@@ -824,8 +824,8 @@ def build_prompt_v2(
         candle_range: 5-bar average candle range %
         vol_delta: 5-bar average volume delta
         vol_roc: 5-bar average volume ROC %
-        sma_config: SMA alignment (BULL/BEAR/NEUT)
-        h1_structure: H1 structure (BULL/BEAR/NEUT)
+        sma_config: SMA alignment (B+/B-/N)
+        h1_structure: H1 structure (B+/B-/N)
         rampup_deltas: List of vol delta values from ramp-up bars
         indicator_edges: Full indicator_edges.json content
         model_stats: Full model_stats.json content

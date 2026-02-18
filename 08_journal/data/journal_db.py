@@ -103,6 +103,10 @@ class JournalDB:
 
         row = trade.to_db_row(source_file=source_file)
 
+        # Ensure exit_portions_json key exists (blended trades don't have it)
+        if "exit_portions_json" not in row:
+            row["exit_portions_json"] = None
+
         query = f"""
             INSERT INTO {self.TABLE} (
                 trade_id, trade_date, symbol, direction, account,
@@ -110,14 +114,14 @@ class JournalDB:
                 exit_price, exit_time, exit_qty, exit_fills,
                 pnl_dollars, pnl_total, pnl_r, outcome, duration_seconds,
                 zone_id, model, stop_price, notes,
-                source_file, is_closed, updated_at
+                source_file, is_closed, exit_portions_json, updated_at
             ) VALUES (
                 %(trade_id)s, %(trade_date)s, %(symbol)s, %(direction)s, %(account)s,
                 %(entry_price)s, %(entry_time)s, %(entry_qty)s, %(entry_fills)s,
                 %(exit_price)s, %(exit_time)s, %(exit_qty)s, %(exit_fills)s,
                 %(pnl_dollars)s, %(pnl_total)s, %(pnl_r)s, %(outcome)s, %(duration_seconds)s,
                 %(zone_id)s, %(model)s, %(stop_price)s, %(notes)s,
-                %(source_file)s, %(is_closed)s, NOW()
+                %(source_file)s, %(is_closed)s, %(exit_portions_json)s, NOW()
             )
             ON CONFLICT (trade_id) DO UPDATE SET
                 trade_date = EXCLUDED.trade_date,
@@ -139,6 +143,7 @@ class JournalDB:
                 duration_seconds = EXCLUDED.duration_seconds,
                 source_file = EXCLUDED.source_file,
                 is_closed = EXCLUDED.is_closed,
+                exit_portions_json = EXCLUDED.exit_portions_json,
                 updated_at = NOW()
         """
 

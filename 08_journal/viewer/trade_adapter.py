@@ -119,6 +119,9 @@ class JournalHighlight:
     # Journal-specific
     entry_qty: int = 0
 
+    # Journal-specific: exit portions for multiple exit triangles
+    exit_portions: list = field(default_factory=list)
+
     @property
     def rating(self) -> int:
         """Star rating based on max R achieved (0-5)."""
@@ -241,6 +244,15 @@ def build_journal_highlight(
         exit_reason="JOURNAL",
     )
 
+    # Parse exit_portions_json if available
+    import json
+    exit_json = row.get('exit_portions_json')
+    if exit_json:
+        if isinstance(exit_json, str):
+            hl.exit_portions = json.loads(exit_json)
+        elif isinstance(exit_json, list):
+            hl.exit_portions = exit_json
+
     # Attach zone info (use first/highest-scored zone)
     if zones:
         best_zone = zones[0]
@@ -251,30 +263,35 @@ def build_journal_highlight(
     # ---- ATR data: prefer pre-computed from DB (M5 model for chart display) ----
     has_precomputed = row.get('m5_atr_value') is not None
 
+    # j_trades_m5_r_win uses direct column names (no m5_ prefix)
+    if not has_precomputed:
+        has_precomputed = row.get('m5_atr_value') is not None or row.get('stop_price') is not None
+
     if has_precomputed:
         # Read pre-computed M5 ATR stop data from DB
+        # Support both m5_-prefixed (journal_trades) and direct (j_trades_m5_r_win) column names
         hl.m5_atr_value = to_float(row.get('m5_atr_value'))
-        hl.stop_price = to_float(row.get('m5_stop_price'))
-        hl.stop_distance = to_float(row.get('m5_stop_distance'))
-        hl.r1_price = to_float(row.get('m5_r1_price'))
-        hl.r2_price = to_float(row.get('m5_r2_price'))
-        hl.r3_price = to_float(row.get('m5_r3_price'))
-        hl.r4_price = to_float(row.get('m5_r4_price'))
-        hl.r5_price = to_float(row.get('m5_r5_price'))
-        hl.r1_hit = bool(row.get('m5_r1_hit'))
-        hl.r2_hit = bool(row.get('m5_r2_hit'))
-        hl.r3_hit = bool(row.get('m5_r3_hit'))
-        hl.r4_hit = bool(row.get('m5_r4_hit'))
-        hl.r5_hit = bool(row.get('m5_r5_hit'))
-        hl.r1_time = row.get('m5_r1_time')
-        hl.r2_time = row.get('m5_r2_time')
-        hl.r3_time = row.get('m5_r3_time')
-        hl.r4_time = row.get('m5_r4_time')
-        hl.r5_time = row.get('m5_r5_time')
-        hl.stop_hit = bool(row.get('m5_stop_hit'))
-        hl.stop_hit_time = row.get('m5_stop_hit_time')
-        hl.max_r_achieved = int(row.get('m5_max_r', 0) or 0)
-        hl.pnl_r = to_float(row.get('m5_pnl_r'))
+        hl.stop_price = to_float(row.get('stop_price') or row.get('m5_stop_price'))
+        hl.stop_distance = to_float(row.get('stop_distance') or row.get('m5_stop_distance'))
+        hl.r1_price = to_float(row.get('r1_price') or row.get('m5_r1_price'))
+        hl.r2_price = to_float(row.get('r2_price') or row.get('m5_r2_price'))
+        hl.r3_price = to_float(row.get('r3_price') or row.get('m5_r3_price'))
+        hl.r4_price = to_float(row.get('r4_price') or row.get('m5_r4_price'))
+        hl.r5_price = to_float(row.get('r5_price') or row.get('m5_r5_price'))
+        hl.r1_hit = bool(row.get('r1_hit') or row.get('m5_r1_hit'))
+        hl.r2_hit = bool(row.get('r2_hit') or row.get('m5_r2_hit'))
+        hl.r3_hit = bool(row.get('r3_hit') or row.get('m5_r3_hit'))
+        hl.r4_hit = bool(row.get('r4_hit') or row.get('m5_r4_hit'))
+        hl.r5_hit = bool(row.get('r5_hit') or row.get('m5_r5_hit'))
+        hl.r1_time = row.get('r1_time') or row.get('m5_r1_time')
+        hl.r2_time = row.get('r2_time') or row.get('m5_r2_time')
+        hl.r3_time = row.get('r3_time') or row.get('m5_r3_time')
+        hl.r4_time = row.get('r4_time') or row.get('m5_r4_time')
+        hl.r5_time = row.get('r5_time') or row.get('m5_r5_time')
+        hl.stop_hit = bool(row.get('stop_hit') or row.get('m5_stop_hit'))
+        hl.stop_hit_time = row.get('stop_hit_time') or row.get('m5_stop_hit_time')
+        hl.max_r_achieved = int(row.get('max_r_achieved') or row.get('m5_max_r', 0) or 0)
+        hl.pnl_r = to_float(row.get('pnl_r') or row.get('m5_pnl_r'))
         hl.reached_2r = hl.max_r_achieved >= 2
         hl.reached_3r = hl.max_r_achieved >= 3
 

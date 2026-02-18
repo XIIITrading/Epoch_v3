@@ -30,8 +30,8 @@ class AIPrediction:
     vol_delta_status: Optional[str] = None  # FAVORABLE, NEUTRAL, WEAK
     vol_roc: Optional[float] = None         # e.g., 65
     vol_roc_status: Optional[str] = None    # ELEVATED, NORMAL
-    sma: Optional[str] = None               # BULL, BEAR, NEUT
-    h1_struct: Optional[str] = None         # BULL, BEAR, NEUT
+    sma: Optional[str] = None               # B+, B-, N
+    h1_struct: Optional[str] = None         # B+, B-, N
     snapshot: Optional[str] = None          # 2-3 sentence summary
 
     # Actual outcome

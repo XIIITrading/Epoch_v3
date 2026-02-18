@@ -233,14 +233,14 @@ def get_sma_config_str(sma9: float, sma21: float) -> str:
         sma21: SMA21 value
 
     Returns:
-        "BULL" if SMA9 > SMA21, "BEAR" if SMA9 < SMA21, "FLAT" if equal
+        "B+" if SMA9 > SMA21, "B-" if SMA9 < SMA21, "N" if equal
     """
     if sma9 > sma21:
-        return "BULL"
+        return "B+"
     elif sma9 < sma21:
-        return "BEAR"
+        return "B-"
     else:
-        return "FLAT"
+        return "N"
 
 
 def get_price_position(price: float, sma9: float, sma21: float) -> str:

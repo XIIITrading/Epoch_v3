@@ -15,6 +15,7 @@ from pathlib import Path
 MODULE_DIR = Path(__file__).parent.parent          # 08_journal/
 BASE_DIR = MODULE_DIR.parent                       # Epoch_v3/
 TRADE_REEL_DIR = BASE_DIR / "11_trade_reel"        # For chart imports
+EXPORT_DIR = MODULE_DIR / "exports"                # Discord export output
 
 # =============================================================================
 # Polygon API

@@ -333,12 +333,12 @@ class TickerPanel(QFrame):
 
         item.setText(display)
 
-        # Simple color: BULL=green, BEAR=red, else=white
+        # Simple color: B+=green, B-=red, else=white
         if config is not None:
             config_value = config.value if hasattr(config, 'value') else str(config)
-            if config_value == 'BULL':
+            if config_value == 'B+':
                 item.setForeground(QColor(COLORS['positive']))
-            elif config_value == 'BEAR':
+            elif config_value == 'B-':
                 item.setForeground(QColor(COLORS['negative']))
             else:
                 item.setForeground(QColor(COLORS['text_primary']))
@@ -362,12 +362,12 @@ class TickerPanel(QFrame):
 
         item.setText(display)
 
-        # Simple color: BULL=green, BEAR=red, NEUTRAL=white
+        # Simple color: B+=green, B-=red, N=white
         if structure is not None:
             struct_value = structure.value if hasattr(structure, 'value') else str(structure)
-            if struct_value == 'BULL':
+            if struct_value == 'B+':
                 item.setForeground(QColor(COLORS['positive']))
-            elif struct_value == 'BEAR':
+            elif struct_value == 'B-':
                 item.setForeground(QColor(COLORS['negative']))
             else:
                 item.setForeground(QColor(COLORS['text_primary']))
