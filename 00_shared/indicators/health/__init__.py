@@ -1,16 +1,6 @@
 """
-Epoch Trading System - Health Scoring
-======================================
-
-10-factor health score calculation for trade evaluation.
-
-Usage:
-    from shared.indicators.health import calculate_health_score
+DEPRECATED - Health scoring has been removed.
+All scoring systems are deprecated per SWH-6.
+This module is retained as an empty placeholder to prevent import errors
+during migration. Will be deleted after Phase 2 migration is complete.
 """
-
-from .health_score import calculate_health_score, HealthResult
-
-__all__ = [
-    "calculate_health_score",
-    "HealthResult",
-]

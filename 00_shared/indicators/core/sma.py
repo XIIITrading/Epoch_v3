@@ -1,260 +1,246 @@
 """
-Epoch Trading System - SMA Indicators
-======================================
+================================================================================
+EPOCH TRADING SYSTEM - SMA (Canonical)
+Simple Moving Average with Spread, Momentum, and Configuration
+XIII Trading LLC
+================================================================================
 
-Simple Moving Average calculations.
+SMA9 / SMA21 spread analysis with momentum detection.
 
-Health Factors:
-- SMA Alignment: SMA9 > SMA21 for LONG, SMA9 < SMA21 for SHORT
-- SMA Momentum: WIDENING spread = healthy
+Labels:
+    Config: "BULL", "BEAR", "FLAT"
+    Momentum: "WIDENING", "NARROWING", "FLAT"
+    Price Position: "ABOVE", "BELOW", "BTWN"
 
-Usage:
-    from shared.indicators.core import sma, ema
-
-    # Calculate SMA on a Series
-    df['sma_20'] = sma(df['close'], period=20)
-
-    # Calculate SMA spread
-    spread = calculate_sma_spread(df['close'], fast=9, slow=21)
+================================================================================
 """
 
-import pandas as pd
 import numpy as np
-from typing import Union, Optional, List, Any, NamedTuple
+import pandas as pd
+from typing import List, Optional, Any, Union
+
+from ..config import CONFIG
+from ..types import SMAResult, SMAMomentumResult
+from .._utils import get_close
 
 
 # =============================================================================
-# CONFIGURATION
+# NUMPY CORE
 # =============================================================================
-SMA_CONFIG = {
-    "fast_period": 9,
-    "slow_period": 21,
-    "momentum_lookback": 3,
-    "widening_threshold": 1.10,
-    "narrowing_threshold": 0.90,
-    "wide_spread_threshold": 0.15,
-}
 
-
-# =============================================================================
-# RESULT TYPES
-# =============================================================================
-class SMAResult(NamedTuple):
-    """Result of SMA spread calculation."""
-    sma9: Optional[float]
-    sma21: Optional[float]
-    spread: Optional[float]
-    alignment: Optional[str]  # "BULLISH" or "BEARISH"
-    cross_estimate: Optional[float]
-
-
-class SMAMomentumResult(NamedTuple):
-    """Result of SMA momentum calculation."""
-    spread_now: Optional[float]
-    spread_prev: Optional[float]
-    momentum: str  # "WIDENING", "NARROWING", or "FLAT"
-    ratio: Optional[float]
-
-
-# =============================================================================
-# CORE FUNCTIONS
-# =============================================================================
-def sma(
-    data: Union[pd.Series, List[float], np.ndarray],
-    period: int = 20,
-) -> Union[pd.Series, float, None]:
+def _sma_core(close: np.ndarray, period: int) -> np.ndarray:
     """
-    Calculate Simple Moving Average.
-
-    Args:
-        data: Price data (Series, list, or array)
-        period: Number of periods for SMA
+    Calculate SMA series.
 
     Returns:
-        Series of SMA values (if input is Series)
-        Float (if input is list/array and calculating single value)
+        numpy array (NaN where insufficient data)
     """
-    if isinstance(data, pd.Series):
-        return data.rolling(window=period, min_periods=period).mean()
-    elif isinstance(data, (list, np.ndarray)):
-        arr = np.array(data)
-        if len(arr) < period:
-            return None
-        return float(np.mean(arr[-period:]))
-    else:
-        raise TypeError(f"Unsupported data type: {type(data)}")
+    n = len(close)
+    result = np.full(n, np.nan)
+
+    for i in range(period - 1, n):
+        result[i] = close[i - period + 1:i + 1].mean()
+
+    return result
 
 
-def ema(
-    data: Union[pd.Series, List[float], np.ndarray],
-    period: int = 20,
-) -> Union[pd.Series, float, None]:
+def _ema_core(close: np.ndarray, period: int) -> np.ndarray:
     """
-    Calculate Exponential Moving Average.
-
-    Args:
-        data: Price data (Series, list, or array)
-        period: Number of periods for EMA
+    Calculate EMA series.
 
     Returns:
-        Series of EMA values (if input is Series)
-        Float (if input is list/array)
+        numpy array
     """
-    if isinstance(data, pd.Series):
-        return data.ewm(span=period, adjust=False).mean()
-    elif isinstance(data, (list, np.ndarray)):
-        arr = np.array(data)
-        if len(arr) < period:
-            return None
-        series = pd.Series(arr)
-        return float(series.ewm(span=period, adjust=False).mean().iloc[-1])
-    else:
-        raise TypeError(f"Unsupported data type: {type(data)}")
+    n = len(close)
+    result = np.full(n, np.nan)
+
+    if n < period:
+        return result
+
+    # Seed with SMA
+    result[period - 1] = close[:period].mean()
+    multiplier = 2.0 / (period + 1)
+
+    for i in range(period, n):
+        result[i] = (close[i] - result[i - 1]) * multiplier + result[i - 1]
+
+    return result
 
 
 # =============================================================================
-# SPREAD & ALIGNMENT FUNCTIONS
+# DATAFRAME WRAPPER
 # =============================================================================
-def calculate_sma_spread(
-    data: Union[pd.Series, List[float]],
-    fast: int = 9,
-    slow: int = 21,
-) -> SMAResult:
-    """
-    Calculate SMA spread and alignment.
 
-    Args:
-        data: Price data
-        fast: Fast SMA period (default 9)
-        slow: Slow SMA period (default 21)
-
-    Returns:
-        SMAResult with sma9, sma21, spread, alignment, cross_estimate
-    """
-    sma_fast = sma(data, fast)
-    sma_slow = sma(data, slow)
-
-    # Get the latest values
-    if isinstance(sma_fast, pd.Series):
-        sma_fast_val = sma_fast.iloc[-1] if not sma_fast.empty else None
-        sma_slow_val = sma_slow.iloc[-1] if not sma_slow.empty else None
-    else:
-        sma_fast_val = sma_fast
-        sma_slow_val = sma_slow
-
-    if sma_fast_val is None or sma_slow_val is None or pd.isna(sma_fast_val) or pd.isna(sma_slow_val):
-        return SMAResult(
-            sma9=sma_fast_val,
-            sma21=sma_slow_val,
-            spread=None,
-            alignment=None,
-            cross_estimate=None,
-        )
-
-    spread = sma_fast_val - sma_slow_val
-    alignment = "BULLISH" if sma_fast_val > sma_slow_val else "BEARISH"
-    cross_estimate = (sma_fast_val + sma_slow_val) / 2
-
-    return SMAResult(
-        sma9=sma_fast_val,
-        sma21=sma_slow_val,
-        spread=spread,
-        alignment=alignment,
-        cross_estimate=cross_estimate,
+def sma_df(
+    df: pd.DataFrame,
+    period: int,
+    close_col: str = "close",
+) -> pd.Series:
+    """Calculate SMA series for a DataFrame."""
+    return pd.Series(
+        _sma_core(df[close_col].values.astype(np.float64), period),
+        index=df.index,
+        name=f"sma_{period}",
     )
 
 
-def calculate_sma_spread_pct(
-    sma9: float,
-    sma21: float,
-    price: float,
-) -> float:
-    """
-    Calculate spread between SMA9 and SMA21 as percentage of price.
+def ema_df(
+    df: pd.DataFrame,
+    period: int,
+    close_col: str = "close",
+) -> pd.Series:
+    """Calculate EMA series for a DataFrame."""
+    return pd.Series(
+        _ema_core(df[close_col].values.astype(np.float64), period),
+        index=df.index,
+        name=f"ema_{period}",
+    )
 
-    Args:
-        sma9: SMA9 value
-        sma21: SMA21 value
-        price: Reference price for percentage calculation
 
-    Returns:
-        Spread as percentage (e.g., 0.15 for 0.15%)
+def sma_spread_df(
+    df: pd.DataFrame,
+    close_col: str = "close",
+) -> pd.DataFrame:
     """
+    Calculate SMA9, SMA21, spread, and config for a DataFrame.
+
+    Returns DataFrame with columns: sma9, sma21, sma_spread, sma_config, sma_spread_pct
+    """
+    cfg = CONFIG.sma
+    close = df[close_col].values.astype(np.float64)
+    sma9 = _sma_core(close, cfg.fast_period)
+    sma21 = _sma_core(close, cfg.slow_period)
+
+    spread = sma9 - sma21
+    config_arr = np.where(sma9 > sma21, "BULL", np.where(sma9 < sma21, "BEAR", "FLAT"))
+    spread_pct = np.where(close > 0, np.abs(spread) / close * 100, 0.0)
+
+    result = pd.DataFrame(index=df.index)
+    result["sma9"] = sma9
+    result["sma21"] = sma21
+    result["sma_spread"] = spread
+    result["sma_config"] = config_arr
+    result["sma_spread_pct"] = spread_pct
+    return result
+
+
+# =============================================================================
+# BAR-LIST WRAPPER
+# =============================================================================
+
+def calculate_sma(
+    bars: List[Any],
+    period: int,
+    up_to_index: Optional[int] = None,
+) -> Optional[float]:
+    """Calculate SMA from bar list. Returns None if insufficient data."""
+    if not bars:
+        return None
+
+    end_index = up_to_index if up_to_index is not None else len(bars) - 1
+    end_index = min(end_index, len(bars) - 1)
+
+    if end_index < period - 1:
+        return None
+
+    start_idx = end_index - period + 1
+    prices = []
+    for i in range(start_idx, end_index + 1):
+        price = get_close(bars[i])
+        if price is not None:
+            prices.append(price)
+
+    if len(prices) < period:
+        return None
+
+    return sum(prices) / len(prices)
+
+
+def calculate_sma_spread(
+    bars: List[Any],
+    up_to_index: Optional[int] = None,
+) -> SMAResult:
+    """Calculate SMA9/SMA21 spread and alignment from bar list."""
+    cfg = CONFIG.sma
+    sma_fast = calculate_sma(bars, cfg.fast_period, up_to_index)
+    sma_slow = calculate_sma(bars, cfg.slow_period, up_to_index)
+
+    if sma_fast is None or sma_slow is None:
+        return SMAResult(sma9=sma_fast, sma21=sma_slow, spread=None, alignment=None, cross_estimate=None)
+
+    spread = sma_fast - sma_slow
+    alignment = "BULLISH" if sma_fast > sma_slow else "BEARISH"
+    cross_estimate = (sma_fast + sma_slow) / 2
+
+    return SMAResult(sma9=sma_fast, sma21=sma_slow, spread=spread, alignment=alignment, cross_estimate=cross_estimate)
+
+
+def calculate_sma_momentum(
+    bars: List[Any],
+    up_to_index: Optional[int] = None,
+) -> SMAMomentumResult:
+    """Calculate SMA spread momentum (WIDENING/NARROWING/FLAT)."""
+    cfg = CONFIG.sma
+
+    end_index = up_to_index if up_to_index is not None else len(bars) - 1
+    end_index = min(end_index, len(bars) - 1)
+
+    current_result = calculate_sma_spread(bars, end_index)
+    spread_now = current_result.spread
+
+    if spread_now is None:
+        return SMAMomentumResult(spread_now=None, spread_prev=None, momentum="FLAT", ratio=None)
+
+    earlier_index = end_index - cfg.momentum_lookback
+    if earlier_index < cfg.slow_period:
+        return SMAMomentumResult(spread_now=spread_now, spread_prev=None, momentum="FLAT", ratio=None)
+
+    earlier_result = calculate_sma_spread(bars, earlier_index)
+    spread_prev = earlier_result.spread
+
+    if spread_prev is None:
+        return SMAMomentumResult(spread_now=spread_now, spread_prev=None, momentum="FLAT", ratio=None)
+
+    abs_now = abs(spread_now)
+    abs_prev = abs(spread_prev)
+
+    if abs_prev == 0:
+        return SMAMomentumResult(spread_now=spread_now, spread_prev=spread_prev, momentum="FLAT", ratio=None)
+
+    ratio = abs_now / abs_prev
+
+    if ratio > cfg.widening_threshold:
+        momentum = "WIDENING"
+    elif ratio < cfg.narrowing_threshold:
+        momentum = "NARROWING"
+    else:
+        momentum = "FLAT"
+
+    return SMAMomentumResult(spread_now=spread_now, spread_prev=spread_prev, momentum=momentum, ratio=ratio)
+
+
+# =============================================================================
+# CLASSIFICATION HELPERS
+# =============================================================================
+
+def calculate_sma_spread_pct(sma9: float, sma21: float, price: float) -> float:
+    """Calculate spread between SMA9 and SMA21 as percentage of price."""
     if price <= 0:
         return 0.0
-    spread = abs(sma9 - sma21)
-    return (spread / price) * 100
-
-
-# =============================================================================
-# HEALTH CHECK FUNCTIONS
-# =============================================================================
-def is_sma_alignment_healthy(
-    sma9: Optional[float],
-    sma21: Optional[float],
-    direction: str,
-) -> bool:
-    """
-    Check if SMA alignment supports trade direction.
-
-    Args:
-        sma9: Fast SMA value
-        sma21: Slow SMA value
-        direction: Trade direction ('LONG' or 'SHORT')
-
-    Returns:
-        True if alignment supports direction
-    """
-    if sma9 is None or sma21 is None:
-        return False
-    is_long = direction.upper() in ("LONG", "BULL", "BULLISH")
-    return sma9 > sma21 if is_long else sma9 < sma21
-
-
-def is_wide_spread(spread_pct: float) -> bool:
-    """
-    Check if SMA spread indicates strong trend.
-
-    Args:
-        spread_pct: Spread as percentage
-
-    Returns:
-        True if spread >= 0.15%
-    """
-    return spread_pct >= SMA_CONFIG["wide_spread_threshold"]
+    return (abs(sma9 - sma21) / price) * 100
 
 
 def get_sma_config_str(sma9: float, sma21: float) -> str:
-    """
-    Get SMA configuration as string.
-
-    Args:
-        sma9: SMA9 value
-        sma21: SMA21 value
-
-    Returns:
-        "B+" if SMA9 > SMA21, "B-" if SMA9 < SMA21, "N" if equal
-    """
+    """Get SMA configuration label: 'BULL', 'BEAR', or 'FLAT'."""
     if sma9 > sma21:
-        return "B+"
+        return "BULL"
     elif sma9 < sma21:
-        return "B-"
-    else:
-        return "N"
+        return "BEAR"
+    return "FLAT"
 
 
 def get_price_position(price: float, sma9: float, sma21: float) -> str:
-    """
-    Determine price position relative to SMAs.
-
-    Args:
-        price: Current price
-        sma9: SMA9 value
-        sma21: SMA21 value
-
-    Returns:
-        "ABOVE" if price > both, "BELOW" if price < both, "BTWN" if between
-    """
+    """Determine price position relative to SMAs: 'ABOVE', 'BELOW', or 'BTWN'."""
     higher_sma = max(sma9, sma21)
     lower_sma = min(sma9, sma21)
 
@@ -262,5 +248,9 @@ def get_price_position(price: float, sma9: float, sma21: float) -> str:
         return "ABOVE"
     elif price < lower_sma:
         return "BELOW"
-    else:
-        return "BTWN"
+    return "BTWN"
+
+
+def is_wide_spread(spread_pct: float) -> bool:
+    """Check if SMA spread indicates strong trend (>= 0.15%)."""
+    return spread_pct >= CONFIG.sma.wide_spread_threshold

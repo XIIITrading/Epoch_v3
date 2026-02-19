@@ -1,157 +1,141 @@
 """
-Epoch Trading System - Candle Range Indicator
-==============================================
+================================================================================
+EPOCH TRADING SYSTEM - CANDLE RANGE (Canonical)
+XIII Trading LLC
+================================================================================
 
-Candle range and relative size calculations.
+Formula:
+    candle_range_pct = (high - low) / close * 100
 
-Usage:
-    from shared.indicators.core import candle_range, relative_candle_range
+Thresholds:
+    ABSORPTION: < 0.12% (skip trades - 33% WR universal)
+    LOW: 0.12% - 0.15%
+    NORMAL: 0.15% - 0.20% (has momentum)
+    HIGH: >= 0.20% (strong signal)
 
-    # Calculate candle range
-    df['range'] = candle_range(df)
+================================================================================
 """
 
-import pandas as pd
 import numpy as np
-from typing import Union, Optional
+import pandas as pd
+from typing import List, Optional, Any
+
+from ..config import CONFIG
+from ..types import CandleRangeResult
+from .._utils import get_high, get_low, get_close
 
 
-def candle_range(
+# =============================================================================
+# NUMPY CORE
+# =============================================================================
+
+def _candle_range_pct_core(
+    high: np.ndarray,
+    low: np.ndarray,
+    close: np.ndarray,
+) -> np.ndarray:
+    """
+    Calculate candle range as percentage of close for each bar.
+
+    Returns:
+        numpy array of range percentages
+    """
+    safe_close = np.where(close <= 0, 1.0, close)
+    return np.where(close <= 0, 0.0, (high - low) / safe_close * 100.0)
+
+
+# =============================================================================
+# DATAFRAME WRAPPER
+# =============================================================================
+
+def candle_range_pct_df(
+    df: pd.DataFrame,
+    high_col: str = "high",
+    low_col: str = "low",
+    close_col: str = "close",
+) -> pd.Series:
+    """Calculate candle range percentage for a DataFrame."""
+    return pd.Series(
+        _candle_range_pct_core(
+            df[high_col].values.astype(np.float64),
+            df[low_col].values.astype(np.float64),
+            df[close_col].values.astype(np.float64),
+        ),
+        index=df.index,
+        name="candle_range_pct",
+    )
+
+
+def candle_range_df(
     df: pd.DataFrame,
     high_col: str = "high",
     low_col: str = "low",
 ) -> pd.Series:
-    """
-    Calculate candle range (high - low).
-
-    Args:
-        df: DataFrame with OHLCV data
-        high_col: Column name for high prices
-        low_col: Column name for low prices
-
-    Returns:
-        Series of range values
-    """
-    return df[high_col] - df[low_col]
+    """Calculate raw candle range (high - low) for a DataFrame."""
+    return pd.Series(df[high_col] - df[low_col], name="candle_range")
 
 
-def relative_candle_range(
+def relative_candle_range_df(
     df: pd.DataFrame,
     period: int = 20,
     high_col: str = "high",
     low_col: str = "low",
 ) -> pd.Series:
-    """
-    Calculate candle range relative to average.
-
-    Args:
-        df: DataFrame with OHLCV data
-        period: Baseline period for average range
-        high_col: Column name for high prices
-        low_col: Column name for low prices
-
-    Returns:
-        Series of relative range values (1.0 = average)
-    """
-    ranges = candle_range(df, high_col, low_col)
+    """Calculate candle range relative to average (1.0 = average)."""
+    ranges = df[high_col] - df[low_col]
     avg_range = ranges.rolling(window=period, min_periods=1).mean()
-    return ranges / avg_range.replace(0, np.nan)
+    return (ranges / avg_range.replace(0, np.nan)).rename("relative_range")
 
 
-def candle_body(
-    df: pd.DataFrame,
-    open_col: str = "open",
-    close_col: str = "close",
-) -> pd.Series:
-    """
-    Calculate candle body size (absolute).
+# =============================================================================
+# BAR-LIST WRAPPER
+# =============================================================================
 
-    Args:
-        df: DataFrame with OHLCV data
-        open_col: Column name for open prices
-        close_col: Column name for close prices
-
-    Returns:
-        Series of body size values (always positive)
-    """
-    return abs(df[close_col] - df[open_col])
+def calculate_candle_range_pct(high: float, low: float, close: float) -> float:
+    """Calculate candle range as percentage: (high - low) / close * 100."""
+    if close <= 0:
+        return 0.0
+    return (high - low) / close * 100.0
 
 
-def body_to_range_ratio(
-    df: pd.DataFrame,
-) -> pd.Series:
-    """
-    Calculate body to range ratio.
+def calculate_candle_range_from_bar(bar: Any) -> CandleRangeResult:
+    """Calculate candle range from a bar dict or object."""
+    high = get_high(bar, 0.0)
+    low = get_low(bar, 0.0)
+    close = get_close(bar, 0.0)
 
-    Args:
-        df: DataFrame with OHLCV data
+    pct = calculate_candle_range_pct(high, low, close)
+    classification = get_range_classification(pct)
 
-    Returns:
-        Series of ratios (0 to 1, higher = more body)
-    """
-    body = candle_body(df)
-    range_val = candle_range(df)
-    return body / range_val.replace(0, np.nan)
-
-
-def get_candle_type(
-    open_price: float,
-    close_price: float,
-    high_price: float,
-    low_price: float,
-) -> str:
-    """
-    Classify candle type.
-
-    Args:
-        open_price: Open price
-        close_price: Close price
-        high_price: High price
-        low_price: Low price
-
-    Returns:
-        Candle type classification
-    """
-    body = abs(close_price - open_price)
-    range_val = high_price - low_price
-
-    if range_val == 0:
-        return "DOJI"
-
-    body_ratio = body / range_val
-
-    if body_ratio < 0.1:
-        return "DOJI"
-    elif body_ratio < 0.3:
-        return "SPINNING_TOP"
-    elif body_ratio > 0.7:
-        if close_price > open_price:
-            return "STRONG_BULL"
-        else:
-            return "STRONG_BEAR"
-    else:
-        if close_price > open_price:
-            return "BULL"
-        else:
-            return "BEAR"
+    return CandleRangeResult(
+        candle_range_pct=pct,
+        classification=classification,
+        is_absorption=is_absorption_zone(pct),
+        has_momentum=pct >= CONFIG.candle_range.normal_threshold,
+    )
 
 
-def is_range_expansion(
-    current_range: float,
-    avg_range: float,
-    threshold: float = 1.5,
-) -> bool:
-    """
-    Check if current range is expanded.
+# =============================================================================
+# CLASSIFICATION HELPERS
+# =============================================================================
 
-    Args:
-        current_range: Current candle range
-        avg_range: Average range
-        threshold: Expansion threshold
+def is_absorption_zone(candle_range_pct: float) -> bool:
+    """Check if candle range indicates absorption zone (< 0.12% = SKIP)."""
+    return candle_range_pct < CONFIG.candle_range.absorption_threshold
 
-    Returns:
-        True if range is expanded
-    """
-    if avg_range == 0:
-        return False
-    return current_range / avg_range >= threshold
+
+def get_range_classification(candle_range_pct: float) -> str:
+    """Classify candle range: 'ABSORPTION', 'LOW', 'NORMAL', 'HIGH'."""
+    cfg = CONFIG.candle_range
+    if candle_range_pct < cfg.absorption_threshold:
+        return "ABSORPTION"
+    elif candle_range_pct < cfg.normal_threshold:
+        return "LOW"
+    elif candle_range_pct < cfg.high_threshold:
+        return "NORMAL"
+    return "HIGH"
+
+
+def is_candle_range_healthy(candle_range_pct: float) -> bool:
+    """Check if candle range indicates healthy momentum (>= 0.15%)."""
+    return candle_range_pct >= CONFIG.candle_range.normal_threshold

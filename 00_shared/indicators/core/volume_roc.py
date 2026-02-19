@@ -1,91 +1,158 @@
 """
-Epoch Trading System - Volume ROC Indicator
-============================================
+================================================================================
+EPOCH TRADING SYSTEM - VOLUME ROC (Canonical)
+Percentage Format
+XIII Trading LLC
+================================================================================
 
-Volume Rate of Change calculations.
+Formula:
+    baseline_avg = mean(volume[-N-1:-1])     (exclude current bar)
+    roc = ((current_volume - baseline_avg) / baseline_avg) * 100
 
-Usage:
-    from shared.indicators.core import volume_roc
+Output is PERCENTAGE: 0% = average, 30% = elevated, 50% = high
 
-    # Calculate volume ROC
-    df['vol_roc'] = volume_roc(df)
+================================================================================
 """
 
-import pandas as pd
 import numpy as np
-from typing import Union, Optional
+import pandas as pd
+from typing import List, Optional, Any
+
+from ..config import CONFIG
+from ..types import VolumeROCResult
+from .._utils import get_volume
 
 
-def volume_roc(
+# =============================================================================
+# NUMPY CORE
+# =============================================================================
+
+def _volume_roc_core(volume: np.ndarray, period: int) -> np.ndarray:
+    """
+    Calculate volume ROC as percentage for each bar.
+
+    Args:
+        volume: numpy array of volume values
+        period: baseline lookback period
+
+    Returns:
+        numpy array of ROC percentages (NaN where insufficient data)
+    """
+    n = len(volume)
+    result = np.full(n, np.nan)
+
+    for i in range(period, n):
+        baseline = volume[i - period:i]
+        avg = baseline.mean()
+        if avg == 0:
+            result[i] = 0.0
+        else:
+            result[i] = ((volume[i] - avg) / avg) * 100.0
+
+    return result
+
+
+# =============================================================================
+# DATAFRAME WRAPPER
+# =============================================================================
+
+def volume_roc_df(
     df: pd.DataFrame,
-    period: int = 20,
+    period: Optional[int] = None,
     volume_col: str = "volume",
 ) -> pd.Series:
     """
-    Calculate Volume Rate of Change (current volume vs average).
+    Calculate volume ROC as percentage for a DataFrame.
 
     Args:
         df: DataFrame with volume data
-        period: Baseline period for average volume
-        volume_col: Column name for volume
+        period: baseline period (default from config)
+        volume_col: column name for volume
 
     Returns:
-        Series of ROC values (1.0 = average, 2.0 = 2x average)
+        Series of ROC percentages
     """
-    avg_vol = df[volume_col].rolling(window=period, min_periods=1).mean()
-    roc = df[volume_col] / avg_vol
-    return roc.replace([np.inf, -np.inf], np.nan)
+    period = period or CONFIG.volume_roc.baseline_period
+    return pd.Series(
+        _volume_roc_core(df[volume_col].values.astype(np.float64), period),
+        index=df.index,
+        name="vol_roc",
+    )
 
 
-def volume_roc_pct(
-    df: pd.DataFrame,
-    period: int = 20,
-    volume_col: str = "volume",
-) -> pd.Series:
+# =============================================================================
+# BAR-LIST WRAPPER
+# =============================================================================
+
+def calculate_volume_roc(
+    bars: List[Any],
+    up_to_index: Optional[int] = None,
+    baseline_period: Optional[int] = None,
+) -> VolumeROCResult:
     """
-    Calculate Volume ROC as percentage change from average.
+    Calculate Volume ROC vs baseline average.
 
     Args:
-        df: DataFrame with volume data
-        period: Baseline period
-        volume_col: Column name for volume
+        bars: List of bar data
+        up_to_index: Calculate up to this index (inclusive)
+        baseline_period: Number of bars for baseline
 
     Returns:
-        Series of percentage values (0 = average, 100 = 2x average)
+        VolumeROCResult with roc (percentage), signal, current_volume, baseline_avg
     """
-    roc = volume_roc(df, period, volume_col)
-    return (roc - 1) * 100
+    baseline = baseline_period or CONFIG.volume_roc.baseline_period
+
+    if not bars:
+        return VolumeROCResult(roc=None, signal="Average", current_volume=0, baseline_avg=None)
+
+    end_index = up_to_index if up_to_index is not None else len(bars) - 1
+    end_index = min(end_index, len(bars) - 1)
+
+    if end_index < baseline:
+        return VolumeROCResult(
+            roc=None, signal="Average",
+            current_volume=get_volume(bars[end_index]),
+            baseline_avg=None,
+        )
+
+    current_volume = get_volume(bars[end_index])
+    start_idx = end_index - baseline
+    baseline_volumes = [get_volume(bars[i]) for i in range(start_idx, end_index)]
+
+    if not baseline_volumes:
+        return VolumeROCResult(roc=None, signal="Average", current_volume=current_volume, baseline_avg=None)
+
+    baseline_avg = sum(baseline_volumes) / len(baseline_volumes)
+
+    if baseline_avg == 0:
+        return VolumeROCResult(roc=0.0, signal="Average", current_volume=current_volume, baseline_avg=baseline_avg)
+
+    roc = ((current_volume - baseline_avg) / baseline_avg) * 100.0
+    signal = classify_volume_roc(roc)
+
+    return VolumeROCResult(roc=roc, signal=signal, current_volume=current_volume, baseline_avg=baseline_avg)
 
 
-def get_volume_intensity(roc: float) -> str:
-    """
-    Get volume intensity classification.
+# =============================================================================
+# CLASSIFICATION HELPERS
+# =============================================================================
 
-    Args:
-        roc: Volume ROC value
-
-    Returns:
-        "HIGH" if > 1.5x, "ABOVE_AVG" if > 1.0x, "BELOW_AVG" if < 1.0x, "LOW" if < 0.5x
-    """
-    if roc >= 1.5:
-        return "HIGH"
-    elif roc >= 1.0:
-        return "ABOVE_AVG"
-    elif roc >= 0.5:
-        return "BELOW_AVG"
-    else:
-        return "LOW"
+def classify_volume_roc(roc: Optional[float]) -> str:
+    """Classify volume ROC into signal categories."""
+    if roc is None:
+        return "Average"
+    if roc > CONFIG.volume_roc.above_avg_threshold:
+        return "Above Avg"
+    elif roc < CONFIG.volume_roc.below_avg_threshold:
+        return "Below Avg"
+    return "Average"
 
 
-def is_volume_healthy(roc: float, min_threshold: float = 0.8) -> bool:
-    """
-    Check if volume is healthy for trading.
+def is_elevated_volume(volume_roc: float) -> bool:
+    """Check if volume ROC indicates elevated volume (>=30%)."""
+    return volume_roc >= CONFIG.volume_roc.elevated_threshold
 
-    Args:
-        roc: Volume ROC value
-        min_threshold: Minimum ROC threshold
 
-    Returns:
-        True if volume is above threshold
-    """
-    return roc >= min_threshold
+def is_high_volume(volume_roc: float) -> bool:
+    """Check if volume ROC indicates high volume (>=50%)."""
+    return volume_roc >= CONFIG.volume_roc.high_threshold

@@ -1,211 +1,232 @@
 """
-Epoch Trading System - Market Structure Detection
-==================================================
+================================================================================
+EPOCH TRADING SYSTEM - MARKET STRUCTURE (Canonical)
+Fractal-Based Detection
+XIII Trading LLC
+================================================================================
 
-Fractal-based market structure analysis.
+Method:
+    1. Detect fractal highs/lows (bar high/low > all bars within N on each side)
+    2. Extract swing points from fractals
+    3. Compare last two swings: HH+HL = BULL, LH+LL = BEAR, else NEUTRAL
 
-Usage:
-    from shared.indicators.structure import detect_fractals, get_market_structure
+Labels:
+    direction: 1 (BULL), -1 (BEAR), 0 (NEUTRAL)
+    label: "BULL", "BEAR", "NEUTRAL"
+
+================================================================================
 """
 
-import pandas as pd
 import numpy as np
-from typing import Tuple, Optional, List, NamedTuple
+import pandas as pd
+from typing import Tuple, Optional, List, Any
+
+from ..config import CONFIG
+from ..types import StructureResult
+from .._utils import get_high, get_low
 
 
 # =============================================================================
-# CONFIGURATION
+# STRUCTURE LABELS
 # =============================================================================
-STRUCTURE_CONFIG = {
-    "fractal_length": 5,  # Bars each side for fractal detection
-}
 
-STRUCTURE_LABELS = {
-    1: "B+",
-    -1: "B-",
-    0: "N",
-}
+STRUCTURE_LABELS = {1: "BULL", -1: "BEAR", 0: "NEUTRAL"}
 
 
 # =============================================================================
-# RESULT TYPES
+# NUMPY CORE
 # =============================================================================
-class StructureResult(NamedTuple):
-    """Result of structure analysis."""
-    direction: int  # 1 = B+, -1 = B-, 0 = N
-    label: str
-    last_swing_high: Optional[float]
-    last_swing_low: Optional[float]
-    higher_highs: bool
-    higher_lows: bool
 
-
-# =============================================================================
-# CORE FUNCTIONS
-# =============================================================================
-def detect_fractals(
-    df: pd.DataFrame,
-    length: int = 5,
-    high_col: str = "high",
-    low_col: str = "low",
-) -> Tuple[pd.Series, pd.Series]:
+def _detect_fractals_core(
+    high: np.ndarray,
+    low: np.ndarray,
+    length: int,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Detect fractal highs and lows (swing points).
+    Detect fractal highs and lows.
 
-    A fractal high is a bar where the high is higher than
-    the `length` bars on each side.
-
-    Args:
-        df: DataFrame with OHLCV data
-        length: Bars to check on each side
-        high_col: Column name for high prices
-        low_col: Column name for low prices
+    A fractal high is a bar where high > all bars within `length` on each side.
 
     Returns:
-        Tuple of (fractal_highs, fractal_lows) as boolean Series
+        Tuple of (fractal_highs, fractal_lows) as boolean arrays
     """
-    high = df[high_col]
-    low = df[low_col]
+    n = len(high)
+    frac_highs = np.zeros(n, dtype=bool)
+    frac_lows = np.zeros(n, dtype=bool)
 
-    # Initialize
-    fractal_highs = pd.Series(False, index=df.index)
-    fractal_lows = pd.Series(False, index=df.index)
+    if n < 2 * length + 1:
+        return frac_highs, frac_lows
 
-    # Need at least 2*length + 1 bars
-    if len(df) < 2 * length + 1:
-        return fractal_highs, fractal_lows
-
-    # Check each bar (excluding edges)
-    for i in range(length, len(df) - length):
-        # Check for fractal high
+    for i in range(length, n - length):
+        # Check fractal high
         is_high = True
         for j in range(1, length + 1):
-            if high.iloc[i] <= high.iloc[i - j] or high.iloc[i] <= high.iloc[i + j]:
+            if high[i] <= high[i - j] or high[i] <= high[i + j]:
                 is_high = False
                 break
-        fractal_highs.iloc[i] = is_high
+        frac_highs[i] = is_high
 
-        # Check for fractal low
+        # Check fractal low
         is_low = True
         for j in range(1, length + 1):
-            if low.iloc[i] >= low.iloc[i - j] or low.iloc[i] >= low.iloc[i + j]:
+            if low[i] >= low[i - j] or low[i] >= low[i + j]:
                 is_low = False
                 break
-        fractal_lows.iloc[i] = is_low
+        frac_lows[i] = is_low
 
-    return fractal_highs, fractal_lows
+    return frac_highs, frac_lows
 
 
-def get_swing_points(
-    df: pd.DataFrame,
-    length: int = 5,
-) -> Tuple[List[float], List[float]]:
+def _get_structure_from_swings(
+    swing_highs: List[float],
+    swing_lows: List[float],
+) -> Tuple[int, str, bool, bool]:
     """
-    Get list of swing high and low prices.
-
-    Args:
-        df: DataFrame with OHLCV data
-        length: Fractal length
+    Determine structure from swing points.
 
     Returns:
-        Tuple of (swing_highs, swing_lows) as lists of prices
+        (direction, label, higher_highs, higher_lows)
     """
-    fractal_highs, fractal_lows = detect_fractals(df, length)
-
-    swing_highs = df.loc[fractal_highs, "high"].tolist()
-    swing_lows = df.loc[fractal_lows, "low"].tolist()
-
-    return swing_highs, swing_lows
-
-
-def get_market_structure(
-    df: pd.DataFrame,
-    length: int = 5,
-) -> StructureResult:
-    """
-    Analyze market structure from swing points.
-
-    Returns BULL if making higher highs and higher lows.
-    Returns BEAR if making lower highs and lower lows.
-    Returns NEUTRAL otherwise.
-
-    Args:
-        df: DataFrame with OHLCV data
-        length: Fractal length
-
-    Returns:
-        StructureResult with direction and swing info
-    """
-    swing_highs, swing_lows = get_swing_points(df, length)
-
-    # Need at least 2 of each
     if len(swing_highs) < 2 or len(swing_lows) < 2:
-        return StructureResult(
-            direction=0,
-            label="N",
-            last_swing_high=swing_highs[-1] if swing_highs else None,
-            last_swing_low=swing_lows[-1] if swing_lows else None,
-            higher_highs=False,
-            higher_lows=False,
-        )
+        return 0, "NEUTRAL", False, False
 
-    # Check last two swing points
     higher_highs = swing_highs[-1] > swing_highs[-2]
     higher_lows = swing_lows[-1] > swing_lows[-2]
     lower_highs = swing_highs[-1] < swing_highs[-2]
     lower_lows = swing_lows[-1] < swing_lows[-2]
 
-    # Determine structure
     if higher_highs and higher_lows:
-        direction = 1
-        label = "B+"
+        return 1, "BULL", True, True
     elif lower_highs and lower_lows:
-        direction = -1
-        label = "B-"
+        return -1, "BEAR", False, False
     else:
-        direction = 0
-        label = "N"
+        return 0, "NEUTRAL", higher_highs, higher_lows
+
+
+# =============================================================================
+# DATAFRAME WRAPPER
+# =============================================================================
+
+def detect_fractals(
+    df: pd.DataFrame,
+    length: Optional[int] = None,
+    high_col: str = "high",
+    low_col: str = "low",
+) -> Tuple[pd.Series, pd.Series]:
+    """
+    Detect fractal highs and lows in a DataFrame.
+
+    Returns:
+        Tuple of (fractal_highs, fractal_lows) as boolean Series
+    """
+    length = length or CONFIG.structure.fractal_length
+    fh, fl = _detect_fractals_core(
+        df[high_col].values.astype(np.float64),
+        df[low_col].values.astype(np.float64),
+        length,
+    )
+    return (
+        pd.Series(fh, index=df.index, name="fractal_high"),
+        pd.Series(fl, index=df.index, name="fractal_low"),
+    )
+
+
+def get_swing_points(
+    df: pd.DataFrame,
+    length: Optional[int] = None,
+) -> Tuple[List[float], List[float]]:
+    """Get lists of swing high and swing low prices."""
+    frac_highs, frac_lows = detect_fractals(df, length)
+    swing_highs = df.loc[frac_highs, "high"].tolist()
+    swing_lows = df.loc[frac_lows, "low"].tolist()
+    return swing_highs, swing_lows
+
+
+def get_market_structure(
+    df: pd.DataFrame,
+    length: Optional[int] = None,
+) -> StructureResult:
+    """
+    Analyze market structure from a DataFrame.
+
+    Returns:
+        StructureResult with direction, label, swing info
+    """
+    swing_highs, swing_lows = get_swing_points(df, length)
+    direction, label, hh, hl = _get_structure_from_swings(swing_highs, swing_lows)
 
     return StructureResult(
         direction=direction,
         label=label,
-        last_swing_high=swing_highs[-1],
-        last_swing_low=swing_lows[-1],
-        higher_highs=higher_highs,
-        higher_lows=higher_lows,
+        last_swing_high=swing_highs[-1] if swing_highs else None,
+        last_swing_low=swing_lows[-1] if swing_lows else None,
+        higher_highs=hh,
+        higher_lows=hl,
     )
 
 
+# =============================================================================
+# BAR-LIST WRAPPER
+# =============================================================================
+
+def calculate_structure_from_bars(
+    bars: List[Any],
+    length: Optional[int] = None,
+    up_to_index: Optional[int] = None,
+) -> StructureResult:
+    """
+    Calculate market structure from a list of bars.
+
+    Args:
+        bars: List of bar data (dict or object)
+        length: Fractal length (bars each side)
+        up_to_index: Analyze up to this index (inclusive)
+
+    Returns:
+        StructureResult
+    """
+    length = length or CONFIG.structure.fractal_length
+
+    if not bars:
+        return StructureResult(
+            direction=0, label="NEUTRAL",
+            last_swing_high=None, last_swing_low=None,
+            higher_highs=False, higher_lows=False,
+        )
+
+    end = (up_to_index + 1) if up_to_index is not None else len(bars)
+    end = min(end, len(bars))
+
+    highs = np.array([get_high(bars[i], 0.0) for i in range(end)], dtype=np.float64)
+    lows = np.array([get_low(bars[i], 0.0) for i in range(end)], dtype=np.float64)
+
+    frac_highs, frac_lows = _detect_fractals_core(highs, lows, length)
+
+    swing_highs = highs[frac_highs].tolist()
+    swing_lows = lows[frac_lows].tolist()
+
+    direction, label, hh, hl = _get_structure_from_swings(swing_highs, swing_lows)
+
+    return StructureResult(
+        direction=direction,
+        label=label,
+        last_swing_high=swing_highs[-1] if swing_highs else None,
+        last_swing_low=swing_lows[-1] if swing_lows else None,
+        higher_highs=hh,
+        higher_lows=hl,
+    )
+
+
+# =============================================================================
+# UTILITY HELPERS
+# =============================================================================
+
 def get_structure_label(direction: int) -> str:
-    """
-    Get structure label from direction.
-
-    Args:
-        direction: 1 for bull, -1 for bear, 0 for neutral
-
-    Returns:
-        "B+", "B-", or "N"
-    """
-    return STRUCTURE_LABELS.get(direction, "N")
+    """Get structure label from direction integer."""
+    return STRUCTURE_LABELS.get(direction, "NEUTRAL")
 
 
-def is_structure_aligned(
-    structure_direction: int,
-    trade_direction: str,
-) -> bool:
-    """
-    Check if structure aligns with trade direction.
-
-    Args:
-        structure_direction: 1 for bull, -1 for bear
-        trade_direction: "LONG" or "SHORT"
-
-    Returns:
-        True if structure supports trade
-    """
+def is_structure_aligned(structure_direction: int, trade_direction: str) -> bool:
+    """Check if structure aligns with trade direction."""
     is_long = trade_direction.upper() in ("LONG", "BULL", "BULLISH")
-
-    if is_long:
-        return structure_direction == 1
-    else:
-        return structure_direction == -1
+    return structure_direction == 1 if is_long else structure_direction == -1
