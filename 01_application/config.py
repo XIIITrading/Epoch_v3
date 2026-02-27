@@ -63,7 +63,14 @@ ANCHOR_PRESETS = {
     "prior_week": "Previous Week Close (Friday)",
     "prior_month": "Previous Month Close",
     "ytd": "Year to Date (Jan 1)",
+    "max_volume": "Max Volume (6-Month Lookback)",
 }
+
+# =============================================================================
+# AUTO-ANCHOR SETTINGS
+# =============================================================================
+MAX_VOLUME_LOOKBACK_DAYS = 180  # 6 months of daily bars
+MAX_VOLUME_THRESHOLD_PCT = 0.20  # 20% dominance threshold
 
 # =============================================================================
 # INDEX TICKERS (always analyzed for market structure)

@@ -1,0 +1,16 @@
+[
+  {
+    "label": "Run Current Python File",
+    "command": "python",
+    "args": ["$ZED_FILE"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false
+  },
+  {
+    "label": "Run Epoch Launcher",
+    "command": "python",
+    "args": ["launcher.py"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false
+  }
+]

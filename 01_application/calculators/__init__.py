@@ -26,6 +26,7 @@ from .scanner import (
     SP500_TICKERS,
     NASDAQ100_TICKERS,
 )
+from .anchor_resolver import find_max_volume_anchor
 
 __all__ = [
     # Bar data
@@ -47,4 +48,6 @@ __all__ = [
     'get_ticker_list',
     'SP500_TICKERS',
     'NASDAQ100_TICKERS',
+    # Anchor resolver
+    'find_max_volume_anchor',
 ]

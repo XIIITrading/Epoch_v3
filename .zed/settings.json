@@ -1,0 +1,43 @@
+{
+  "tab_size": 4,
+  "languages": {
+    "Python": {
+      "tab_size": 4,
+      "formatter": {
+        "external": {
+          "command": "C:\\Users\\codyc\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\black.exe",
+          "arguments": ["-", "--quiet"]
+        }
+      },
+      "format_on_save": "off",
+      "language_servers": ["pyright", "ruff"]
+    }
+  },
+  "lsp": {
+    "pyright": {
+      "settings": {
+        "python": {
+          "pythonPath": "C:\\Users\\codyc\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+          "analysis": {
+            "extraPaths": ["C:\\XIIITradingSystems\\Epoch_v3\\00_shared"],
+            "typeCheckingMode": "basic",
+            "diagnosticMode": "openFilesOnly"
+          }
+        }
+      }
+    },
+    "ruff": {
+      "settings": {
+        "path": ["C:\\Users\\codyc\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\ruff.exe"]
+      }
+    }
+  },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/__pycache__",
+    "**/*.pyc",
+    "**/node_modules",
+    "**/.venv",
+    "**/epoch_v1.xlsm"
+  ]
+}

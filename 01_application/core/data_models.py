@@ -41,6 +41,7 @@ class AnchorPreset(str, Enum):
     PRIOR_WEEK = "prior_week"
     PRIOR_MONTH = "prior_month"
     YTD = "ytd"
+    MAX_VOLUME = "max_volume"
 
 
 # =============================================================================

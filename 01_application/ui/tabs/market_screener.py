@@ -53,13 +53,51 @@ class AnalysisWorker(QThread):
     error = pyqtSignal(str)
 
     def __init__(self, ticker_inputs: List[Dict], analysis_date: date,
-                 market_mode: str, end_timestamp: Optional[datetime] = None):
+                 market_mode: str, end_timestamp: Optional[datetime] = None,
+                 anchor_preset: str = "prior_month"):
         super().__init__()
         self.ticker_inputs = ticker_inputs
         self.analysis_date = analysis_date
         self.market_mode = market_mode
         self.end_timestamp = end_timestamp
+        self.anchor_preset = anchor_preset
         self._is_cancelled = False
+
+    def _resolve_auto_anchors(self):
+        """Resolve auto-anchor dates for tickers that need them."""
+        from calculators.anchor_resolver import find_max_volume_anchor
+
+        needs_resolution = [t for t in self.ticker_inputs if t.get("needs_auto_anchor")]
+        if not needs_resolution:
+            return
+
+        total = len(needs_resolution)
+        for i, ticker_input in enumerate(needs_resolution):
+            if self._is_cancelled:
+                return
+
+            ticker = ticker_input["ticker"]
+            self.progress.emit(
+                int(2 + (8 * i / total)),
+                f"Resolving anchor for {ticker}..."
+            )
+
+            anchor_date, metadata = find_max_volume_anchor(ticker, self.analysis_date)
+            ticker_input["anchor_date"] = anchor_date
+            ticker_input["needs_auto_anchor"] = False
+
+            vol_str = f"{metadata['max_volume']:,.0f}"
+            threshold_note = "" if metadata["exceeds_threshold"] else " (below 20% threshold)"
+            if metadata.get("fallback"):
+                self.progress.emit(
+                    int(2 + (8 * (i + 1) / total)),
+                    f"  {ticker}: fallback to {anchor_date} (no data)"
+                )
+            else:
+                self.progress.emit(
+                    int(2 + (8 * (i + 1) / total)),
+                    f"  {ticker}: anchor={anchor_date} (vol: {vol_str}){threshold_note}"
+                )
 
     def run(self):
         """Run the analysis pipeline."""
@@ -70,6 +108,14 @@ class AnalysisWorker(QThread):
                 if not self._is_cancelled:
                     self.progress.emit(percent, message)
 
+            # Phase 1: Resolve auto-anchors if using max_volume preset
+            if self.anchor_preset == "max_volume":
+                self.progress.emit(1, "Resolving max volume anchors...")
+                self._resolve_auto_anchors()
+                if self._is_cancelled:
+                    return
+
+            # Phase 2: Run the pipeline
             runner = PipelineRunner(progress_callback=progress_callback)
             results = runner.run(
                 self.ticker_inputs,
@@ -331,7 +377,11 @@ class MarketScreenerTab(BaseTab):
         preset_key = self.anchor_preset.currentData()
         self.anchor_date.setEnabled(preset_key == "custom")
 
-        if preset_key != "custom":
+        if preset_key == "max_volume":
+            # Max volume anchor is resolved at runtime per-ticker
+            self.anchor_date.setDate(QDate.currentDate())
+            self.anchor_date.setEnabled(False)
+        elif preset_key != "custom":
             # Calculate date based on preset relative to analysis date
             ref_date = self.analysis_date.date().toPyDate()
             anchor = self._calculate_anchor_from_preset(preset_key, ref_date)
@@ -389,6 +439,10 @@ class MarketScreenerTab(BaseTab):
         """
         Parse ticker input with optional per-ticker anchor dates.
 
+        When the anchor preset is "max_volume", tickers without explicit dates
+        are flagged with needs_auto_anchor=True and anchor_date=None. These
+        are resolved in the AnalysisWorker thread before pipeline execution.
+
         Returns:
             Tuple of (ticker_inputs list, error messages list)
         """
@@ -399,8 +453,10 @@ class MarketScreenerTab(BaseTab):
         if not text:
             return [], ["No tickers entered"]
 
-        # Get default anchor date
+        # Get default anchor date and preset
         default_anchor = self.anchor_date.date().toPyDate()
+        preset_key = self.anchor_preset.currentData()
+        is_max_volume = preset_key == "max_volume"
 
         # Parse each line
         lines = text.split('\n')
@@ -421,20 +477,40 @@ class MarketScreenerTab(BaseTab):
                 except ValueError:
                     errors.append(f"Invalid date format for {ticker}: {date_str} (use YYYY-MM-DD)")
                     continue
+
+                # Validate ticker
+                if not ticker.isalnum():
+                    errors.append(f"Invalid ticker symbol: {ticker}")
+                    continue
+
+                # Per-ticker date always wins, even with max_volume preset
+                ticker_inputs.append({
+                    "ticker": ticker,
+                    "anchor_date": anchor,
+                    "needs_auto_anchor": False,
+                })
             else:
-                # No date specified - use default anchor
+                # No date specified
                 ticker = line.upper()
-                anchor = default_anchor
 
-            # Validate ticker
-            if not ticker.isalnum():
-                errors.append(f"Invalid ticker symbol: {ticker}")
-                continue
+                # Validate ticker
+                if not ticker.isalnum():
+                    errors.append(f"Invalid ticker symbol: {ticker}")
+                    continue
 
-            ticker_inputs.append({
-                "ticker": ticker,
-                "anchor_date": anchor
-            })
+                if is_max_volume:
+                    # Flag for auto-resolution in worker thread
+                    ticker_inputs.append({
+                        "ticker": ticker,
+                        "anchor_date": None,
+                        "needs_auto_anchor": True,
+                    })
+                else:
+                    ticker_inputs.append({
+                        "ticker": ticker,
+                        "anchor_date": default_anchor,
+                        "needs_auto_anchor": False,
+                    })
 
         return ticker_inputs, errors
 
@@ -496,16 +572,20 @@ class MarketScreenerTab(BaseTab):
             )
             return
 
-        # Get analysis date and market mode
+        # Get analysis date, market mode, and anchor preset
         analysis_dt = self.analysis_date.date().toPyDate()
         market_mode = self.market_mode.currentText()
         end_timestamp = self._get_end_timestamp(analysis_dt, market_mode)
+        anchor_preset = self.anchor_preset.currentData()
 
         # Log configuration
         self._log("")
         self._log("=" * 50)
         self._log(f"Starting analysis: {len(ticker_inputs)} tickers")
         self._log(f"Analysis Date: {analysis_dt} | Market Mode: {market_mode}")
+        if anchor_preset == "max_volume":
+            auto_count = sum(1 for t in ticker_inputs if t.get("needs_auto_anchor"))
+            self._log(f"Anchor Mode: Max Volume (6-Month Lookback) — {auto_count} ticker(s) to resolve")
         if end_timestamp:
             # Format timestamp in Eastern Time for display
             eastern = ZoneInfo("America/New_York")
@@ -517,7 +597,10 @@ class MarketScreenerTab(BaseTab):
 
         # Log each ticker with its anchor
         for ti in ticker_inputs:
-            self._log(f"  {ti['ticker']}: anchor={ti['anchor_date']}")
+            if ti.get("needs_auto_anchor"):
+                self._log(f"  {ti['ticker']}: anchor=auto (max volume)")
+            else:
+                self._log(f"  {ti['ticker']}: anchor={ti['anchor_date']}")
         self._log("=" * 50)
 
         # Update UI state
@@ -536,7 +619,8 @@ class MarketScreenerTab(BaseTab):
             ticker_inputs,
             analysis_dt,
             market_mode,
-            end_timestamp
+            end_timestamp,
+            anchor_preset=anchor_preset
         )
         self._worker.progress.connect(self._on_progress)
         self._worker.finished.connect(self._on_finished)

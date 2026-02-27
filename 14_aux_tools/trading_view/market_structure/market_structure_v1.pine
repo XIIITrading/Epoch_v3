@@ -1,0 +1,254 @@
+// This Pine Script(R) code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (C) XIIITrading
+
+//@version=6
+indicator("GH Method - Market Structure", overlay=true, max_labels_count=500, max_lines_count=500)
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+fractalLen   = input.int(2, "Fractal Lookback (bars each side)", minval=1, maxval=10, group="Fractal", tooltip="2 = classic 5-candle Williams fractal")
+numFractals  = input.int(5, "Show Last N Fractals", minval=1, maxval=20, group="Display")
+showBreaks   = input.bool(true, "Show BOS / CHoCH Lines", group="Display")
+showLevels   = input.bool(true, "Show Strong / Weak Levels", group="Display")
+showFractals = input.bool(true, "Show Fractal Markers", group="Display")
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+var color BULL       = #26a69a
+var color BEAR       = #ef5350
+var color WHITE_LINE = color.new(color.white, 30)
+
+// ============================================================================
+// FRACTAL DETECTION  (confirmed fractalLen bars after the pivot)
+// ============================================================================
+
+isFracHigh = true
+isFracLow  = true
+
+for j = 1 to fractalLen
+    if high[fractalLen] <= high[fractalLen - j] or high[fractalLen] <= high[fractalLen + j]
+        isFracHigh := false
+    if low[fractalLen] >= low[fractalLen - j] or low[fractalLen] >= low[fractalLen + j]
+        isFracLow := false
+
+// ============================================================================
+// BOS / CHoCH STATE MACHINE
+// ============================================================================
+
+var float upperFracVal   = na
+var float lowerFracVal   = na
+var int   upperFracBar   = na      // bar_index where upper fractal was set
+var int   lowerFracBar   = na      // bar_index where lower fractal was set
+var bool  upperCrossed   = false
+var bool  lowerCrossed   = false
+var int   structure       = 0      // 1 = bull, -1 = bear, 0 = neutral
+var float bullContHigh   = na
+var int   bullContHighBar = na
+var float bearContLow    = na
+var int   bearContLowBar  = na
+
+// Per-bar break info (non-persistent)
+breakLabel    = ""
+breakDir      = 0
+breakAnchorBar   = 0
+breakAnchorPrice = 0.0
+
+// --- Update fractal levels when a new fractal is confirmed ---
+if isFracHigh
+    upperFracVal := high[fractalLen]
+    upperFracBar := bar_index[fractalLen]
+    upperCrossed := false
+
+if isFracLow
+    lowerFracVal := low[fractalLen]
+    lowerFracBar := bar_index[fractalLen]
+    lowerCrossed := false
+
+// --- Bullish structure break ---
+if not na(upperFracVal) and not upperCrossed
+    if close > upperFracVal
+        breakLabel       := structure == -1 ? "CHoCH" : "BOS"
+        breakDir         := 1
+        breakAnchorBar   := upperFracBar
+        breakAnchorPrice := upperFracVal
+        structure        := 1
+        upperCrossed     := true
+        bullContHigh     := high
+        bullContHighBar  := bar_index
+
+// --- Bearish structure break ---
+if not na(lowerFracVal) and not lowerCrossed
+    if close < lowerFracVal
+        breakLabel       := structure == 1 ? "CHoCH" : "BOS"
+        breakDir         := -1
+        breakAnchorBar   := lowerFracBar
+        breakAnchorPrice := lowerFracVal
+        structure        := -1
+        lowerCrossed     := true
+        bearContLow      := low
+        bearContLowBar   := bar_index
+
+// --- Track continuation extremes ---
+if structure == 1
+    if na(bullContHigh) or high > bullContHigh
+        bullContHigh    := high
+        bullContHighBar := bar_index
+else if structure == -1
+    if na(bearContLow) or low < bearContLow
+        bearContLow    := low
+        bearContLowBar := bar_index
+
+// ============================================================================
+// FRACTAL MARKERS — circles below lows / above highs
+// ============================================================================
+
+atrVal = ta.atr(14)
+pxOffset = atrVal * 0.15  // small offset away from candle
+
+plotshape(showFractals and isFracLow  ? low[fractalLen]  - pxOffset : na, title="Bull Fractal", style=shape.circle, location=location.absolute, color=BULL, size=size.tiny, offset=-fractalLen)
+plotshape(showFractals and isFracHigh ? high[fractalLen] + pxOffset : na, title="Bear Fractal", style=shape.circle, location=location.absolute, color=BEAR, size=size.tiny, offset=-fractalLen)
+
+// ============================================================================
+// BOS / CHoCH — horizontal lines from anchor fractal to break bar + markers
+// ============================================================================
+
+var array<line>  breakLines   = array.new<line>()
+var array<label> breakLabels  = array.new<label>()
+var array<label> breakMarkers = array.new<label>()
+
+if showBreaks and breakLabel != ""
+    anchorPrice = breakAnchorPrice
+    anchorBar   = breakAnchorBar
+
+    // Horizontal line at the fractal level from anchor to break bar
+    lineStyle = breakLabel == "CHoCH" ? line.style_dotted : line.style_solid
+    ln = line.new(
+         anchorBar, anchorPrice, bar_index, anchorPrice,
+         color  = WHITE_LINE,
+         style  = lineStyle,
+         width  = 1)
+    array.push(breakLines, ln)
+    if array.size(breakLines) > 40
+        line.delete(array.shift(breakLines))
+
+    // Text label centered on the line
+    midBar = int((anchorBar + bar_index) / 2)
+    lbl = label.new(
+         midBar, anchorPrice,
+         breakLabel,
+         style     = label.style_none,
+         textcolor = color.new(color.white, 20),
+         size      = size.tiny)
+    array.push(breakLabels, lbl)
+    if array.size(breakLabels) > 40
+        label.delete(array.shift(breakLabels))
+
+    // Small x or o marker at the break candle, offset from high/low
+    clr      = breakDir == 1 ? BULL : BEAR
+    markerY  = breakDir == 1 ? low - pxOffset : high + pxOffset
+    markerCh = breakLabel == "CHoCH" ? "\u2717" : "\u25CB"    // x or o
+    mkr = label.new(
+         bar_index, markerY,
+         markerCh,
+         style     = label.style_none,
+         textcolor = clr,
+         size      = size.tiny)
+    array.push(breakMarkers, mkr)
+    if array.size(breakMarkers) > 40
+        label.delete(array.shift(breakMarkers))
+
+// ============================================================================
+// STRONG / WEAK LEVEL LINES
+// ============================================================================
+
+var line strongLine = na
+var line weakLine   = na
+var label strongLbl = na
+var label weakLbl   = na
+
+if showLevels and barstate.islast
+    line.delete(strongLine)
+    line.delete(weakLine)
+    label.delete(strongLbl)
+    label.delete(weakLbl)
+
+    float strongPrice = na
+    float weakPrice   = na
+    int   strongBar   = na
+    int   weakBar     = na
+    string strongText = ""
+    string weakText   = ""
+    color  lineClr    = color.gray
+
+    if structure == 1
+        strongPrice := lowerFracVal
+        strongBar   := lowerFracBar
+        weakPrice   := bullContHigh
+        weakBar     := bullContHighBar
+        lineClr     := BULL
+        strongText  := "Strong (Support): $" + str.tostring(strongPrice, format.mintick)
+        weakText    := "Weak (Target): $"    + str.tostring(weakPrice, format.mintick)
+    else if structure == -1
+        strongPrice := upperFracVal
+        strongBar   := upperFracBar
+        weakPrice   := bearContLow
+        weakBar     := bearContLowBar
+        lineClr     := BEAR
+        strongText  := "Strong (Resistance): $" + str.tostring(strongPrice, format.mintick)
+        weakText    := "Weak (Target): $"       + str.tostring(weakPrice, format.mintick)
+
+    if not na(strongPrice) and not na(strongBar)
+        strongLine := line.new(
+             strongBar, strongPrice, bar_index + 20, strongPrice,
+             color  = lineClr,
+             style  = line.style_solid,
+             width  = 2,
+             extend = extend.right)
+        strongLbl := label.new(
+             bar_index + 5, strongPrice,
+             strongText,
+             style     = label.style_label_left,
+             color     = color.new(lineClr, 80),
+             textcolor = lineClr,
+             size      = size.small)
+
+    if not na(weakPrice) and not na(weakBar)
+        weakLine := line.new(
+             weakBar, weakPrice, bar_index + 20, weakPrice,
+             color  = lineClr,
+             style  = line.style_dotted,
+             width  = 2,
+             extend = extend.right)
+        weakLbl := label.new(
+             bar_index + 5, weakPrice,
+             weakText,
+             style     = label.style_label_left,
+             color     = color.new(lineClr, 80),
+             textcolor = lineClr,
+             size      = size.small)
+
+// ============================================================================
+// INFO TABLE (top-right)
+// ============================================================================
+
+var table infoTable = table.new(position.top_right, 2, 3, bgcolor=color.new(#1C1C1C, 20), border_width=1, border_color=color.new(#333333, 0))
+
+if barstate.islast
+    dirStr = structure == 1 ? "BULL" : structure == -1 ? "BEAR" : "NEUTRAL"
+    dirClr = structure == 1 ? BULL : structure == -1 ? BEAR : color.gray
+
+    table.cell(infoTable, 0, 0, "Direction", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 0, dirStr, text_color=dirClr, text_size=size.small)
+
+    strongVal = structure == 1 ? lowerFracVal : structure == -1 ? upperFracVal : na
+    weakVal   = structure == 1 ? bullContHigh : structure == -1 ? bearContLow : na
+
+    table.cell(infoTable, 0, 1, "Strong", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 1, not na(strongVal) ? "$" + str.tostring(strongVal, format.mintick) : "-", text_color=dirClr, text_size=size.small)
+
+    table.cell(infoTable, 0, 2, "Weak", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 2, not na(weakVal) ? "$" + str.tostring(weakVal, format.mintick) : "-", text_color=color.new(dirClr, 40), text_size=size.small)
