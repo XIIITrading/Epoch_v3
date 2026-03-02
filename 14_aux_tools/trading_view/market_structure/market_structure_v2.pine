@@ -1,0 +1,491 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (C) XIIITrading
+//
+// Walk-Forward Market Structure v2
+// Anchors at two consecutive same-type Williams Fractals, then walks forward
+// candle-by-candle tracking BOS, CHOCH, and 30% retracement confirmation.
+
+//@version=5
+indicator("XIII - Market Structure v2", overlay=true, max_labels_count=500, max_lines_count=500)
+
+// ============================================================================
+// INPUTS
+// ============================================================================
+
+showLevels   = input.bool(true, "Show Strong / Weak Levels", group="Display")
+showBreaks   = input.bool(true, "Show BOS / CHOCH Labels",   group="Display")
+showTable    = input.bool(true, "Show Info Table",            group="Display")
+retracePct   = input.float(0.30, "Retracement %", minval=0.05, maxval=0.95, step=0.05, group="Logic", tooltip="Fraction of range that must retrace to anchor weak level")
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+var color BULL_CLR = #26a69a
+var color BEAR_CLR = #ef5350
+var color NEUTRAL_CLR = color.gray
+var color LINE_CLR = color.new(color.white, 30)
+
+// ============================================================================
+// WILLIAMS FRACTAL DETECTION (classic 5-bar: 2 left, pivot, 2 right)
+// ============================================================================
+// Confirmed at bar_index[2] (the pivot), once its two right-side bars exist.
+
+isPivotHigh = high[2] > high[4] and high[2] > high[3] and high[2] > high[1] and high[2] > high[0]
+isPivotLow  = low[2]  < low[4]  and low[2]  < low[3]  and low[2]  < low[1]  and low[2]  < low[0]
+
+// ============================================================================
+// PERSISTENT STATE
+// ============================================================================
+
+// Trend: 1 = Bull, -1 = Bear, 0 = No structure
+var int   trend          = 0
+
+// Strong / Weak levels
+var float strong_level   = na
+var int   strong_bar     = na   // bar_index where strong level was set
+var float weak_level     = na   // only valid once anchored
+var int   weak_bar       = na
+var bool  weak_anchored  = false
+
+// Internal tracking (pre-anchor weak level)
+var float pre_anchor_weak = na
+var int   pre_anchor_weak_bar = na
+
+// Last confirmed HH / LL for retracement calc
+var float last_hh        = na
+var float last_ll        = na
+
+// Previous candle high/low for HH/HL/LH/LL detection
+var float prev_high      = na
+var float prev_low       = na
+
+// Anchor found flag + bar where walk-forward begins
+var bool  anchor_found   = false
+var int   anchor_bar_idx = na
+
+// Track fractal history for anchor search
+var array<float> frac_high_prices = array.new<float>()
+var array<int>   frac_high_bars   = array.new<int>()
+var array<float> frac_low_prices  = array.new<float>()
+var array<int>   frac_low_bars    = array.new<int>()
+
+// BOS / CHOCH event arrays for drawing
+var array<int>    evt_bar    = array.new<int>()
+var array<float>  evt_price  = array.new<float>()
+var array<string> evt_type   = array.new<string>()  // "BOS" or "CHOCH"
+var array<int>    evt_dir    = array.new<int>()      // 1 bull, -1 bear
+var array<int>    evt_anchor = array.new<int>()      // anchor bar for the line
+
+// Drawing objects
+var array<line>  drawnLines  = array.new<line>()
+var array<label> drawnLabels = array.new<label>()
+
+// ============================================================================
+// RECORD FRACTALS
+// ============================================================================
+
+if isPivotHigh
+    array.push(frac_high_prices, high[2])
+    array.push(frac_high_bars,   bar_index[2])
+
+if isPivotLow
+    array.push(frac_low_prices, low[2])
+    array.push(frac_low_bars,   bar_index[2])
+
+// ============================================================================
+// ANCHOR SEARCH (runs once — find two consecutive same-type fractals)
+// ============================================================================
+// We combine all fractals into a single timeline sorted by bar_index,
+// then look for two consecutive entries of the same type.
+
+findAnchor() =>
+    // Merge fractal highs and lows into parallel arrays
+    int   totalH = array.size(frac_high_bars)
+    int   totalL = array.size(frac_low_bars)
+    int   total  = totalH + totalL
+
+    if total < 2
+        [0, na, na, na, na]  // not enough fractals
+    else
+        // Build merged arrays: bar, price, type (1=high, -1=low)
+        merged_bars   = array.new<int>(total)
+        merged_prices = array.new<float>(total)
+        merged_types  = array.new<int>(total)
+
+        for i = 0 to totalH - 1
+            array.set(merged_bars,   i, array.get(frac_high_bars, i))
+            array.set(merged_prices, i, array.get(frac_high_prices, i))
+            array.set(merged_types,  i, 1)
+
+        for i = 0 to totalL - 1
+            array.set(merged_bars,   totalH + i, array.get(frac_low_bars, i))
+            array.set(merged_prices, totalH + i, array.get(frac_low_prices, i))
+            array.set(merged_types,  totalH + i, -1)
+
+        // Sort by bar_index (simple insertion sort — small arrays)
+        for i = 1 to total - 1
+            keyB = array.get(merged_bars, i)
+            keyP = array.get(merged_prices, i)
+            keyT = array.get(merged_types, i)
+            j = i - 1
+            while j >= 0 and array.get(merged_bars, j) > keyB
+                array.set(merged_bars,   j + 1, array.get(merged_bars, j))
+                array.set(merged_prices, j + 1, array.get(merged_prices, j))
+                array.set(merged_types,  j + 1, array.get(merged_types, j))
+                j -= 1
+            array.set(merged_bars,   j + 1, keyB)
+            array.set(merged_prices, j + 1, keyP)
+            array.set(merged_types,  j + 1, keyT)
+
+        // Search backwards for two consecutive same-type fractals within lookback
+        int   foundTrend     = 0
+        float foundStrong    = na
+        float foundWeak      = na
+        int   foundBar       = na
+        int   foundStrongBar = na
+
+        for lookback in array.from(120, 180, 240)
+            if foundTrend != 0
+                break
+            int cutoff = bar_index - lookback
+            // Iterate from most recent backward
+            for i = total - 1 to 1
+                int barA = array.get(merged_bars, i)
+                if barA < cutoff
+                    break
+                int barB = array.get(merged_bars, i - 1)
+                if barB < cutoff
+                    continue
+                int typeA = array.get(merged_types, i)
+                int typeB = array.get(merged_types, i - 1)
+                if typeA == typeB
+                    // Two consecutive same-type fractals found
+                    // The second (more recent) = anchor point = index i
+                    if typeA == -1
+                        // Two consecutive bearish (low) fractals → Bull anchor
+                        foundTrend := 1
+                        foundStrong := array.get(merged_prices, i)  // fractal low = strong low
+                        foundBar := barA
+                        foundStrongBar := barA
+                        // Find most recent swing high at or before anchor
+                        for k = array.size(frac_high_bars) - 1 to 0
+                            if array.get(frac_high_bars, k) <= barA
+                                foundWeak := array.get(frac_high_prices, k)
+                                break
+                    else
+                        // Two consecutive bullish (high) fractals → Bear anchor
+                        foundTrend := -1
+                        foundStrong := array.get(merged_prices, i)  // fractal high = strong high
+                        foundBar := barA
+                        foundStrongBar := barA
+                        // Find most recent swing low at or before anchor
+                        for k = array.size(frac_low_bars) - 1 to 0
+                            if array.get(frac_low_bars, k) <= barA
+                                foundWeak := array.get(frac_low_prices, k)
+                                break
+                    break
+        [foundTrend, foundStrong, foundWeak, foundBar, foundStrongBar]
+
+// ============================================================================
+// MAIN LOGIC — runs every bar
+// ============================================================================
+
+// Attempt anchor search if not yet found and we have at least some history
+if not anchor_found and bar_index > 10
+    [fTrend, fStrong, fWeak, fBar, fStrongBar] = findAnchor()
+    if fTrend != 0 and not na(fStrong)
+        anchor_found   := true
+        trend          := fTrend
+        strong_level   := fStrong
+        strong_bar     := fStrongBar
+        anchor_bar_idx := fBar
+
+        if not na(fWeak)
+            weak_level    := fWeak
+            weak_bar      := fBar
+            weak_anchored := true
+        else
+            weak_anchored := false
+
+        // Initialize tracking
+        if trend == 1
+            last_hh          := high
+            pre_anchor_weak  := high
+            pre_anchor_weak_bar := bar_index
+        else
+            last_ll          := low
+            pre_anchor_weak  := low
+            pre_anchor_weak_bar := bar_index
+
+        prev_high := high
+        prev_low  := low
+
+// Walk-forward logic — only after anchor is established
+if anchor_found and bar_index > anchor_bar_idx
+    // ---- BULL TREND ----
+    if trend == 1
+        // Check CHOCH first: close below strong low → flip to bear
+        if close < strong_level
+            // CHOCH confirmed — find highest high between strong_bar and this bar
+            float highest = high
+            int   highBar = bar_index
+            for i = 1 to (bar_index - strong_bar)
+                if high[i] > highest
+                    highest := high[i]
+                    highBar := bar_index - i
+
+            // Record event
+            array.push(evt_bar,    bar_index)
+            array.push(evt_price,  strong_level)
+            array.push(evt_type,   "CHOCH")
+            array.push(evt_dir,    -1)
+            array.push(evt_anchor, strong_bar)
+
+            // Flip to Bear
+            trend         := -1
+            strong_level  := highest
+            strong_bar    := highBar
+            weak_level    := na
+            weak_bar      := na
+            weak_anchored := false
+            last_ll       := low
+            pre_anchor_weak     := low
+            pre_anchor_weak_bar := bar_index
+
+        // Check BOS: close above confirmed weak high
+        else if weak_anchored and not na(weak_level) and close > weak_level
+            // BOS confirmed — find lowest low between weak_bar and this bar
+            float lowest = low
+            int   lowBar = bar_index
+            for i = 1 to (bar_index - weak_bar)
+                if low[i] < lowest
+                    lowest := low[i]
+                    lowBar := bar_index - i
+
+            // Record event
+            array.push(evt_bar,    bar_index)
+            array.push(evt_price,  weak_level)
+            array.push(evt_type,   "BOS")
+            array.push(evt_dir,    1)
+            array.push(evt_anchor, weak_bar)
+
+            // Update structure
+            strong_level := lowest
+            strong_bar   := lowBar
+            weak_level   := na
+            weak_bar     := na
+            weak_anchored := false
+            last_hh      := high
+            pre_anchor_weak     := high
+            pre_anchor_weak_bar := bar_index
+
+        else
+            // Track HH (higher high & higher low vs previous candle)
+            if high > prev_high and low > prev_low
+                last_hh             := high
+                pre_anchor_weak     := high
+                pre_anchor_weak_bar := bar_index
+
+            // Track LL/LH → check 30% retracement to anchor weak level
+            if high < prev_high and low < prev_low
+                if not na(last_hh) and not na(strong_level)
+                    float range_val = last_hh - strong_level
+                    if range_val > 0
+                        float threshold = last_hh - (range_val * retracePct)
+                        if low <= threshold
+                            // Retracement sufficient — anchor the weak level
+                            weak_level    := pre_anchor_weak
+                            weak_bar      := pre_anchor_weak_bar
+                            weak_anchored := true
+
+            // Also update last_hh if current high exceeds it (continuation)
+            if high > last_hh
+                last_hh             := high
+                pre_anchor_weak     := high
+                pre_anchor_weak_bar := bar_index
+
+    // ---- BEAR TREND ----
+    else if trend == -1
+        // Check CHOCH first: close above strong high → flip to bull
+        if close > strong_level
+            // CHOCH confirmed — find lowest low between strong_bar and this bar
+            float lowest = low
+            int   lowBar = bar_index
+            for i = 1 to (bar_index - strong_bar)
+                if low[i] < lowest
+                    lowest := low[i]
+                    lowBar := bar_index - i
+
+            // Record event
+            array.push(evt_bar,    bar_index)
+            array.push(evt_price,  strong_level)
+            array.push(evt_type,   "CHOCH")
+            array.push(evt_dir,    1)
+            array.push(evt_anchor, strong_bar)
+
+            // Flip to Bull
+            trend         := 1
+            strong_level  := lowest
+            strong_bar    := lowBar
+            weak_level    := na
+            weak_bar      := na
+            weak_anchored := false
+            last_hh       := high
+            pre_anchor_weak     := high
+            pre_anchor_weak_bar := bar_index
+
+        // Check BOS: close below confirmed weak low
+        else if weak_anchored and not na(weak_level) and close < weak_level
+            // BOS confirmed — find highest high between weak_bar and this bar
+            float highest = high
+            int   highBar = bar_index
+            for i = 1 to (bar_index - weak_bar)
+                if high[i] > highest
+                    highest := high[i]
+                    highBar := bar_index - i
+
+            // Record event
+            array.push(evt_bar,    bar_index)
+            array.push(evt_price,  weak_level)
+            array.push(evt_type,   "BOS")
+            array.push(evt_dir,    -1)
+            array.push(evt_anchor, weak_bar)
+
+            // Update structure
+            strong_level := highest
+            strong_bar   := highBar
+            weak_level   := na
+            weak_bar     := na
+            weak_anchored := false
+            last_ll      := low
+            pre_anchor_weak     := low
+            pre_anchor_weak_bar := bar_index
+
+        else
+            // Track LL (lower low & lower high vs previous candle)
+            if low < prev_low and high < prev_high
+                last_ll             := low
+                pre_anchor_weak     := low
+                pre_anchor_weak_bar := bar_index
+
+            // Track HH/HL → check 30% retracement to anchor weak level
+            if high > prev_high and low > prev_low
+                if not na(last_ll) and not na(strong_level)
+                    float range_val = strong_level - last_ll
+                    if range_val > 0
+                        float threshold = last_ll + (range_val * retracePct)
+                        if high >= threshold
+                            // Retracement sufficient — anchor the weak level
+                            weak_level    := pre_anchor_weak
+                            weak_bar      := pre_anchor_weak_bar
+                            weak_anchored := true
+
+            // Also update last_ll if current low is lower (continuation)
+            if low < last_ll
+                last_ll             := low
+                pre_anchor_weak     := low
+                pre_anchor_weak_bar := bar_index
+
+    // Update previous candle tracking
+    prev_high := high
+    prev_low  := low
+
+// ============================================================================
+// DRAWING — BOS / CHOCH lines and labels
+// ============================================================================
+
+if barstate.islast and showBreaks
+    // Clean up old drawings
+    for i = 0 to array.size(drawnLines) - 1
+        line.delete(array.get(drawnLines, i))
+    array.clear(drawnLines)
+    for i = 0 to array.size(drawnLabels) - 1
+        label.delete(array.get(drawnLabels, i))
+    array.clear(drawnLabels)
+
+    // Draw events (limit to last 40)
+    int evtSize = array.size(evt_bar)
+    int startIdx = math.max(0, evtSize - 40)
+    for i = startIdx to evtSize - 1
+        int   eBar    = array.get(evt_bar, i)
+        float ePrice  = array.get(evt_price, i)
+        string eType  = array.get(evt_type, i)
+        int   eDir    = array.get(evt_dir, i)
+        int   eAnchor = array.get(evt_anchor, i)
+
+        // Line from anchor to break bar
+        lineStyle = eType == "CHOCH" ? line.style_dotted : line.style_solid
+        ln = line.new(eAnchor, ePrice, eBar, ePrice, color=LINE_CLR, style=lineStyle, width=1)
+        array.push(drawnLines, ln)
+
+        // Label centered on line
+        midBar = int((eAnchor + eBar) / 2)
+        clr = eDir == 1 ? BULL_CLR : BEAR_CLR
+        lbl = label.new(midBar, ePrice, eType, style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+        array.push(drawnLabels, lbl)
+
+        // Marker at break candle
+        atrVal = ta.atr(14)
+        pxOff  = atrVal * 0.15
+        markerY  = eDir == 1 ? low - pxOff : high + pxOff
+        markerCh = eType == "CHOCH" ? "✗" : "○"
+        mkr = label.new(eBar, markerY, markerCh, style=label.style_none, textcolor=clr, size=size.tiny)
+        array.push(drawnLabels, mkr)
+
+// ============================================================================
+// DRAWING — Strong and Weak Level Lines
+// ============================================================================
+
+var line  strongLine = na
+var line  weakLine   = na
+var label strongLbl  = na
+var label weakLbl    = na
+
+if barstate.islast and showLevels
+    line.delete(strongLine)
+    line.delete(weakLine)
+    label.delete(strongLbl)
+    label.delete(weakLbl)
+
+    if anchor_found and not na(strong_level) and not na(strong_bar)
+        color lvlClr = trend == 1 ? BULL_CLR : trend == -1 ? BEAR_CLR : NEUTRAL_CLR
+        string strongText = trend == 1 ? "Strong Low: $" + str.tostring(strong_level, format.mintick) : "Strong High: $" + str.tostring(strong_level, format.mintick)
+
+        strongLine := line.new(strong_bar, strong_level, bar_index + 20, strong_level, color=lvlClr, style=line.style_solid, width=2, extend=extend.right)
+        strongLbl  := label.new(bar_index + 5, strong_level, strongText, style=label.style_label_left, color=color.new(lvlClr, 80), textcolor=lvlClr, size=size.small)
+
+        // Only draw weak level if anchored (30% retracement confirmed)
+        if weak_anchored and not na(weak_level) and not na(weak_bar)
+            string weakText = trend == 1 ? "Weak High: $" + str.tostring(weak_level, format.mintick) : "Weak Low: $" + str.tostring(weak_level, format.mintick)
+            weakLine := line.new(weak_bar, weak_level, bar_index + 20, weak_level, color=lvlClr, style=line.style_dotted, width=2, extend=extend.right)
+            weakLbl  := label.new(bar_index + 5, weak_level, weakText, style=label.style_label_left, color=color.new(lvlClr, 80), textcolor=lvlClr, size=size.small)
+
+// ============================================================================
+// INFO TABLE
+// ============================================================================
+
+var table infoTable = table.new(position.top_right, 2, 4, bgcolor=color.new(#1C1C1C, 20), border_width=1, border_color=color.new(#333333, 0))
+
+if barstate.islast and showTable
+    if not anchor_found
+        table.cell(infoTable, 0, 0, "Structure", text_color=color.gray, text_size=size.small)
+        table.cell(infoTable, 1, 0, "No Structure Identified", text_color=color.orange, text_size=size.small)
+    else
+        dirStr = trend == 1 ? "BULL" : trend == -1 ? "BEAR" : "—"
+        dirClr = trend == 1 ? BULL_CLR : trend == -1 ? BEAR_CLR : NEUTRAL_CLR
+
+        table.cell(infoTable, 0, 0, "Trend", text_color=color.gray, text_size=size.small)
+        table.cell(infoTable, 1, 0, dirStr, text_color=dirClr, text_size=size.small)
+
+        table.cell(infoTable, 0, 1, "Strong", text_color=color.gray, text_size=size.small)
+        table.cell(infoTable, 1, 1, not na(strong_level) ? "$" + str.tostring(strong_level, format.mintick) : "—", text_color=dirClr, text_size=size.small)
+
+        table.cell(infoTable, 0, 2, "Weak", text_color=color.gray, text_size=size.small)
+        if weak_anchored and not na(weak_level)
+            table.cell(infoTable, 1, 2, "$" + str.tostring(weak_level, format.mintick), text_color=color.new(dirClr, 40), text_size=size.small)
+        else
+            table.cell(infoTable, 1, 2, "Pending", text_color=color.new(color.orange, 40), text_size=size.small)
+
+        table.cell(infoTable, 0, 3, "Weak Confirmed", text_color=color.gray, text_size=size.small)
+        table.cell(infoTable, 1, 3, weak_anchored ? "Yes" : "No", text_color=weak_anchored ? BULL_CLR : color.new(color.orange, 40), text_size=size.small)
