@@ -119,10 +119,12 @@ class CandleRangeResult:
 # =============================================================================
 @dataclass
 class StructureResult:
-    """Market structure detection result."""
+    """Market structure detection result (v3 - anchor + walk-forward)."""
     direction: int                 # 1 = BULL, -1 = BEAR, 0 = NEUTRAL
     label: str                     # "BULL", "BEAR", "NEUTRAL"
     last_swing_high: Optional[float]
     last_swing_low: Optional[float]
     higher_highs: bool
     higher_lows: bool
+    strong_level: Optional[float] = None   # invalidation level
+    weak_level: Optional[float] = None     # target/continuation level (None if pending)

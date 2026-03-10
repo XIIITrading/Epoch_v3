@@ -1,0 +1,71 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "launcher",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["launcher.py"],
+      "port": 0
+    },
+    {
+      "name": "01-application",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["01_application/app.py"],
+      "port": 0
+    },
+    {
+      "name": "02-dow-ai",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["02_dow_ai/app.py"],
+      "port": 0
+    },
+    {
+      "name": "02-entry-qualifier",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["02_dow_ai/entry_qualifier/main.py"],
+      "port": 0
+    },
+    {
+      "name": "02-dow-analysis",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["02_dow_ai/dow_analysis/main.py"],
+      "port": 0
+    },
+    {
+      "name": "03-backtest",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["03_backtest/app.py"],
+      "port": 0
+    },
+    {
+      "name": "04-indicators",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["04_indicators/app.py"],
+      "port": 0
+    },
+    {
+      "name": "05-system-analysis",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["05_system_analysis/app.py"],
+      "port": 0
+    },
+    {
+      "name": "06-training-desktop",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["06_training/app.py"],
+      "port": 0
+    },
+    {
+      "name": "06-training-streamlit",
+      "runtimeExecutable": "streamlit",
+      "runtimeArgs": ["run", "06_training/streamlit_app.py"],
+      "port": 8501
+    },
+    {
+      "name": "11-trade-reel",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["11_trade_reel/app.py"],
+      "port": 0
+    }
+  ]
+}

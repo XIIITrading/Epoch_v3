@@ -1,0 +1,217 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © XIIITrading
+
+//@version=6
+indicator("Epoch - Volume Delta (Bar Position)", format=format.volume)
+
+// ============================================================================
+// EPOCH VOLUME DELTA - BAR POSITION METHOD
+// ============================================================================
+//
+// Bar Delta:
+//     bar_position  = (close - low) / (high - low)
+//     multiplier    = (2 * bar_position) - 1
+//     bar_delta     = volume * multiplier
+//
+// CVD (Cumulative Volume Delta):
+//     Session-anchored running sum of bar_delta.
+//     Resets at configurable hour (default 04:00 pre-market).
+//     Shows cumulative buying/selling pressure building through the day.
+//
+// Efficiency Histogram (MACD-style):
+//     raw_eff   = abs(bar_delta) / volume          (0 to 1)
+//     eff_fast  = EMA(raw_eff, 5)
+//     eff_slow  = EMA(raw_eff, 13)
+//     histogram = eff_fast - eff_slow               (centered on zero)
+//
+//     Positive = efficiency rising vs trend (conviction increasing)
+//     Negative = efficiency falling vs trend (absorption / stopping)
+//
+// Absorption Signal:
+//     Efficiency histogram negative (conviction declining)
+//     + CVD degrading (cumulative pressure weakening)
+//     + Volume at or above average
+//
+// ============================================================================
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+rollingPeriod   = input.int(14, "Rolling Period", minval=1, tooltip="Bars for rolling delta sum", group="Delta")
+
+cvdAnchorHour   = input.int(4, "CVD Reset Hour", minval=0, maxval=23, tooltip="Reset CVD at this hour each day. 4 = pre-market, 9 = regular session. Only applies on intraday timeframes.", group="CVD")
+cvdScale        = input.float(1.0, "CVD Scale", minval=0.1, maxval=5.0, step=0.1, tooltip="Adjust CVD line size relative to delta bars", group="CVD")
+cvdLookback     = input.int(5, "CVD Degradation Lookback", minval=1, maxval=20, tooltip="Number of bars to check CVD rate of change for absorption detection", group="CVD")
+showCVD         = input.bool(true, "Show CVD Line", group="Display")
+
+effFast         = input.int(5, "Efficiency Fast EMA", minval=1, maxval=50, group="Efficiency")
+effSlow         = input.int(13, "Efficiency Slow EMA", minval=1, maxval=50, group="Efficiency")
+showEffHist     = input.bool(true, "Show Efficiency Histogram", group="Display")
+
+bullColor       = input.color(color.teal, "Bull", group="Colors")
+bearColor       = input.color(color.red, "Bear", group="Colors")
+absorbColor     = input.color(color.yellow, "Absorption", group="Colors")
+
+// ============================================================================
+// BAR POSITION DELTA
+// ============================================================================
+
+barRange    = high - low
+isDoji      = barRange == 0
+barPosition = isDoji ? (close >= open ? 1.0 : 0.0) : (close - low) / barRange
+dmultiplier = 2.0 * barPosition - 1.0a
+barDelta    = volume * dmultiplier
+
+// ============================================================================
+// CVD — SESSION ANCHORED
+// ============================================================================
+// Resets at the anchor hour each day on intraday charts.
+// On daily+ timeframes, runs as a continuous cumulative sum.
+
+isReset = timeframe.isintraday and hour == cvdAnchorHour and (na(hour[1]) or hour[1] != cvdAnchorHour)
+
+var float cvd = 0.0
+if isReset
+    cvd := nz(barDelta)
+else
+    cvd += nz(barDelta)
+
+// Auto-scale: normalize CVD to fit the delta bar visual range.
+// A random walk of N bars has expected range ~ avgDelta * sqrt(N).
+// We scale so CVD at that expected range equals ~3x the average bar height.
+// The sqrt(200) assumes ~200 bars per session (~6.5 regular hours on 2-min).
+cvdAutoFactor = 3.0 / math.sqrt(200) * cvdScale
+cvdScaled     = cvd * cvdAutoFactor
+
+// ============================================================================
+// EFFICIENCY HISTOGRAM — MACD-STYLE
+// ============================================================================
+// Instead of centering raw efficiency at a fixed point (which was too strict),
+// we compare the fast EMA to the slow EMA of efficiency. The DIFFERENCE tells
+// us when efficiency is rising or falling relative to its own recent trend.
+//
+// This catches relative shifts: if efficiency drops from 0.8 to 0.5, the
+// histogram goes negative even though 0.5 isn't "low" in absolute terms.
+// That relative decline is the absorption signal.
+
+rawEfficiency = volume > 0 ? math.abs(barDelta) / volume : 0.0
+
+effFastLine = ta.ema(rawEfficiency, effFast)
+effSlowLine = ta.ema(rawEfficiency, effSlow)
+effHist     = effFastLine - effSlowLine     // centered on zero naturally
+
+// Scale histogram to delta bar visual range
+// Normalize: make histogram columns ~40% the height of average delta bars
+avgAbsHist  = ta.sma(math.abs(effHist), 50)
+avgAbsDelta = ta.sma(math.abs(barDelta), 20)
+histScale   = avgAbsHist > 0.001 ? avgAbsDelta / avgAbsHist * 0.4 : 0.0
+effHistScaled = effHist * histScale
+
+// ============================================================================
+// ABSORPTION DETECTION
+// ============================================================================
+// Three conditions must align:
+//
+// 1. Efficiency declining — histogram negative (fast EMA < slow EMA)
+//    Volume is not converting to directional movement as well as recently.
+//
+// 2. CVD degrading — current CVD <= CVD N bars ago
+//    Cumulative pressure is stalling or reversing. The trend is losing steam.
+//
+// 3. Volume present — at or above 20-bar average
+//    Absorption requires participation. Low volume + low efficiency is just
+//    a quiet bar, not stopping volume.
+
+effDeclining = effHist < 0
+cvdDegrading = cvd <= cvd[cvdLookback]
+avgVol       = ta.sma(volume, 20)
+volPresent   = volume >= avgVol
+
+isAbsorption = effDeclining and cvdDegrading and volPresent
+
+// ============================================================================
+// DELTA CANDLE
+// ============================================================================
+
+deltaOpen  = 0.0
+deltaClose = barDelta
+deltaHigh  = math.max(0.0, barDelta)
+deltaLow   = math.min(0.0, barDelta)
+
+// ============================================================================
+// ROLLING
+// ============================================================================
+
+rollingDelta = math.sum(barDelta, rollingPeriod)
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+deltaCol = isAbsorption ? absorbColor : barDelta > 0 ? bullColor : bearColor
+histCol  = effHist >= 0 ? color.new(color.white, 50) : color.new(absorbColor, 50)
+cvdCol   = cvd >= 0 ? bullColor : bearColor
+
+// ============================================================================
+// PLOT
+// ============================================================================
+
+hline(0, "Zero", color.gray, hline.style_dotted)
+
+// Efficiency histogram — columns behind the delta candles
+plot(showEffHist ? effHistScaled : na, "Eff Histogram", color=histCol, style=plot.style_columns)
+
+// Delta candles — the primary visual
+plotcandle(deltaOpen, deltaHigh, deltaLow, deltaClose,
+     "Volume Delta", color=deltaCol, bordercolor=deltaCol, wickcolor=deltaCol)
+
+// CVD line
+plot(showCVD ? cvdScaled : na, "CVD", color=cvdCol, linewidth=2)
+
+// Absorption markers
+plotshape(isAbsorption, "Absorption", shape.diamond, location.bottom,
+     absorbColor, size=size.tiny)
+
+// ============================================================================
+// DATA TABLE
+// ============================================================================
+
+rollingSignal = rollingDelta > 0 ? "Bullish" : rollingDelta < 0 ? "Bearish" : "Neutral"
+
+var table t = table.new(position.top_right, 2, 6, bgcolor=color.new(color.black, 80), border_width=1)
+
+if barstate.islast
+    table.cell(t, 0, 0, "Bar Delta",    text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 0, str.tostring(barDelta, "#,##0"),
+         text_color=barDelta > 0 ? bullColor : bearColor, text_size=size.small)
+
+    table.cell(t, 0, 1, "CVD",          text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 1, str.tostring(cvd, "#,##0"),
+         text_color=cvd > 0 ? bullColor : bearColor, text_size=size.small)
+
+    table.cell(t, 0, 2, "Efficiency",   text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 2, str.tostring(rawEfficiency * 100, "0.0") + "%",
+         text_color=effHist < 0 ? absorbColor : color.white, text_size=size.small)
+
+    table.cell(t, 0, 3, "Eff Hist",     text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 3, str.tostring(effHist * 100, "+0.0;-0.0"),
+         text_color=effHist >= 0 ? color.white : absorbColor, text_size=size.small)
+
+    table.cell(t, 0, 4, "Absorption",   text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 4, isAbsorption ? "ACTIVE" : "---",
+         text_color=isAbsorption ? absorbColor : color.gray, text_size=size.small)
+
+    table.cell(t, 0, 5, "Rolling(" + str.tostring(rollingPeriod) + ")",
+         text_color=color.gray, text_size=size.small)
+    table.cell(t, 1, 5, str.tostring(rollingDelta, "#,##0"),
+         text_color=rollingDelta > 0 ? bullColor : bearColor, text_size=size.small)
+
+// ============================================================================
+// VOLUME CHECK
+// ============================================================================
+
+var cumVol = 0.
+cumVol += nz(volume)
+if barstate.islast and cumVol == 0
+    runtime.error("The data vendor doesn't provide volume data for this symbol.")

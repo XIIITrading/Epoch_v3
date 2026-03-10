@@ -89,8 +89,10 @@ class ATRConfig:
 # =============================================================================
 @dataclass(frozen=True)
 class StructureConfig:
-    """Fractal-based market structure parameters."""
-    fractal_length: int = 5  # bars each side for fractal detection
+    """Market structure parameters (v3 - anchor + walk-forward)."""
+    fractal_length: int = 2          # bars each side (2 = classic 5-candle Williams fractal)
+    retrace_pct: float = 0.30        # retracement % to anchor weak level (0.30 = 30%)
+    lookback_tiers: tuple = (200, 350, 500)  # anchor search tiers in bars
 
 
 # =============================================================================

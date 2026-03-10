@@ -1,0 +1,357 @@
+// This Pine Script(R) code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (C) XIIITrading
+//
+// v2: Candle-by-candle processing — state evolves on each bar via var variables.
+//     No barstate.islast replay.  Raw price scanning for strong/weak levels (gap-resilient).
+
+//@version=5
+indicator("GH Method - Market Structure v2", overlay=true, max_labels_count=500, max_lines_count=500, max_bars_back=500)
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+fractalLen    = input.int(2, "Fractal Length (bars each side)", minval=1, maxval=10, group="Fractal", tooltip="2 = classic 5-candle Williams fractal")
+retracePct    = input.float(30.0, "Retracement % for Weak Level", minval=5.0, maxval=80.0, step=5.0, group="Structure") / 100.0
+showBreaks    = input.bool(true, "Show BOS / CHoCH Lines", group="Display")
+showLevels    = input.bool(true, "Show Strong / Weak Levels", group="Display")
+showDebug     = input.bool(true, "Show Debug Markers", group="Display", tooltip="Triangles=Strong, Circles=Weak, X=Anchor fractals")
+showTable     = input.bool(true, "Show Info Table", group="Display")
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+var color BULL       = #26a69a
+var color BEAR       = #ef5350
+var color WHITE_LINE = color.new(color.white, 30)
+var color ANCHOR_CLR = color.yellow
+
+// ============================================================================
+// FRACTAL DETECTION — only needed for anchor detection
+// ============================================================================
+
+isFracHigh = true
+isFracLow  = true
+
+for j = 1 to fractalLen
+    if high[fractalLen] <= high[fractalLen - j] or high[fractalLen] <= high[fractalLen + j]
+        isFracHigh := false
+    if low[fractalLen] >= low[fractalLen - j] or low[fractalLen] >= low[fractalLen + j]
+        isFracLow := false
+
+atrVal   = ta.atr(14)
+pxOffset = atrVal * 0.15
+
+// ============================================================================
+// HELPERS — scan raw price for min low or max high in range
+// ============================================================================
+
+// Find lowest low between startBar and bar_index (inclusive of break bar)
+scanLowestLow(startBar) =>
+    float _low = low
+    int   _bar = bar_index
+    int scanLen = math.min(bar_index - startBar, 499)
+    for i = 1 to scanLen
+        if low[i] < _low
+            _low := low[i]
+            _bar := bar_index - i
+    [_low, _bar]
+
+// Find highest high between startBar and bar_index (inclusive of break bar)
+scanHighestHigh(startBar) =>
+    float _high = high
+    int   _bar  = bar_index
+    int scanLen = math.min(bar_index - startBar, 499)
+    for i = 1 to scanLen
+        if high[i] > _high
+            _high := high[i]
+            _bar  := bar_index - i
+    [_high, _bar]
+
+// ============================================================================
+// STATE VARIABLES (persist across bars via var)
+// ============================================================================
+
+var int   structState      = 0     // 0 = seeking anchor, 1 = active
+var int   trend            = 0     // 1 = bull, -1 = bear
+var float strong_level     = na
+var int   strong_bar       = 0
+var float weak_level       = na
+var int   weak_bar         = 0
+var bool  weak_anchored    = false
+var float last_extreme     = na    // running move extreme (high for bull, low for bear)
+var int   last_extreme_bar = 0     // bar_index of the move extreme
+
+// Anchor-seeking trackers (only used while structState == 0)
+var int   prevBullBar   = -1
+var float prevBullPrice = na
+var int   prevBearBar   = -1
+var float prevBearPrice = na
+
+// Rendering — strong / weak level lines (redrawn each bar)
+var line  strongLine = na
+var line  weakLine   = na
+var label strongLbl  = na
+var label weakLbl    = na
+
+var table infoTable = table.new(position.top_right, 2, 3,
+     bgcolor=color.new(#1C1C1C, 20), border_width=1, border_color=color.new(#333333, 0))
+
+// Current-bar fractal pivot bar_index
+int fracBar_now = bar_index - fractalLen
+
+// ============================================================================
+// ANCHOR DETECTION — find two consecutive same-type fractals
+// ============================================================================
+
+if structState == 0
+    // --- Bull fractal detected (swing low) ---
+    if isFracLow
+        if prevBullBar != -1
+            // "Between" check: was any bear fractal strictly between the two bulls?
+            bool bearBetween = prevBearBar > prevBullBar and prevBearBar < fracBar_now
+            if not bearBetween
+                // Anchor found — two consecutive bull fractals
+                structState      := 1
+                trend            := 1
+                strong_level     := low[fractalLen]
+                strong_bar       := fracBar_now
+                weak_level       := na
+                weak_bar         := 0
+                weak_anchored    := false
+                last_extreme     := not na(prevBearPrice) ? prevBearPrice : high[fractalLen]
+                last_extreme_bar := not na(prevBearPrice) ? prevBearBar : fracBar_now
+
+                if showDebug
+                    label.new(prevBullBar, prevBullPrice - pxOffset, "\u2717",
+                         style=label.style_none, textcolor=ANCHOR_CLR, size=size.small)
+                    label.new(fracBar_now, low[fractalLen] - pxOffset, "\u2717",
+                         style=label.style_none, textcolor=ANCHOR_CLR, size=size.small)
+                    label.new(fracBar_now, low[fractalLen] - pxOffset * 2, "\u25B2",
+                         style=label.style_none, textcolor=BULL, size=size.tiny)
+
+        prevBullBar   := fracBar_now
+        prevBullPrice := low[fractalLen]
+
+    // --- Bear fractal detected (swing high) ---
+    if isFracHigh
+        if prevBearBar != -1
+            bool bullBetween = prevBullBar > prevBearBar and prevBullBar < fracBar_now
+            if not bullBetween
+                // Anchor found — two consecutive bear fractals
+                structState      := 1
+                trend            := -1
+                strong_level     := high[fractalLen]
+                strong_bar       := fracBar_now
+                weak_level       := na
+                weak_bar         := 0
+                weak_anchored    := false
+                last_extreme     := not na(prevBullPrice) ? prevBullPrice : low[fractalLen]
+                last_extreme_bar := not na(prevBullPrice) ? prevBullBar : fracBar_now
+
+                if showDebug
+                    label.new(prevBearBar, prevBearPrice + pxOffset, "\u2717",
+                         style=label.style_none, textcolor=ANCHOR_CLR, size=size.small)
+                    label.new(fracBar_now, high[fractalLen] + pxOffset, "\u2717",
+                         style=label.style_none, textcolor=ANCHOR_CLR, size=size.small)
+                    label.new(fracBar_now, high[fractalLen] + pxOffset * 2, "\u25BC",
+                         style=label.style_none, textcolor=BEAR, size=size.tiny)
+
+        prevBearBar   := fracBar_now
+        prevBearPrice := high[fractalLen]
+
+// ============================================================================
+// ACTIVE STRUCTURE — candle-by-candle BOS / CHoCH / retracement
+// ============================================================================
+
+if structState == 1
+    bool didBOS   = false
+    bool didCHOCH = false
+
+    if trend == 1
+        // ==================== BULL ====================
+
+        // BOS: close above confirmed weak high
+        if weak_anchored and not na(weak_level) and close > weak_level
+            didBOS := true
+            // New strong = lowest low from old strong to break bar (raw price scan)
+            [newSL, newSLBar] = scanLowestLow(strong_bar)
+
+            if showBreaks
+                int wbStart = weak_bar == 0 ? bar_index : weak_bar
+                line.new(wbStart, weak_level, bar_index, weak_level,
+                     color=WHITE_LINE, style=line.style_solid, width=1)
+                label.new(int((bar_index + wbStart) / 2), weak_level, "BOS",
+                     style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+
+            if showDebug
+                label.new(newSLBar, newSL - pxOffset * 2, "\u25B2",
+                     style=label.style_none, textcolor=BULL, size=size.tiny)
+
+            strong_level     := newSL
+            strong_bar       := newSLBar
+            weak_level       := na
+            weak_bar         := 0
+            weak_anchored    := false
+            last_extreme     := high
+            last_extreme_bar := bar_index
+
+        // CHOCH: close below strong low -> flip to bear
+        if not didBOS and not didCHOCH and not na(strong_level) and close < strong_level
+            didCHOCH := true
+            // New strong = highest high from old strong to break bar (raw price scan)
+            [newSH, newSHBar] = scanHighestHigh(strong_bar)
+
+            if showBreaks
+                line.new(strong_bar, strong_level, bar_index, strong_level,
+                     color=WHITE_LINE, style=line.style_dotted, width=1)
+                label.new(int((bar_index + strong_bar) / 2), strong_level, "CHoCH",
+                     style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+
+            if showDebug
+                label.new(newSHBar, newSH + pxOffset * 2, "\u25BC",
+                     style=label.style_none, textcolor=BEAR, size=size.tiny)
+
+            trend            := -1
+            strong_level     := newSH
+            strong_bar       := newSHBar
+            weak_level       := na
+            weak_bar         := 0
+            weak_anchored    := false
+            last_extreme     := low
+            last_extreme_bar := bar_index
+
+        // Track new high (move extreme for retracement threshold)
+        if not didBOS and not didCHOCH and not na(last_extreme) and high > last_extreme
+            last_extreme     := high
+            last_extreme_bar := bar_index
+
+        // 30% retracement -> anchor weak at the move extreme (no fractal needed)
+        if not didBOS and not didCHOCH and not weak_anchored and not na(last_extreme) and not na(strong_level)
+            float rng       = last_extreme - strong_level
+            float threshold = last_extreme - (rng * retracePct)
+            if rng > 0 and low <= threshold
+                weak_level       := last_extreme
+                weak_bar         := last_extreme_bar
+                weak_anchored    := true
+                if showDebug
+                    label.new(last_extreme_bar, last_extreme + pxOffset * 2, "\u25CB",
+                         style=label.style_none, textcolor=BULL, size=size.tiny)
+
+    else if trend == -1
+        // ==================== BEAR ====================
+
+        // BOS: close below confirmed weak low
+        if weak_anchored and not na(weak_level) and close < weak_level
+            didBOS := true
+            // New strong = highest high from old strong to break bar (raw price scan)
+            [newSH, newSHBar] = scanHighestHigh(strong_bar)
+
+            if showBreaks
+                int wbStart = weak_bar == 0 ? bar_index : weak_bar
+                line.new(wbStart, weak_level, bar_index, weak_level,
+                     color=WHITE_LINE, style=line.style_solid, width=1)
+                label.new(int((bar_index + wbStart) / 2), weak_level, "BOS",
+                     style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+
+            if showDebug
+                label.new(newSHBar, newSH + pxOffset * 2, "\u25BC",
+                     style=label.style_none, textcolor=BEAR, size=size.tiny)
+
+            strong_level     := newSH
+            strong_bar       := newSHBar
+            weak_level       := na
+            weak_bar         := 0
+            weak_anchored    := false
+            last_extreme     := low
+            last_extreme_bar := bar_index
+
+        // CHOCH: close above strong high -> flip to bull
+        if not didBOS and not didCHOCH and not na(strong_level) and close > strong_level
+            didCHOCH := true
+            // New strong = lowest low from old strong to break bar (raw price scan)
+            [newSL, newSLBar] = scanLowestLow(strong_bar)
+
+            if showBreaks
+                line.new(strong_bar, strong_level, bar_index, strong_level,
+                     color=WHITE_LINE, style=line.style_dotted, width=1)
+                label.new(int((bar_index + strong_bar) / 2), strong_level, "CHoCH",
+                     style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+
+            if showDebug
+                label.new(newSLBar, newSL - pxOffset * 2, "\u25B2",
+                     style=label.style_none, textcolor=BULL, size=size.tiny)
+
+            trend            := 1
+            strong_level     := newSL
+            strong_bar       := newSLBar
+            weak_level       := na
+            weak_bar         := 0
+            weak_anchored    := false
+            last_extreme     := high
+            last_extreme_bar := bar_index
+
+        // Track new low (move extreme for retracement threshold)
+        if not didBOS and not didCHOCH and not na(last_extreme) and low < last_extreme
+            last_extreme     := low
+            last_extreme_bar := bar_index
+
+        // 30% retracement (upward for bear) -> anchor weak at the move extreme (no fractal needed)
+        if not didBOS and not didCHOCH and not weak_anchored and not na(last_extreme) and not na(strong_level)
+            float rng       = strong_level - last_extreme
+            float threshold = last_extreme + (rng * retracePct)
+            if rng > 0 and high >= threshold
+                weak_level       := last_extreme
+                weak_bar         := last_extreme_bar
+                weak_anchored    := true
+                if showDebug
+                    label.new(last_extreme_bar, last_extreme - pxOffset * 2, "\u25CB",
+                         style=label.style_none, textcolor=BEAR, size=size.tiny)
+
+// ============================================================================
+// RENDERING — strong / weak level lines (redrawn each bar)
+// ============================================================================
+
+line.delete(strongLine)
+line.delete(weakLine)
+label.delete(strongLbl)
+label.delete(weakLbl)
+
+if structState == 1 and showLevels and not na(strong_level)
+    lineClr = trend == 1 ? BULL : BEAR
+
+    strongLine := line.new(strong_bar, strong_level, bar_index + 20, strong_level,
+         color=lineClr, style=line.style_solid, width=2, extend=extend.right)
+
+    string sText = trend == 1
+         ? "Strong (Support): $" + str.tostring(strong_level, format.mintick)
+         : "Strong (Resistance): $" + str.tostring(strong_level, format.mintick)
+    strongLbl := label.new(bar_index + 5, strong_level, sText,
+         style=label.style_label_left, color=color.new(lineClr, 80),
+         textcolor=lineClr, size=size.small)
+
+    if weak_anchored and not na(weak_level)
+        weakLine := line.new(weak_bar, weak_level, bar_index + 20, weak_level,
+             color=lineClr, style=line.style_dotted, width=2, extend=extend.right)
+        string wText = "Weak (Target): $" + str.tostring(weak_level, format.mintick)
+        weakLbl := label.new(bar_index + 5, weak_level, wText,
+             style=label.style_label_left, color=color.new(lineClr, 80),
+             textcolor=lineClr, size=size.small)
+
+// ============================================================================
+// INFO TABLE
+// ============================================================================
+
+if showTable
+    string dirStr = structState == 1 ? (trend == 1 ? "BULL" : "BEAR") : "NONE"
+    color  dirClr = structState == 1 ? (trend == 1 ? BULL : BEAR) : color.gray
+
+    table.cell(infoTable, 0, 0, "Direction", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 0, dirStr, text_color=dirClr, text_size=size.small)
+    table.cell(infoTable, 0, 1, "Strong", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 1, structState == 1 and not na(strong_level) ? "$" + str.tostring(strong_level, format.mintick) : "-",
+         text_color=dirClr, text_size=size.small)
+    table.cell(infoTable, 0, 2, "Weak", text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 2, structState == 1 and weak_anchored and not na(weak_level) ? "$" + str.tostring(weak_level, format.mintick) : "(pending)",
+         text_color=color.new(dirClr, 40), text_size=size.small)

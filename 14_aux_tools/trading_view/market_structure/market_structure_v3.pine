@@ -1,0 +1,491 @@
+// This Pine Script(R) code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (C) XIIITrading
+
+//@version=5
+indicator("GH Method - Market Structure v3", overlay=true, max_labels_count=500, max_lines_count=500, max_bars_back=500)
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+fractalLen    = input.int(2, "Fractal Length (bars each side)", minval=1, maxval=10, group="Fractal", tooltip="2 = classic 5-candle Williams fractal")
+retracePct    = input.float(30.0, "Retracement % for Weak Level", minval=5.0, maxval=80.0, step=5.0, group="Structure") / 100.0
+lookback1     = input.int(200, "Lookback Tier 1", minval=20, maxval=1000, group="Anchor", tooltip="Bars to search for anchor. 200 = ~2.5 days on 5m, ~10 months on daily")
+lookback2     = input.int(350, "Lookback Tier 2", minval=20, maxval=1000, group="Anchor")
+lookback3     = input.int(500, "Lookback Tier 3", minval=20, maxval=1000, group="Anchor")
+showBreaks    = input.bool(true, "Show BOS / CHoCH Lines", group="Display")
+showLevels    = input.bool(true, "Show Strong / Weak Levels", group="Display")
+showDebug     = input.bool(true, "Show Debug Markers", group="Display", tooltip="Triangles=Strong, Circles=Weak, X=Anchor fractals")
+showTable     = input.bool(true, "Show Info Table", group="Display")
+
+// ============================================================================
+// COLORS
+// ============================================================================
+
+var color BULL       = #26a69a
+var color BEAR       = #ef5350
+var color WHITE_LINE = color.new(color.white, 30)
+var color ANCHOR_CLR = color.yellow
+
+// ============================================================================
+// FRACTAL DETECTION — store in arrays for lookback scanning
+// ============================================================================
+
+isFracHigh = true
+isFracLow  = true
+
+for j = 1 to fractalLen
+    if high[fractalLen] <= high[fractalLen - j] or high[fractalLen] <= high[fractalLen + j]
+        isFracHigh := false
+    if low[fractalLen] >= low[fractalLen - j] or low[fractalLen] >= low[fractalLen + j]
+        isFracLow := false
+
+// Arrays: type (1=bull fractal/swing low, -1=bear fractal/swing high), bar_index, price
+var fracType  = array.new_int(0)
+var fracBar   = array.new_int(0)
+var fracPrice = array.new_float(0)
+
+if isFracLow
+    array.push(fracType, 1)
+    array.push(fracBar, bar_index - fractalLen)
+    array.push(fracPrice, low[fractalLen])
+
+if isFracHigh
+    array.push(fracType, -1)
+    array.push(fracBar, bar_index - fractalLen)
+    array.push(fracPrice, high[fractalLen])
+
+atrVal   = ta.atr(14)
+pxOffset = atrVal * 0.15
+
+// ============================================================================
+// ANCHOR DETECTION
+// Find oldest pair of consecutive same-type fractals (no opposite type
+// with bar_index strictly BETWEEN them) within the lookback window.
+// Returns both anchor fractals for X-mark rendering.
+// ============================================================================
+
+findAnchor(maxLookback) =>
+    int   _anchorBar    = 0
+    int   _anchorType   = 0
+    float _strongPrice  = na
+    float _weakPrice    = na
+    int   _weakBar      = 0
+    int   _frac1Bar     = 0       // older fractal of the pair
+    float _frac1Price   = na
+
+    sz = array.size(fracType)
+    if sz >= 2
+        cutoffBar = bar_index - maxLookback
+
+        int scanStart = -1
+        for i = 0 to sz - 1
+            if array.get(fracBar, i) >= cutoffBar
+                scanStart := i
+                break
+
+        if scanStart >= 0 and scanStart < sz - 1
+            int   lastBullBar   = -1
+            float lastBullPrice = na
+            int   lastBearBar   = -1
+            float lastBearPrice = na
+
+            for i = scanStart to sz - 1
+                int   fType  = array.get(fracType, i)
+                int   fBar   = array.get(fracBar, i)
+                float fPrice = array.get(fracPrice, i)
+
+                if fType == 1
+                    if lastBullBar != -1
+                        bool bearBetween = lastBearBar > lastBullBar and lastBearBar < fBar
+                        if not bearBetween
+                            _anchorBar   := fBar
+                            _anchorType  := 1
+                            _strongPrice := fPrice
+                            _frac1Bar    := lastBullBar
+                            _frac1Price  := lastBullPrice
+                            break
+                    lastBullBar   := fBar
+                    lastBullPrice := fPrice
+
+                else if fType == -1
+                    if lastBearBar != -1
+                        bool bullBetween = lastBullBar > lastBearBar and lastBullBar < fBar
+                        if not bullBetween
+                            _anchorBar   := fBar
+                            _anchorType  := -1
+                            _strongPrice := fPrice
+                            _frac1Bar    := lastBearBar
+                            _frac1Price  := lastBearPrice
+                            break
+                    lastBearBar   := fBar
+                    lastBearPrice := fPrice
+
+            if _anchorType != 0
+                int targetType = _anchorType == 1 ? -1 : 1
+                for k = sz - 1 to 0
+                    if array.get(fracType, k) == targetType and array.get(fracBar, k) <= _anchorBar
+                        _weakPrice := array.get(fracPrice, k)
+                        _weakBar   := array.get(fracBar, k)
+                        break
+
+    [_anchorBar, _anchorType, _strongPrice, _weakPrice, _weakBar, _frac1Bar, _frac1Price]
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+// Find the most recent fractal of targetType with bar_index >= minBar and <= maxBar.
+// Scans backward from the most recent fractal for efficiency.
+findNearestFrac(targetType, minBar, maxBar) =>
+    float _price = na
+    int   _bar   = na
+    sz = array.size(fracType)
+    for i = sz - 1 to 0
+        int fBar = array.get(fracBar, i)
+        if fBar < minBar
+            break
+        if fBar <= maxBar and array.get(fracType, i) == targetType
+            _price := array.get(fracPrice, i)
+            _bar   := fBar
+            break
+    [_price, _bar]
+
+drawBreakLine(anchorBar, price, breakBar, isBOS) =>
+    ln = line.new(anchorBar, price, breakBar, price,
+         color=WHITE_LINE, style=isBOS ? line.style_solid : line.style_dotted, width=1)
+    midB = int((anchorBar + breakBar) / 2)
+    lbl = label.new(midB, price, isBOS ? "BOS" : "CHoCH",
+         style=label.style_none, textcolor=color.new(color.white, 20), size=size.tiny)
+    [ln, lbl]
+
+// ============================================================================
+// WALK-FORWARD STATE MACHINE — runs on barstate.islast
+// ============================================================================
+
+var bosLines    = array.new_line(0)
+var bosLabels   = array.new_label(0)
+var bosMarkers  = array.new_label(0)
+var debugLabels = array.new_label(0)
+
+var line  strongLine  = na
+var line  weakLine    = na
+var label strongLbl   = na
+var label weakLbl     = na
+var label noStructLbl = na
+
+var table infoTable = table.new(position.top_right, 2, 3,
+     bgcolor=color.new(#1C1C1C, 20), border_width=1, border_color=color.new(#333333, 0))
+
+if barstate.islast
+    // --- Clean up ---
+    if array.size(bosLines) > 0
+        for i = 0 to array.size(bosLines) - 1
+            line.delete(array.get(bosLines, i))
+    array.clear(bosLines)
+    if array.size(bosLabels) > 0
+        for i = 0 to array.size(bosLabels) - 1
+            label.delete(array.get(bosLabels, i))
+    array.clear(bosLabels)
+    if array.size(bosMarkers) > 0
+        for i = 0 to array.size(bosMarkers) - 1
+            label.delete(array.get(bosMarkers, i))
+    array.clear(bosMarkers)
+    if array.size(debugLabels) > 0
+        for i = 0 to array.size(debugLabels) - 1
+            label.delete(array.get(debugLabels, i))
+    array.clear(debugLabels)
+    line.delete(strongLine)
+    line.delete(weakLine)
+    label.delete(strongLbl)
+    label.delete(weakLbl)
+    label.delete(noStructLbl)
+
+    // --- Anchor detection with expanding lookback ---
+    [aBar1, aType1, aStrong1, aWeak1, aWeakBar1, aF1Bar1, aF1Price1] = findAnchor(lookback1)
+    [aBar2, aType2, aStrong2, aWeak2, aWeakBar2, aF1Bar2, aF1Price2] = findAnchor(lookback2)
+    [aBar3, aType3, aStrong3, aWeak3, aWeakBar3, aF1Bar3, aF1Price3] = findAnchor(lookback3)
+
+    int   anchorBar   = 0
+    int   anchorType  = 0
+    float strongPrice = na
+    float weakPrice   = na
+    int   weakBarIdx  = 0
+    int   frac1Bar    = 0
+    float frac1Price  = na
+
+    if aType1 != 0
+        anchorBar   := aBar1
+        anchorType  := aType1
+        strongPrice := aStrong1
+        weakPrice   := aWeak1
+        weakBarIdx  := aWeakBar1
+        frac1Bar    := aF1Bar1
+        frac1Price  := aF1Price1
+    else if aType2 != 0
+        anchorBar   := aBar2
+        anchorType  := aType2
+        strongPrice := aStrong2
+        weakPrice   := aWeak2
+        weakBarIdx  := aWeakBar2
+        frac1Bar    := aF1Bar2
+        frac1Price  := aF1Price2
+    else if aType3 != 0
+        anchorBar   := aBar3
+        anchorType  := aType3
+        strongPrice := aStrong3
+        weakPrice   := aWeak3
+        weakBarIdx  := aWeakBar3
+        frac1Bar    := aF1Bar3
+        frac1Price  := aF1Price3
+
+    if anchorType == 0
+        noStructLbl := label.new(bar_index - 10, close, "No Structure Identified",
+             style=label.style_label_center, color=color.new(color.gray, 60),
+             textcolor=color.white, size=size.normal)
+        if showTable
+            table.cell(infoTable, 0, 0, "Direction", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 0, "NONE", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 0, 1, "Strong", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 1, "-", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 0, 2, "Weak", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 2, "-", text_color=color.gray, text_size=size.small)
+
+    else
+        // ===== DEBUG: X marks on anchor fractals =====
+        if showDebug
+            // Older fractal of the pair
+            float f1Y = anchorType == 1 ? frac1Price - pxOffset : frac1Price + pxOffset
+            array.push(debugLabels, label.new(frac1Bar, f1Y, "\u2717",
+                 style=label.style_none, textcolor=ANCHOR_CLR, size=size.small))
+            // Anchor fractal (more recent of pair)
+            float f2Y = anchorType == 1 ? strongPrice - pxOffset : strongPrice + pxOffset
+            array.push(debugLabels, label.new(anchorBar, f2Y, "\u2717",
+                 style=label.style_none, textcolor=ANCHOR_CLR, size=size.small))
+
+        // ===== WALK FORWARD FROM ANCHOR =====
+        int   trend          = anchorType
+        float strong_level   = strongPrice
+        int   strong_bar     = anchorBar
+        float weak_level     = na
+        int   weak_bar       = na
+        bool  weak_anchored  = false
+        float last_extreme   = na   // running extreme for retracement threshold
+
+        // Debug: initial strong level triangle
+        if showDebug
+            if anchorType == 1
+                array.push(debugLabels, label.new(anchorBar, strongPrice - pxOffset * 2, "\u25B2",
+                     style=label.style_none, textcolor=BULL, size=size.tiny))
+            else
+                array.push(debugLabels, label.new(anchorBar, strongPrice + pxOffset * 2, "\u25BC",
+                     style=label.style_none, textcolor=BEAR, size=size.tiny))
+
+        // Initialize last_extreme from anchor's weak or anchor bar
+        if not na(weakPrice)
+            last_extreme := weakPrice
+        else
+            int anchorOff = bar_index - anchorBar
+            if anchorOff >= 0 and anchorOff < 500
+                last_extreme := trend == 1 ? high[anchorOff] : low[anchorOff]
+
+        // --- Bar-by-bar walk ---
+        for bIdx = anchorBar to bar_index
+            int bOff = bar_index - bIdx
+            if bOff < 0 or bOff >= 500
+                continue
+
+            float bHigh  = high[bOff]
+            float bLow   = low[bOff]
+            float bClose = close[bOff]
+
+            bool didBOS   = false
+            bool didCHOCH = false
+
+            if trend == 1
+                // ==================== BULL ====================
+
+                // BOS: close above confirmed weak high
+                if not didBOS and weak_anchored and not na(weak_level) and bClose > weak_level
+                    didBOS := true
+                    // New strong = nearest swing low fractal (from current strong onward)
+                    [newSL, newSLBar] = findNearestFrac(1, strong_bar, bIdx)
+                    if na(newSL)
+                        newSL    := strong_level  // keep current if no new fractal
+                        newSLBar := strong_bar
+
+                    if showBreaks
+                        [ln, lbl] = drawBreakLine(na(weak_bar) ? bIdx : weak_bar, weak_level, bIdx, true)
+                        array.push(bosLines, ln)
+                        array.push(bosLabels, lbl)
+
+                    // Debug: triangle at new strong low
+                    if showDebug
+                        array.push(debugLabels, label.new(newSLBar, newSL - pxOffset * 2, "\u25B2",
+                             style=label.style_none, textcolor=BULL, size=size.tiny))
+
+                    strong_level   := newSL
+                    strong_bar     := newSLBar
+                    weak_level     := na
+                    weak_bar       := na
+                    weak_anchored  := false
+                    last_extreme   := bHigh
+
+                // CHOCH: close below strong low → flip to bear
+                if not didBOS and not didCHOCH and not na(strong_level) and bClose < strong_level
+                    didCHOCH := true
+                    // New strong = nearest swing high fractal
+                    [newSH, newSHBar] = findNearestFrac(-1, strong_bar, bIdx)
+                    if na(newSH)
+                        newSH    := bHigh
+                        newSHBar := bIdx
+
+                    if showBreaks
+                        [ln, lbl] = drawBreakLine(strong_bar, strong_level, bIdx, false)
+                        array.push(bosLines, ln)
+                        array.push(bosLabels, lbl)
+
+                    // Debug: triangle at new strong high
+                    if showDebug
+                        array.push(debugLabels, label.new(newSHBar, newSH + pxOffset * 2, "\u25BC",
+                             style=label.style_none, textcolor=BEAR, size=size.tiny))
+
+                    trend          := -1
+                    strong_level   := newSH
+                    strong_bar     := newSHBar
+                    weak_level     := na
+                    weak_bar       := na
+                    weak_anchored  := false
+                    last_extreme   := bLow
+
+                // Track new high (for retracement threshold)
+                if not didBOS and not didCHOCH and not na(last_extreme) and bHigh > last_extreme
+                    last_extreme := bHigh
+
+                // 30% retracement check → anchor weak at nearest swing high fractal
+                if not didBOS and not didCHOCH and not weak_anchored and not na(last_extreme) and not na(strong_level)
+                    float rng       = last_extreme - strong_level
+                    float threshold = last_extreme - (rng * retracePct)
+                    if rng > 0 and bLow <= threshold
+                        // Weak = most recent swing high fractal (bear fractal)
+                        [fWk, fWkBar] = findNearestFrac(-1, strong_bar, bIdx)
+                        if not na(fWk)
+                            weak_level    := fWk
+                            weak_bar      := fWkBar
+                            weak_anchored := true
+                            // Debug: circle at anchored weak high
+                            if showDebug
+                                array.push(debugLabels, label.new(fWkBar, fWk + pxOffset * 2, "\u25CB",
+                                     style=label.style_none, textcolor=BULL, size=size.tiny))
+
+            else if trend == -1
+                // ==================== BEAR (clean inverse) ====================
+
+                // BOS: close below confirmed weak low
+                if not didBOS and weak_anchored and not na(weak_level) and bClose < weak_level
+                    didBOS := true
+                    // New strong = nearest swing high fractal (from current strong onward)
+                    [newSH, newSHBar] = findNearestFrac(-1, strong_bar, bIdx)
+                    if na(newSH)
+                        newSH    := strong_level  // keep current if no new fractal
+                        newSHBar := strong_bar
+
+                    if showBreaks
+                        [ln, lbl] = drawBreakLine(na(weak_bar) ? bIdx : weak_bar, weak_level, bIdx, true)
+                        array.push(bosLines, ln)
+                        array.push(bosLabels, lbl)
+
+                    // Debug: triangle at new strong high
+                    if showDebug
+                        array.push(debugLabels, label.new(newSHBar, newSH + pxOffset * 2, "\u25BC",
+                             style=label.style_none, textcolor=BEAR, size=size.tiny))
+
+                    strong_level   := newSH
+                    strong_bar     := newSHBar
+                    weak_level     := na
+                    weak_bar       := na
+                    weak_anchored  := false
+                    last_extreme   := bLow
+
+                // CHOCH: close above strong high → flip to bull
+                if not didBOS and not didCHOCH and not na(strong_level) and bClose > strong_level
+                    didCHOCH := true
+                    // New strong = nearest swing low fractal
+                    [newSL, newSLBar] = findNearestFrac(1, strong_bar, bIdx)
+                    if na(newSL)
+                        newSL    := bLow
+                        newSLBar := bIdx
+
+                    if showBreaks
+                        [ln, lbl] = drawBreakLine(strong_bar, strong_level, bIdx, false)
+                        array.push(bosLines, ln)
+                        array.push(bosLabels, lbl)
+
+                    // Debug: triangle at new strong low
+                    if showDebug
+                        array.push(debugLabels, label.new(newSLBar, newSL - pxOffset * 2, "\u25B2",
+                             style=label.style_none, textcolor=BULL, size=size.tiny))
+
+                    trend          := 1
+                    strong_level   := newSL
+                    strong_bar     := newSLBar
+                    weak_level     := na
+                    weak_bar       := na
+                    weak_anchored  := false
+                    last_extreme   := bHigh
+
+                // Track new low (for retracement threshold)
+                if not didBOS and not didCHOCH and not na(last_extreme) and bLow < last_extreme
+                    last_extreme := bLow
+
+                // 30% retracement check (upward for bear) → anchor weak at nearest swing low fractal
+                if not didBOS and not didCHOCH and not weak_anchored and not na(last_extreme) and not na(strong_level)
+                    float rng       = strong_level - last_extreme
+                    float threshold = last_extreme + (rng * retracePct)
+                    if rng > 0 and bHigh >= threshold
+                        // Weak = most recent swing low fractal (bull fractal)
+                        [fWk, fWkBar] = findNearestFrac(1, strong_bar, bIdx)
+                        if not na(fWk)
+                            weak_level    := fWk
+                            weak_bar      := fWkBar
+                            weak_anchored := true
+                            // Debug: circle at anchored weak low
+                            if showDebug
+                                array.push(debugLabels, label.new(fWkBar, fWk - pxOffset * 2, "\u25CB",
+                                     style=label.style_none, textcolor=BEAR, size=size.tiny))
+
+        // ===== DRAW STRONG / WEAK LEVELS =====
+        if showLevels and not na(strong_level)
+            lineClr = trend == 1 ? BULL : BEAR
+
+            strongLine := line.new(strong_bar, strong_level, bar_index + 20, strong_level,
+                 color=lineClr, style=line.style_solid, width=2, extend=extend.right)
+
+            string sText = trend == 1
+                 ? "Strong (Support): $" + str.tostring(strong_level, format.mintick)
+                 : "Strong (Resistance): $" + str.tostring(strong_level, format.mintick)
+            strongLbl := label.new(bar_index + 5, strong_level, sText,
+                 style=label.style_label_left, color=color.new(lineClr, 80),
+                 textcolor=lineClr, size=size.small)
+
+            if weak_anchored and not na(weak_level)
+                weakLine := line.new(weak_bar, weak_level, bar_index + 20, weak_level,
+                     color=lineClr, style=line.style_dotted, width=2, extend=extend.right)
+                string wText = "Weak (Target): $" + str.tostring(weak_level, format.mintick)
+                weakLbl := label.new(bar_index + 5, weak_level, wText,
+                     style=label.style_label_left, color=color.new(lineClr, 80),
+                     textcolor=lineClr, size=size.small)
+
+        // ===== INFO TABLE =====
+        if showTable
+            string dirStr = trend == 1 ? "BULL" : trend == -1 ? "BEAR" : "NEUTRAL"
+            color  dirClr = trend == 1 ? BULL : trend == -1 ? BEAR : color.gray
+
+            table.cell(infoTable, 0, 0, "Direction", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 0, dirStr, text_color=dirClr, text_size=size.small)
+            table.cell(infoTable, 0, 1, "Strong", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 1, not na(strong_level) ? "$" + str.tostring(strong_level, format.mintick) : "-",
+                 text_color=dirClr, text_size=size.small)
+            table.cell(infoTable, 0, 2, "Weak", text_color=color.gray, text_size=size.small)
+            table.cell(infoTable, 1, 2, weak_anchored and not na(weak_level) ? "$" + str.tostring(weak_level, format.mintick) : "(pending)",
+                 text_color=color.new(dirClr, 40), text_size=size.small)

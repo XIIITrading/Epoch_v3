@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ui.styles import DARK_STYLESHEET, COLORS
 from ui.tabs.pre_market_scanner import PreMarketScannerTab
+from ui.tabs.structure_screener import StructureScreenerTab
 from ui.tabs.market_screener import MarketScreenerTab
 from ui.tabs.dashboard import DashboardTab
 from ui.tabs.bar_data import BarDataTab
@@ -68,19 +69,20 @@ class AnalysisResults(QObject):
 
 class MainWindow(QMainWindow):
     """
-    Main application window with 10 tabs for zone analysis.
+    Main application window with 11 tabs for zone analysis.
 
     Tabs:
     1. Pre-Market Scanner - Two-phase market scanning for candidates
-    2. Market Screener - Ticker input, anchor dates, run analysis
-    3. Dashboard - Summary metrics
-    4. Bar Data - OHLC, ATR, Camarilla, Options, HVN POCs
-    5. Raw Zones - All zone candidates before filtering
-    6. Zone Results - Filtered zones with tier classification
-    7. Zone Analysis - Primary/Secondary setups
-    8. TradingView Export - Copyable table for PineScript data
-    9. Database Export - Supabase upload with terminal
-    10. Pre-Market Report - Full visualization/report
+    2. Structure Screener - D1 market structure scan across ticker universe
+    3. Market Screener - Ticker input, anchor dates, run analysis
+    4. Dashboard - Summary metrics
+    5. Bar Data - OHLC, ATR, Camarilla, Options, HVN POCs
+    6. Raw Zones - All zone candidates before filtering
+    7. Zone Results - Filtered zones with tier classification
+    8. Zone Analysis - Primary/Secondary setups
+    9. TradingView Export - Copyable table for PineScript data
+    10. Database Export - Supabase upload with terminal
+    11. Pre-Market Report - Full visualization/report
     """
 
     def __init__(self):
@@ -157,7 +159,14 @@ class MainWindow(QMainWindow):
             "Pre-Market Scanner"
         )
 
-        # Tab 2: Market Screener
+        # Tab 2: Structure Screener (pre-market D1 structure scan)
+        self.structure_screener_tab = StructureScreenerTab(self.analysis_results)
+        self.tab_widget.addTab(
+            self._wrap_in_scroll_area(self.structure_screener_tab),
+            "Structure Screener"
+        )
+
+        # Tab 3: Market Screener
         self.market_screener_tab = MarketScreenerTab(self.analysis_results)
         self.tab_widget.addTab(
             self._wrap_in_scroll_area(self.market_screener_tab),
