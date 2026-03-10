@@ -4,24 +4,31 @@ Epoch Trading System v2.0 - XIII Trading LLC
 
 Pre-market screener that runs D1 market structure v3 across the dynamic
 ticker universe (same source as scanner.py, gap filter removed) and
-classifies each ticker into one of four states:
+classifies each ticker into one of seven states:
 
-    Bull         – Current price in top 70% of bull range
-    Bear         – Current price in bottom 30% of bear range
+    Bull         – Current price in top 80% of bull range (confirmed)
+    Bull (Low)   – Current price in bottom 20% of bull range (uncommitted)
+    Bear         – Current price in bottom 80% of bear range (confirmed)
+    Bear (High)  – Current price in top 20% of bear range (uncommitted)
     Out - Strong – Current price beyond the Strong level
     Out - Weak   – Current price beyond the Weak level
+    Neutral      – No directional structure
+
+Includes composite scoring (Structure + Alignment + Gap + RVOL + Zone)
+and Top 10 Bull / Top 10 Bear shortlist.
 """
 
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, List, Optional
+from zoneinfo import ZoneInfo
 import logging
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QComboBox, QDoubleSpinBox, QDateEdit, QPushButton,
-    QProgressBar, QGridLayout, QMessageBox
+    QComboBox, QDoubleSpinBox, QPushButton,
+    QProgressBar, QGridLayout, QMessageBox, QCheckBox
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QDate
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 
 import sys
@@ -33,6 +40,18 @@ from ui.styles import COLORS
 from scanner import TickerManager, TickerList
 
 logger = logging.getLogger(__name__)
+
+ET = ZoneInfo("America/New_York")
+
+# =============================================================================
+# SCORING WEIGHTS (tunable)
+# =============================================================================
+
+W_STRUCTURE = 30   # Structure state quality
+W_ALIGNMENT = 20   # D1 body alignment with direction
+W_GAP = 20         # Overnight gap alignment
+W_RVOL = 25        # Relative volume
+W_ZONE = 10        # Price position within zone
 
 
 # =============================================================================
@@ -64,14 +83,14 @@ def classify_ticker(direction: int, strong: float, weak: float,
             # Price below strong → broken below support
             if current_price < strong:
                 return "Out - Strong"
-            # Inside range — check top 70%
+            # Inside range — check top 80%
             rng = weak - strong
             if rng > 0:
                 pct = (current_price - strong) / rng
-                if pct >= 0.30:          # top 70% of range
+                if pct >= 0.20:          # top 80% of range
                     return "Bull"
                 else:
-                    return "Bull (Low)"  # bottom 30% — weakening
+                    return "Bull (Low)"  # bottom 20% — weakening
             return "Bull"
         else:
             # No weak anchored yet — classify vs strong only
@@ -87,14 +106,14 @@ def classify_ticker(direction: int, strong: float, weak: float,
             # Price above strong → broken above resistance
             if current_price > strong:
                 return "Out - Strong"
-            # Inside range — check bottom 30%
+            # Inside range — check bottom 20%
             rng = strong - weak
             if rng > 0:
                 pct = (strong - current_price) / rng
-                if pct >= 0.30:          # bottom 30% of range
+                if pct >= 0.20:          # bottom 80% of range
                     return "Bear"
                 else:
-                    return "Bear (High)"  # top 70% — weakening
+                    return "Bear (High)"  # top 20% — weakening
             return "Bear"
         else:
             if current_price > strong:
@@ -102,6 +121,180 @@ def classify_ticker(direction: int, strong: float, weak: float,
             return "Bear"
 
     return "Neutral"
+
+
+# =============================================================================
+# MINUTE DATA: 09:00 PRICE + RVOL
+# =============================================================================
+
+def fetch_minute_data(ticker: str, polygon, today: date) -> dict:
+    """
+    Fetch minute bars to get:
+      - Last bar close at or before 09:00 ET (current_price)
+      - RVOL%: today's 04:00-09:00 volume vs trailing 12-day average
+
+    Returns dict with keys: price_0900, rvol_pct
+    """
+    result = {"price_0900": None, "rvol_pct": None}
+
+    try:
+        rvol_start = today - timedelta(days=25)
+        min_df = polygon.fetch_minute_bars(ticker, rvol_start, today)
+
+        if min_df.empty:
+            return result
+
+        # Convert UTC timestamps to ET
+        min_df["et_time"] = min_df["timestamp"].dt.tz_convert(ET)
+        min_df["bar_date"] = min_df["et_time"].dt.date
+        min_df["bar_hour"] = min_df["et_time"].dt.hour
+        min_df["bar_minute"] = min_df["et_time"].dt.minute
+
+        # ── Price at ~09:00 on today ──
+        # Use last bar at or before 09:00 (premarket gaps may skip exact minute)
+        today_bars = min_df[min_df["bar_date"] == today].copy()
+        if not today_bars.empty:
+            pre_0901 = today_bars[
+                (today_bars["bar_hour"] < 9) |
+                ((today_bars["bar_hour"] == 9) & (today_bars["bar_minute"] == 0))
+            ]
+            if not pre_0901.empty:
+                result["price_0900"] = float(pre_0901["close"].iloc[-1])
+
+        # ── RVOL: 04:00-09:00 volume ──
+        premarket = min_df[
+            (min_df["bar_hour"] >= 4) & (min_df["bar_hour"] < 9)
+        ]
+        if premarket.empty:
+            return result
+
+        daily_pm_vol = premarket.groupby("bar_date")["volume"].sum()
+
+        today_vol = daily_pm_vol.get(today, 0)
+
+        # Trailing 12 trading days (exclude today)
+        prior_vols = daily_pm_vol.drop(today, errors="ignore")
+        prior_vols = prior_vols.sort_index().tail(12)
+
+        if len(prior_vols) > 0 and prior_vols.mean() > 0:
+            avg_vol = prior_vols.mean()
+            result["rvol_pct"] = round((today_vol / avg_vol) * 100, 0)
+        else:
+            result["rvol_pct"] = 0
+
+    except Exception as exc:
+        logger.debug(f"Minute data skip {ticker}: {exc}")
+
+    return result
+
+
+# =============================================================================
+# SCORING ENGINE
+# =============================================================================
+
+def score_structure(state: str) -> int:
+    """Score structure state quality (0-30 pts)."""
+    return {
+        "Bull": W_STRUCTURE, "Bear": W_STRUCTURE,
+        "Bull (Low)": 15, "Bear (High)": 15,
+        "Out - Weak": 5,
+        "Out - Strong": 0, "Neutral": 0,
+    }.get(state, 0)
+
+
+def score_alignment(direction: str, prior_d1_body: str) -> int:
+    """Score D1 body alignment with structure direction (0-20 pts)."""
+    if prior_d1_body == "Inside":
+        return 10  # Neutral — no directional signal
+    if direction == "BULL":
+        return W_ALIGNMENT if prior_d1_body == "Above" else 5
+    elif direction == "BEAR":
+        return W_ALIGNMENT if prior_d1_body == "Below" else 5
+    return 0
+
+
+def score_gap(direction: str, gap_pct: float, price_source: str) -> int:
+    """Score overnight gap alignment (0-20 pts)."""
+    if price_source == "D1":
+        return 10  # No 09:00 bar — neutral
+
+    if direction == "BULL":
+        if gap_pct >= 1.0:   return 20
+        if gap_pct >= 0.5:   return 15
+        if gap_pct >= 0.0:   return 10
+        if gap_pct >= -0.5:  return 5
+        return 0
+    elif direction == "BEAR":
+        if gap_pct <= -1.0:  return 20
+        if gap_pct <= -0.5:  return 15
+        if gap_pct <= 0.0:   return 10
+        if gap_pct <= 0.5:   return 5
+        return 0
+    return 0
+
+
+def score_rvol(rvol_pct) -> int:
+    """Score relative volume (0-25 pts, tier-based)."""
+    if rvol_pct is None or rvol_pct <= 0:
+        return 0
+    if rvol_pct < 50:   return 5
+    if rvol_pct < 100:  return 10
+    if rvol_pct < 150:  return 15
+    if rvol_pct < 200:  return 20
+    return W_RVOL  # 25
+
+
+def score_zone(state: str, price: float, strong, weak,
+               direction: str) -> int:
+    """Score price position within the zone (0-10 pts)."""
+    if state in ("Out - Weak", "Out - Strong", "Neutral"):
+        return 0
+
+    if weak is None:
+        return 5  # Pending weak — trend mode, neutral
+
+    if strong is None:
+        return 0
+
+    # Calculate zone percentage
+    if direction == "BULL":
+        rng = weak - strong
+    elif direction == "BEAR":
+        rng = strong - weak
+    else:
+        return 0
+
+    if rng <= 0:
+        return 5
+
+    if direction == "BULL":
+        zone_pct = (price - strong) / rng
+    else:
+        zone_pct = (strong - price) / rng
+
+    zone_pct = max(0.0, min(1.0, zone_pct))
+
+    if 0.20 <= zone_pct <= 0.45:  return 10  # Sweet spot
+    if 0.45 < zone_pct <= 0.70:   return 7   # Mid zone
+    if 0.70 < zone_pct <= 1.00:   return 4   # Near weak
+    if 0.0 <= zone_pct < 0.20:    return 3   # Uncommitted
+    return 0
+
+
+def score_ticker(result: dict) -> dict:
+    """Calculate composite score. Adds 'score' and 'score_detail' to result."""
+    s = score_structure(result["state"])
+    a = score_alignment(result["direction"], result["prior_d1_body"])
+    g = score_gap(result["direction"], result.get("gap_pct", 0.0),
+                  result.get("price_source", "D1"))
+    r = score_rvol(result.get("rvol_pct"))
+    z = score_zone(result["state"], result["price"],
+                   result.get("strong"), result.get("weak"),
+                   result["direction"])
+
+    result["score"] = s + a + g + r + z
+    result["score_detail"] = {"S": s, "A": a, "G": g, "R": r, "Z": z}
+    return result
 
 
 # =============================================================================
@@ -152,15 +345,15 @@ class StructureScreenerWorker(QThread):
                 if self._cancelled:
                     return None
                 try:
-                    # Fetch D1 bars
+                    # ── Phase 1: D1 structure ──
                     df = polygon.fetch_daily_bars(ticker, start_date, end_date)
                     if df.empty or len(df) < 20:
                         return None
 
-                    current_price = float(df["close"].iloc[-1])
+                    d1_close = float(df["close"].iloc[-1])
 
                     # Hard filters (same as scanner minus gap)
-                    if current_price < self.min_price:
+                    if d1_close < self.min_price:
                         return None
 
                     # ATR filter
@@ -174,9 +367,9 @@ class StructureScreenerWorker(QThread):
                         prior_close = float(df["close"].iloc[-2])
                         body_lo = min(prior_open, prior_close)
                         body_hi = max(prior_open, prior_close)
-                        if current_price > body_hi:
+                        if d1_close > body_hi:
                             prior_d1_body = "Above"
-                        elif current_price < body_lo:
+                        elif d1_close < body_lo:
                             prior_d1_body = "Below"
                         else:
                             prior_d1_body = "Inside"
@@ -184,26 +377,48 @@ class StructureScreenerWorker(QThread):
                         prior_d1_body = "—"
 
                     # Run v3 market structure
-                    result = get_market_structure(df)
+                    structure = get_market_structure(df)
 
-                    # Classify
+                    # ── Phase 2: 09:00 price + RVOL ──
+                    minute_data = fetch_minute_data(ticker, polygon, end_date)
+
+                    # Use 09:00 bar close if available, otherwise D1 close
+                    current_price = minute_data["price_0900"] or d1_close
+                    price_source = "09:00" if minute_data["price_0900"] else "D1"
+
+                    # Overnight gap: 09:00 price vs D1 close
+                    if price_source == "09:00" and d1_close > 0:
+                        gap_pct = round((current_price - d1_close) / d1_close * 100, 2)
+                    else:
+                        gap_pct = 0.0
+
+                    # Classify using current_price (09:00 bar when available)
                     state = classify_ticker(
-                        result.direction,
-                        result.strong_level,
-                        result.weak_level,
+                        structure.direction,
+                        structure.strong_level,
+                        structure.weak_level,
                         current_price,
                     )
 
-                    return {
+                    row = {
                         "ticker": ticker,
                         "price": current_price,
-                        "direction": result.label,
-                        "strong": result.strong_level,
-                        "weak": result.weak_level,
+                        "d1_close": d1_close,
+                        "price_source": price_source,
+                        "gap_pct": gap_pct,
+                        "direction": structure.label,
+                        "strong": structure.strong_level,
+                        "weak": structure.weak_level,
                         "state": state,
                         "atr": round(atr, 2),
                         "prior_d1_body": prior_d1_body,
+                        "rvol_pct": minute_data["rvol_pct"],
                     }
+
+                    # Score inline
+                    score_ticker(row)
+
+                    return row
                 except Exception as exc:
                     logger.debug(f"Structure screener skip {ticker}: {exc}")
                     return None
@@ -232,14 +447,16 @@ class StructureScreenerWorker(QThread):
                     except Exception:
                         pass
 
-            # Sort: state priority then ticker
+            # Sort: score descending, then state priority, then ticker
             state_order = {
                 "Out - Strong": 0, "Out - Weak": 1,
                 "Bull": 2, "Bear": 3,
                 "Bull (Low)": 4, "Bear (High)": 5,
                 "Neutral": 6,
             }
-            results.sort(key=lambda r: (state_order.get(r["state"], 9), r["ticker"]))
+            results.sort(key=lambda r: (-r.get("score", 0),
+                                        state_order.get(r["state"], 9),
+                                        r["ticker"]))
 
             self.finished.emit(results)
 
@@ -340,6 +557,14 @@ class StructureScreenerTab(BaseTab):
         self.workers_spin.setMinimumWidth(100)
         grid.addWidget(self.workers_spin, 1, 3)
 
+        # Row 2 — Inside Prior Day filter
+        self.hide_inside_check = QCheckBox("Hide Inside Prior Day Bar")
+        self.hide_inside_check.setToolTip(
+            "Remove tickers whose current price is inside the prior day's open-close body"
+        )
+        self.hide_inside_check.stateChanged.connect(self._on_filter_changed)
+        grid.addWidget(self.hide_inside_check, 2, 0, 1, 2)
+
         grid.setColumnStretch(4, 1)
 
         # Buttons
@@ -405,8 +630,55 @@ class StructureScreenerTab(BaseTab):
             self._metric_labels[key] = lbl
         self.metrics_row.addStretch()
 
+        # ── Top 10 Shortlist ──────────────────────────────────────────────
+        shortlist_frame, shortlist_layout = self.create_section_frame(
+            "Top 10 Shortlist  —  Score = S(tructure) + A(lignment) + G(ap) + R(VOL) + Z(one)  max ~105"
+        )
+        layout.addWidget(shortlist_frame)
+
+        shortlist_row = QHBoxLayout()
+        shortlist_row.setSpacing(16)
+        shortlist_layout.addLayout(shortlist_row)
+
+        # Bull shortlist
+        bull_col = QVBoxLayout()
+        bull_label = QLabel("Top 10 BULL")
+        bull_label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        bull_label.setStyleSheet(f"color: {COLORS['bull']};")
+        bull_col.addWidget(bull_label)
+
+        self._shortlist_headers = [
+            "#", "Ticker", "Price", "Score",
+            "S", "A", "G", "R", "Z",
+            "Gap%", "RVOL%", "State",
+        ]
+        self._shortlist_widths = [30, 65, 80, 50, 30, 30, 30, 30, 30, 60, 60, 100]
+
+        self.bull_table = self.create_table(
+            headers=self._shortlist_headers,
+            column_widths=self._shortlist_widths,
+        )
+        self.bull_table.setMaximumHeight(320)
+        bull_col.addWidget(self.bull_table)
+        shortlist_row.addLayout(bull_col)
+
+        # Bear shortlist
+        bear_col = QVBoxLayout()
+        bear_label = QLabel("Top 10 BEAR")
+        bear_label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        bear_label.setStyleSheet(f"color: {COLORS['bear']};")
+        bear_col.addWidget(bear_label)
+
+        self.bear_table = self.create_table(
+            headers=self._shortlist_headers,
+            column_widths=self._shortlist_widths,
+        )
+        self.bear_table.setMaximumHeight(320)
+        bear_col.addWidget(self.bear_table)
+        shortlist_row.addLayout(bear_col)
+
         # ── Results Table ────────────────────────────────────────────────
-        results_frame, results_layout = self.create_section_frame("Scan Results")
+        results_frame, results_layout = self.create_section_frame("Full Scan Results")
         layout.addWidget(results_frame)
 
         self.results_summary = QLabel("No scan results yet")
@@ -417,10 +689,10 @@ class StructureScreenerTab(BaseTab):
 
         self.results_table = self.create_table(
             headers=[
-                "Ticker", "Price", "Direction", "Strong", "Weak",
-                "State", "Prior D1", "ATR",
+                "Ticker", "Price", "Score", "Direction", "Strong", "Weak",
+                "State", "Prior D1", "ATR", "RVOL%", "Gap%",
             ],
-            column_widths=[80, 90, 90, 100, 100, 120, 90, 80],
+            column_widths=[80, 90, 60, 80, 100, 100, 120, 80, 70, 70, 70],
         )
         results_layout.addWidget(self.results_table)
 
@@ -429,6 +701,7 @@ class StructureScreenerTab(BaseTab):
         # Worker reference
         self._worker: Optional[StructureScreenerWorker] = None
         self._live_results: List[dict] = []
+        self._all_results: List[dict] = []
 
     # ── Combo → Enum ─────────────────────────────────────────────────────
 
@@ -458,6 +731,8 @@ class StructureScreenerTab(BaseTab):
         self.status_label.setText("Starting scan...")
         self.results_summary.setText("Scanning...")
         self.results_table.setRowCount(0)
+        self.bull_table.setRowCount(0)
+        self.bear_table.setRowCount(0)
         self._live_results = []
 
         self._worker = StructureScreenerWorker(
@@ -480,11 +755,34 @@ class StructureScreenerTab(BaseTab):
 
     def _on_clear(self):
         self.results_table.setRowCount(0)
+        self.bull_table.setRowCount(0)
+        self.bear_table.setRowCount(0)
         self.results_summary.setText("No scan results")
         self.progress_bar.setValue(0)
         self.status_label.setText("Ready")
         self._live_results = []
+        self._all_results = []
         self._update_metrics([])
+
+    def _apply_filters(self, results: list) -> list:
+        """Apply UI filters to results list."""
+        filtered = results
+        if self.hide_inside_check.isChecked():
+            filtered = [r for r in filtered if r.get("prior_d1_body") != "Inside"]
+        return filtered
+
+    def _on_filter_changed(self):
+        """Re-populate table when filter toggles change."""
+        if self._all_results:
+            filtered = self._apply_filters(self._all_results)
+            self._populate_results(filtered)
+            self._update_metrics(filtered)
+            self.results_summary.setText(
+                f"{len(filtered)} of {len(self._all_results)} tickers shown"
+            )
+            self.status_label.setText(
+                f"Filtered — {len(filtered)} of {len(self._all_results)} results"
+            )
 
     # ── Callbacks ────────────────────────────────────────────────────────
 
@@ -505,13 +803,31 @@ class StructureScreenerTab(BaseTab):
         if not results:
             self.status_label.setText("No tickers matched filters")
             self.results_summary.setText("0 tickers matched filters")
+            self._all_results = []
             self._update_metrics([])
+            self.bull_table.setRowCount(0)
+            self.bear_table.setRowCount(0)
             return
 
-        self._populate_results(results)
-        self._update_metrics(results)
-        self.status_label.setText(f"Scan complete — {len(results)} results")
-        self.results_summary.setText(f"{len(results)} tickers classified")
+        self._all_results = results
+        filtered = self._apply_filters(results)
+
+        # Populate shortlists (unfiltered — shows best regardless of Inside toggle)
+        self._populate_shortlists(results)
+
+        # Populate full results table
+        self._populate_results(filtered)
+        self._update_metrics(filtered)
+
+        # Price source stats
+        p0900 = sum(1 for r in filtered if r.get("price_source") == "09:00")
+        p_d1 = sum(1 for r in filtered if r.get("price_source") == "D1")
+
+        self.status_label.setText(f"Scan complete — {len(filtered)} of {len(results)} results")
+        self.results_summary.setText(
+            f"{len(filtered)} tickers classified  |  "
+            f"Price: {p0900} @ 09:00,  {p_d1} @ D1 close"
+        )
 
     def _on_error(self, msg: str):
         self.run_button.setEnabled(True)
@@ -540,19 +856,80 @@ class StructureScreenerTab(BaseTab):
             strong_str = f"${r['strong']:.2f}" if r["strong"] is not None else "—"
             weak_str = f"${r['weak']:.2f}" if r["weak"] is not None else "pending"
 
+            # RVOL display
+            rvol = r.get("rvol_pct")
+            rvol_str = f"{rvol:.0f}%" if rvol is not None and rvol > 0 else "—"
+
+            # Gap display
+            if r.get("price_source") == "09:00":
+                gap_str = f"{r.get('gap_pct', 0.0):+.1f}%"
+            else:
+                gap_str = "—"
+
             table_data.append([
                 r["ticker"],
                 f"${r['price']:.2f}",
+                str(r.get("score", 0)),
                 r["direction"],
                 strong_str,
                 weak_str,
                 r["state"],
                 r.get("prior_d1_body", "—"),
                 f"${r['atr']:.2f}",
+                rvol_str,
+                gap_str,
             ])
             colors.append(self._STATE_COLORS.get(r["state"]))
 
         self.populate_table(self.results_table, table_data, colors)
+
+    def _populate_shortlists(self, results: list):
+        """Populate Top 10 Bull and Top 10 Bear shortlist tables."""
+        scoreable = [r for r in results if r.get("score", 0) > 0]
+
+        bulls = sorted([r for r in scoreable if r["direction"] == "BULL"],
+                       key=lambda r: r["score"], reverse=True)[:10]
+        bears = sorted([r for r in scoreable if r["direction"] == "BEAR"],
+                       key=lambda r: r["score"], reverse=True)[:10]
+
+        self._fill_shortlist_table(self.bull_table, bulls)
+        self._fill_shortlist_table(self.bear_table, bears)
+
+    def _fill_shortlist_table(self, table, top_list: list):
+        """Fill a shortlist table with ranked results."""
+        table_data = []
+        colors = []
+
+        for rank, r in enumerate(top_list, 1):
+            sd = r.get("score_detail", {})
+
+            # Gap display
+            if r.get("price_source") == "09:00":
+                gap_str = f"{r.get('gap_pct', 0.0):+.1f}%"
+            else:
+                gap_str = "—"
+
+            # RVOL display
+            rvol = r.get("rvol_pct")
+            rvol_str = f"{rvol:.0f}%" if rvol is not None and rvol > 0 else "—"
+
+            table_data.append([
+                str(rank),
+                r["ticker"],
+                f"${r['price']:.2f}",
+                str(r.get("score", 0)),
+                str(sd.get("S", 0)),
+                str(sd.get("A", 0)),
+                str(sd.get("G", 0)),
+                str(sd.get("R", 0)),
+                str(sd.get("Z", 0)),
+                gap_str,
+                rvol_str,
+                r["state"],
+            ])
+            colors.append(self._STATE_COLORS.get(r["state"]))
+
+        self.populate_table(table, table_data, colors)
 
     def _update_metrics(self, results: list):
         counts = {

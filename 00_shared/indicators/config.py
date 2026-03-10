@@ -91,7 +91,7 @@ class ATRConfig:
 class StructureConfig:
     """Market structure parameters (v3 - anchor + walk-forward)."""
     fractal_length: int = 2          # bars each side (2 = classic 5-candle Williams fractal)
-    retrace_pct: float = 0.30        # retracement % to anchor weak level (0.30 = 30%)
+    retrace_pct: float = 0.20        # retracement % to anchor weak level (0.20 = 20%)
     lookback_tiers: tuple = (200, 350, 500)  # anchor search tiers in bars
 
 
