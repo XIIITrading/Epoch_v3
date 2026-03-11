@@ -85,6 +85,17 @@ class ATRConfig:
 
 
 # =============================================================================
+# VOLUME PROFILE
+# =============================================================================
+@dataclass(frozen=True)
+class VolumeProfileConfig:
+    """Volume profile parameters (session-based)."""
+    resolution: int = 30                  # number of price zones
+    value_area_pct: int = 70              # % of total volume for value area
+    min_bars: int = 10                    # minimum bars to compute profile
+
+
+# =============================================================================
 # MARKET STRUCTURE
 # =============================================================================
 @dataclass(frozen=True)
@@ -113,6 +124,7 @@ class IndicatorConfig:
     volume_delta: VolumeDeltaConfig = field(default_factory=VolumeDeltaConfig)
     cvd: CVDConfig = field(default_factory=CVDConfig)
     atr: ATRConfig = field(default_factory=ATRConfig)
+    volume_profile: VolumeProfileConfig = field(default_factory=VolumeProfileConfig)
     structure: StructureConfig = field(default_factory=StructureConfig)
 
 

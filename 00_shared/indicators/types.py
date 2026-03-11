@@ -128,3 +128,32 @@ class StructureResult:
     higher_lows: bool
     strong_level: Optional[float] = None   # invalidation level
     weak_level: Optional[float] = None     # target/continuation level (None if pending)
+
+
+# =============================================================================
+# VOLUME PROFILE
+# =============================================================================
+@dataclass
+class VolumeProfileResult:
+    """Volume profile for a single session."""
+    poc: float                             # Point of Control price
+    vah: float                             # Value Area High
+    val: float                             # Value Area Low
+    total_volume: float
+    buy_volume: float
+    sell_volume: float
+    session_high: float
+    session_low: float
+    resolution: int
+    profile: List[tuple]                   # [(zone_mid_price, buy_vol, sell_vol), ...]
+
+
+@dataclass
+class SessionTargets:
+    """Prior and current session target levels."""
+    prior_day_poc: Optional[float] = None
+    prior_day_vah: Optional[float] = None
+    prior_day_val: Optional[float] = None
+    current_poc: Optional[float] = None
+    current_vah: Optional[float] = None
+    current_val: Optional[float] = None

@@ -23,6 +23,7 @@ from .atr import atr_df, atr_pct_df
 from .sma import sma_df, ema_df, sma_spread_df
 from .vwap import vwap_df
 from .candle_range import candle_range_pct_df, candle_range_df, relative_candle_range_df
+from .volume_profile import volume_profile_df, prior_day_levels_df
 
 # Bar-list wrappers
 from .volume_delta import calculate_bar_delta, calculate_bar_delta_from_bar, calculate_rolling_delta
@@ -38,6 +39,7 @@ from .candle_range import (
     calculate_candle_range_pct, calculate_candle_range_from_bar,
     is_absorption_zone, get_range_classification, is_candle_range_healthy,
 )
+from .volume_profile import calculate_volume_profile, calculate_session_targets
 
 __all__ = [
     # DataFrame wrappers
@@ -58,4 +60,7 @@ __all__ = [
     "calculate_vwap", "calculate_vwap_metrics",
     "calculate_candle_range_pct", "calculate_candle_range_from_bar",
     "is_absorption_zone", "get_range_classification", "is_candle_range_healthy",
+    # Volume Profile
+    "volume_profile_df", "prior_day_levels_df",
+    "calculate_volume_profile", "calculate_session_targets",
 ]
