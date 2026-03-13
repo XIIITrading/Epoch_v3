@@ -27,10 +27,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-# Setup path for shared imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-
-from shared.config.credentials import SUPABASE_DB_CONFIG
+# Import DB config from 01_application (shared credentials.py is gitignored)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "01_application"))
+from config import DB_CONFIG as SUPABASE_DB_CONFIG
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
