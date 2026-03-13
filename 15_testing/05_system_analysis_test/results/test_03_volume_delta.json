@@ -1,0 +1,44 @@
+{
+  "test_id": "test_03_volume_delta",
+  "question": "Is bar delta correct from bar position?",
+  "answer": "Yes - 6/6 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "close_at_high_position",
+      "expected": 1.0,
+      "actual": 1.0,
+      "passed": true
+    },
+    {
+      "name": "close_at_high_delta",
+      "expected": 1000.0,
+      "actual": 1000.0,
+      "passed": true
+    },
+    {
+      "name": "close_at_low_position",
+      "expected": 0.0,
+      "actual": 0.0,
+      "passed": true
+    },
+    {
+      "name": "close_at_low_delta",
+      "expected": -1000.0,
+      "actual": -1000.0,
+      "passed": true
+    },
+    {
+      "name": "close_at_mid_delta",
+      "expected": 0.0,
+      "actual": 0.0,
+      "passed": true
+    },
+    {
+      "name": "doji_bullish_delta",
+      "expected": 500.0,
+      "actual": 500.0,
+      "passed": true
+    }
+  ]
+}

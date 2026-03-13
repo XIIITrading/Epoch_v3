@@ -1,0 +1,44 @@
+{
+  "test_id": "test_08_camarilla",
+  "question": "Are Camarilla pivots correct?",
+  "answer": "Yes - 6/6 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "s6",
+      "expected": 95.0,
+      "actual": 95.0,
+      "passed": true
+    },
+    {
+      "name": "s4",
+      "expected": 98.82,
+      "actual": 98.82,
+      "passed": true
+    },
+    {
+      "name": "s3",
+      "expected": 100.0,
+      "actual": 100.0,
+      "passed": true
+    },
+    {
+      "name": "r3",
+      "expected": 110.0,
+      "actual": 110.0,
+      "passed": true
+    },
+    {
+      "name": "r4",
+      "expected": 111.18,
+      "actual": 111.18,
+      "passed": true
+    },
+    {
+      "name": "r6",
+      "expected": 115.0,
+      "actual": 115.0,
+      "passed": true
+    }
+  ]
+}

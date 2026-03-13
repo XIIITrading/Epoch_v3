@@ -23,7 +23,7 @@ from core import (
     Rank,
     Tier,
 )
-from weights import TIER_MAP, get_tier_from_rank
+from weights import TIER_MAP, MIN_ZONE_SCORE, get_tier_from_rank
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,15 @@ class ZoneFilter:
         # Step 1: Convert to FilteredZone and add tier
         filtered_zones = self._add_tier_classification(raw_zones, direction)
         logger.debug(f"  Step 1: Tier classification complete")
+
+        # Step 1.5: Remove zones below minimum score (L3+ only)
+        pre_floor_count = len(filtered_zones)
+        filtered_zones = [z for z in filtered_zones if z.score >= MIN_ZONE_SCORE]
+        removed = pre_floor_count - len(filtered_zones)
+        if removed > 0:
+            logger.info(f"  Step 1.5: Score floor ({MIN_ZONE_SCORE}) removed {removed} zones, {len(filtered_zones)} remain")
+        else:
+            logger.debug(f"  Step 1.5: Score floor ({MIN_ZONE_SCORE}) - all zones passed")
 
         # Step 2: Add ATR distance and proximity group
         filtered_zones = self._add_proximity_data(filtered_zones, price, d1_atr)

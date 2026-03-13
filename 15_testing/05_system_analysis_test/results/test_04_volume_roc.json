@@ -1,0 +1,32 @@
+{
+  "test_id": "test_04_volume_roc",
+  "question": "Is ROC% correct vs 20-bar baseline?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "roc_double_volume",
+      "expected": 100.0,
+      "actual": 100.0,
+      "passed": true
+    },
+    {
+      "name": "roc_half_volume",
+      "expected": -50.0,
+      "actual": -50.0,
+      "passed": true
+    },
+    {
+      "name": "classify_above",
+      "expected": "Above Avg",
+      "actual": "Above Avg",
+      "passed": true
+    },
+    {
+      "name": "classify_below",
+      "expected": "Below Avg",
+      "actual": "Below Avg",
+      "passed": true
+    }
+  ]
+}

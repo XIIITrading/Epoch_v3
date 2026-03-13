@@ -149,6 +149,9 @@ RANKING_SCORE_THRESHOLDS = {
     'L1': 0.0    # Score < 3 = L1 (WORST)
 }
 
+# Hard floor: exclude zones below L3 (backtest shows L1/L2 are net losers)
+MIN_ZONE_SCORE = 6.0
+
 # =============================================================================
 # TIER MAPPING (L-Rank to T-Tier)
 # =============================================================================
@@ -194,6 +197,9 @@ ZONE_NAME_MAP = {
     'h4_s': 'H4 Strong', 'h4_w': 'H4 Weak',
     'h1_s': 'H1 Strong', 'h1_w': 'H1 Weak',
     'm15_s': 'M15 Strong', 'm15_w': 'M15 Weak',
+
+    # Prior Day Volume Profile (independent tracking - not in confluence scoring)
+    'pd_vp_poc': 'PD VP POC', 'pd_vp_vah': 'PD VP VAH', 'pd_vp_val': 'PD VP VAL',
 }
 
 

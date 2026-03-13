@@ -1,0 +1,32 @@
+{
+  "test_id": "test_12_setup_rr",
+  "question": "Is R:R calculated correctly?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "bull_rr_3.0",
+      "expected": 3.0,
+      "actual": 3.0,
+      "passed": true
+    },
+    {
+      "name": "bear_rr_4.0",
+      "expected": 4.0,
+      "actual": 4.0,
+      "passed": true
+    },
+    {
+      "name": "bull_target_3r",
+      "expected": 108.0,
+      "actual": 108.0,
+      "passed": true
+    },
+    {
+      "name": "bull_target_4r_fallback",
+      "expected": "4R_calc",
+      "actual": "4R_calc",
+      "passed": true
+    }
+  ]
+}

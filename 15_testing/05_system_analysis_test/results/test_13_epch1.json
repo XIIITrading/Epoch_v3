@@ -1,0 +1,38 @@
+{
+  "test_id": "test_13_epch1",
+  "question": "Does EPCH1 fire on zone traversal?",
+  "answer": "Yes - 5/5 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "long_traversal",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "long_inside_below",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "long_inside_above_no",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "name": "short_traversal",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "short_inside_above",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    }
+  ]
+}

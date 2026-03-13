@@ -1,0 +1,26 @@
+{
+  "test_id": "test_19_eod_cutoff",
+  "question": "Does 15:30 cutoff = LOSS?",
+  "answer": "Yes - 3/3 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "r1_before_cutoff",
+      "expected": "WIN",
+      "actual": "WIN",
+      "passed": true
+    },
+    {
+      "name": "no_r1_by_cutoff",
+      "expected": "LOSS",
+      "actual": "LOSS",
+      "passed": true
+    },
+    {
+      "name": "after_cutoff_ignored",
+      "expected": "LOSS",
+      "actual": "LOSS",
+      "passed": true
+    }
+  ]
+}

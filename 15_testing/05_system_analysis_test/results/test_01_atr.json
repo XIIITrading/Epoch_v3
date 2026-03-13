@@ -1,0 +1,32 @@
+{
+  "test_id": "test_01_atr",
+  "question": "Does ATR calculate correctly from known OHLC?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "true_range_normal",
+      "expected": 5.0,
+      "actual": 5.0,
+      "passed": true
+    },
+    {
+      "name": "true_range_gap_up",
+      "expected": 10.0,
+      "actual": 10.0,
+      "passed": true
+    },
+    {
+      "name": "true_range_gap_down",
+      "expected": 10.0,
+      "actual": 10.0,
+      "passed": true
+    },
+    {
+      "name": "atr_14_valid",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    }
+  ]
+}

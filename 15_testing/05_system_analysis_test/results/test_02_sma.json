@@ -1,0 +1,32 @@
+{
+  "test_id": "test_02_sma",
+  "question": "Do SMA9/SMA21 produce correct averages?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "sma9_at_index_8",
+      "expected": 5.0,
+      "actual": 5.0,
+      "passed": true
+    },
+    {
+      "name": "sma21_at_index_20",
+      "expected": 11.0,
+      "actual": 11.0,
+      "passed": true
+    },
+    {
+      "name": "bull_config",
+      "expected": "BULL",
+      "actual": "BULL",
+      "passed": true
+    },
+    {
+      "name": "bear_config",
+      "expected": "BEAR",
+      "actual": "BEAR",
+      "passed": true
+    }
+  ]
+}

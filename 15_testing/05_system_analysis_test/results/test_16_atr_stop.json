@@ -1,0 +1,38 @@
+{
+  "test_id": "test_16_atr_stop",
+  "question": "Are stop + R-levels placed correctly?",
+  "answer": "Yes - 5/5 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "long_stop",
+      "expected": 98.0,
+      "actual": 98.0,
+      "passed": true
+    },
+    {
+      "name": "long_r1",
+      "expected": 102.0,
+      "actual": 102.0,
+      "passed": true
+    },
+    {
+      "name": "long_r5",
+      "expected": 110.0,
+      "actual": 110.0,
+      "passed": true
+    },
+    {
+      "name": "short_stop",
+      "expected": 102.0,
+      "actual": 102.0,
+      "passed": true
+    },
+    {
+      "name": "short_r1",
+      "expected": 98.0,
+      "actual": 98.0,
+      "passed": true
+    }
+  ]
+}

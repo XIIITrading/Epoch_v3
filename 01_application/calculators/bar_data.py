@@ -15,12 +15,22 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
+import numpy as np
 import pandas as pd
 import pytz
 
 from data import get_polygon_client, cache, get_cache_key
 from core import BarData, OHLCData, CamarillaLevels
 from config import CACHE_TTL_DAILY
+
+# Volume profile core functions (Leviathan methodology from shared library)
+from shared.indicators.core.volume_profile import (
+    _build_profile_core,
+    _find_poc_index,
+    _calculate_poc_price,
+    _calculate_value_area,
+)
+from shared.indicators.config import CONFIG as SHARED_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -496,6 +506,94 @@ class BarDataCalculator:
         )
 
     # =========================================================================
+    # PRIOR DAY VOLUME PROFILE
+    # =========================================================================
+
+    def calculate_prior_day_volume_profile(
+        self,
+        ticker: str,
+        analysis_date: date,
+    ) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+        """
+        Calculate prior day's Volume Profile POC, VAH, and VAL.
+
+        Uses 5-minute bars from the prior trading day's regular market hours
+        (9:30 AM - 4:00 PM ET / 13:30 - 20:00 UTC) and the Leviathan
+        methodology from the shared volume profile library.
+
+        Args:
+            ticker: Stock symbol
+            analysis_date: Reference date
+
+        Returns:
+            Tuple of (poc, vah, val) or (None, None, None) on failure
+        """
+        # Find prior trading day
+        prior_date = self._get_prior_trading_day(ticker, analysis_date)
+        if not prior_date:
+            logger.warning(f"No prior trading day found for {ticker} PD VP calc")
+            return None, None, None
+
+        # Fetch 5-minute bars for prior day
+        df = self.client.fetch_minute_bars(
+            ticker, prior_date, prior_date, multiplier=5
+        )
+
+        if df.empty:
+            logger.warning(f"No 5-min bars for {ticker} on {prior_date} for PD VP")
+            return None, None, None
+
+        # Filter to market hours (13:30 - 20:00 UTC)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        if df['timestamp'].dt.tz is None:
+            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC')
+
+        market_open_minutes = self.MARKET_OPEN_UTC[0] * 60 + self.MARKET_OPEN_UTC[1]
+        market_close_minutes = self.MARKET_CLOSE_UTC[0] * 60 + self.MARKET_CLOSE_UTC[1]
+
+        df['time_minutes'] = df['timestamp'].dt.hour * 60 + df['timestamp'].dt.minute
+        df_market = df[
+            (df['time_minutes'] >= market_open_minutes) &
+            (df['time_minutes'] <= market_close_minutes)
+        ]
+
+        if df_market.empty or len(df_market) < 5:
+            logger.warning(f"Insufficient market-hours bars for {ticker} PD VP on {prior_date}")
+            return None, None, None
+
+        # Build volume profile using shared library core functions
+        vp_cfg = SHARED_CONFIG.volume_profile
+        resolution = vp_cfg.resolution    # 30 zones
+        va_pct = vp_cfg.value_area_pct    # 70%
+
+        opens = df_market['open'].values.astype(np.float64)
+        highs = df_market['high'].values.astype(np.float64)
+        lows = df_market['low'].values.astype(np.float64)
+        closes = df_market['close'].values.astype(np.float64)
+        volumes = df_market['volume'].values.astype(np.float64)
+
+        zone_tops, buy_prof, sell_prof, s_high, s_low, gap = _build_profile_core(
+            opens, highs, lows, closes, volumes, resolution
+        )
+
+        if gap <= 0:
+            logger.warning(f"Flat session for {ticker} PD VP on {prior_date}")
+            return None, None, None
+
+        poc_idx = _find_poc_index(buy_prof, sell_prof)
+        poc = _calculate_poc_price(zone_tops, poc_idx, gap)
+        val, vah = _calculate_value_area(
+            buy_prof, sell_prof, zone_tops, gap, poc_idx, va_pct
+        )
+
+        logger.info(
+            f"PD VP for {ticker} ({prior_date}): "
+            f"POC=${poc:.2f}, VAH=${vah:.2f}, VAL=${val:.2f}"
+        )
+
+        return round(poc, 2), round(vah, 2), round(val, 2)
+
+    # =========================================================================
     # HELPER METHODS
     # =========================================================================
 
@@ -630,6 +728,9 @@ def calculate_bar_data(
     # Camarilla levels
     cam_daily, cam_weekly, cam_monthly = calc.calculate_camarilla_levels(ticker, analysis_date)
 
+    # Prior Day Volume Profile (POC/VAH/VAL)
+    pd_vp_poc, pd_vp_vah, pd_vp_val = calc.calculate_prior_day_volume_profile(ticker, analysis_date)
+
     # Build BarData object
     bar_data = BarData(
         ticker=ticker,
@@ -657,7 +758,11 @@ def calculate_bar_data(
         # Camarilla
         camarilla_daily=cam_daily,
         camarilla_weekly=cam_weekly,
-        camarilla_monthly=cam_monthly
+        camarilla_monthly=cam_monthly,
+        # Prior Day Volume Profile
+        pd_vp_poc=pd_vp_poc,
+        pd_vp_vah=pd_vp_vah,
+        pd_vp_val=pd_vp_val,
     )
 
     logger.info(f"Bar data calculation complete for {ticker}")

@@ -1,0 +1,38 @@
+{
+  "test_id": "test_20_zone_entry_alignment",
+  "question": "Do entries fire inside scored zones?",
+  "answer": "Yes - 5/5 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "zone_high",
+      "expected": 101.0,
+      "actual": 101.0,
+      "passed": true
+    },
+    {
+      "name": "zone_low",
+      "expected": 99.0,
+      "actual": 99.0,
+      "passed": true
+    },
+    {
+      "name": "zone_rank",
+      "expected": "L4",
+      "actual": "L4",
+      "passed": true
+    },
+    {
+      "name": "entry_fires",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "no_entry_below",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    }
+  ]
+}

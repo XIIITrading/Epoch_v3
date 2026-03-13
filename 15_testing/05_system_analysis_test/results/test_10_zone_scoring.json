@@ -1,0 +1,32 @@
+{
+  "test_id": "test_10_zone_scoring",
+  "question": "Does scoring sum confluences correctly?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "poc1_base_score",
+      "expected": 3.0,
+      "actual": 3.0,
+      "passed": true
+    },
+    {
+      "name": "no_stacking_monthly",
+      "expected": 3.0,
+      "actual": 3.0,
+      "passed": true
+    },
+    {
+      "name": "multi_bucket_total",
+      "expected": 9.0,
+      "actual": 9.0,
+      "passed": true
+    },
+    {
+      "name": "multi_bucket_rank",
+      "expected": "L4",
+      "actual": "L4",
+      "passed": true
+    }
+  ]
+}

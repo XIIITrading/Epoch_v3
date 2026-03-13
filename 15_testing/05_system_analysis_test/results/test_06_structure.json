@@ -1,0 +1,32 @@
+{
+  "test_id": "test_06_structure",
+  "question": "Does structure detect bull/bear from fractals?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "bull_direction",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "name": "bull_label",
+      "expected": "BULL",
+      "actual": "BULL",
+      "passed": true
+    },
+    {
+      "name": "bear_direction",
+      "expected": -1,
+      "actual": -1,
+      "passed": true
+    },
+    {
+      "name": "bear_label",
+      "expected": "BEAR",
+      "actual": "BEAR",
+      "passed": true
+    }
+  ]
+}

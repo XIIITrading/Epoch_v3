@@ -206,6 +206,11 @@ class BarData(BaseModel):
     camarilla_weekly: CamarillaLevels = Field(default_factory=CamarillaLevels)
     camarilla_monthly: CamarillaLevels = Field(default_factory=CamarillaLevels)
 
+    # Prior Day Volume Profile (Leviathan methodology)
+    pd_vp_poc: Optional[float] = None   # Prior Day VP Point of Control
+    pd_vp_vah: Optional[float] = None   # Prior Day VP Value Area High
+    pd_vp_val: Optional[float] = None   # Prior Day VP Value Area Low
+
     # Market structure levels
     d1_strong: Optional[float] = None
     d1_weak: Optional[float] = None

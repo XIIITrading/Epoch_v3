@@ -1,0 +1,32 @@
+{
+  "test_id": "test_18_same_candle",
+  "question": "Is R-hit + stop-close = LOSS?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "same_candle_loss",
+      "expected": "LOSS",
+      "actual": "LOSS",
+      "passed": true
+    },
+    {
+      "name": "r1_invalidated",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "r1_no_stop_win",
+      "expected": "WIN",
+      "actual": "WIN",
+      "passed": true
+    },
+    {
+      "name": "r1_then_stop_win",
+      "expected": "WIN",
+      "actual": "WIN",
+      "passed": true
+    }
+  ]
+}

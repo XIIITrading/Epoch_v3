@@ -1,0 +1,32 @@
+{
+  "test_id": "test_07_candle_range",
+  "question": "Does range classify absorption vs momentum?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "absorption_class",
+      "expected": "ABSORPTION",
+      "actual": "ABSORPTION",
+      "passed": true
+    },
+    {
+      "name": "low_class",
+      "expected": "LOW",
+      "actual": "LOW",
+      "passed": true
+    },
+    {
+      "name": "normal_class",
+      "expected": "NORMAL",
+      "actual": "NORMAL",
+      "passed": true
+    },
+    {
+      "name": "high_class",
+      "expected": "HIGH",
+      "actual": "HIGH",
+      "passed": true
+    }
+  ]
+}

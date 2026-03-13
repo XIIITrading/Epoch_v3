@@ -240,12 +240,27 @@ class PreMarketChartBuilder:
         ax_chart = self.fig.add_subplot(right_gs[0])
         ax_vp = self.fig.add_subplot(right_gs[1], sharey=ax_chart)
 
-        # Get epoch POC prices (from HVNResult.pocs list)
+        # Get epoch POC prices - only draw L3+ zones on the chart
+        # (All zones are still exported to Supabase for analysis)
+        L3_SCORE_FLOOR = 6.0
         epoch_pocs = []
         if isinstance(hvn_result, dict):
-            # HVNResult uses 'pocs' key (List[POCResult]) not 'hvn_pocs'
+            # Build set of POC prices from zones that are L3+ (score >= 6.0)
+            filtered_poc_prices = {
+                round(float(z.get('hvn_poc', 0)), 2)
+                for z in filtered_zones
+                if isinstance(z, dict)
+                and float(z.get('hvn_poc', 0) or 0) > 0
+                and float(z.get('score', 0) or 0) >= L3_SCORE_FLOOR
+            }
+            # Only include HVN POCs that correspond to an L3+ zone
             pocs = hvn_result.get("pocs", [])
-            epoch_pocs = [p.get("price", 0) if isinstance(p, dict) else 0 for p in pocs[:10]]
+            epoch_pocs = [
+                float(p.get("price", 0)) if isinstance(p, dict) else 0
+                for p in pocs[:10]
+                if round(float(p.get("price", 0) if isinstance(p, dict) else 0), 2)
+                in filtered_poc_prices
+            ]
 
         # Build chart first to get y-limits, then VP
         y_limits = self._build_price_chart(

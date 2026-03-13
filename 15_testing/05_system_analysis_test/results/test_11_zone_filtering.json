@@ -1,0 +1,38 @@
+{
+  "test_id": "test_11_zone_filtering",
+  "question": "Does filtering remove overlaps, keep best?",
+  "answer": "Yes - 5/5 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "L1_to_T1",
+      "expected": "T1",
+      "actual": "T1",
+      "passed": true
+    },
+    {
+      "name": "L3_to_T2",
+      "expected": "T2",
+      "actual": "T2",
+      "passed": true
+    },
+    {
+      "name": "L5_to_T3",
+      "expected": "T3",
+      "actual": "T3",
+      "passed": true
+    },
+    {
+      "name": "group_1_proximity",
+      "expected": "1",
+      "actual": "1",
+      "passed": true
+    },
+    {
+      "name": "overlap_removed",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    }
+  ]
+}

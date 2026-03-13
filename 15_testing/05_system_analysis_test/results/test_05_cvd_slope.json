@@ -1,0 +1,32 @@
+{
+  "test_id": "test_05_cvd_slope",
+  "question": "Does CVD slope detect rising/falling/flat?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "rising_trend",
+      "expected": "Rising",
+      "actual": "Rising",
+      "passed": true
+    },
+    {
+      "name": "falling_trend",
+      "expected": "Falling",
+      "actual": "Falling",
+      "passed": true
+    },
+    {
+      "name": "clamp_max",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "clamp_min",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    }
+  ]
+}

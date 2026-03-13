@@ -1,0 +1,38 @@
+{
+  "test_id": "test_09_hvn_poc_selection",
+  "question": "Do POCs select non-overlapping levels?",
+  "answer": "Yes - 5/5 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "basic_count",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "name": "highest_vol_first",
+      "expected": 100.0,
+      "actual": 100.0,
+      "passed": true
+    },
+    {
+      "name": "overlap_rejected_count",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "name": "overlap_rejected_100.5",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "name": "max_10_pocs",
+      "expected": 10,
+      "actual": 10,
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "test_id": "test_17_r_level_hits",
+  "question": "Are R-hits detected at correct bar?",
+  "answer": "Yes - 3/3 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "r1_at_bar_2",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "name": "r1_win",
+      "expected": "WIN",
+      "actual": "WIN",
+      "passed": true
+    },
+    {
+      "name": "stop_loss",
+      "expected": "LOSS",
+      "actual": "LOSS",
+      "passed": true
+    }
+  ]
+}

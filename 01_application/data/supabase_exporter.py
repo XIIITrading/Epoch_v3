@@ -320,6 +320,10 @@ class SupabaseExporter:
                 "m1_cam_r3": bar_data.camarilla_monthly.r3 if bar_data.camarilla_monthly else None,
                 "m1_cam_r4": bar_data.camarilla_monthly.r4 if bar_data.camarilla_monthly else None,
                 "m1_cam_r6": bar_data.camarilla_monthly.r6 if bar_data.camarilla_monthly else None,
+                # Prior Day Volume Profile
+                "pd_vp_poc": bar_data.pd_vp_poc,
+                "pd_vp_vah": bar_data.pd_vp_vah,
+                "pd_vp_val": bar_data.pd_vp_val,
             }
         else:
             # Dict format (fallback)

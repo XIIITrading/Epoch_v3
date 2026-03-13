@@ -1,0 +1,32 @@
+{
+  "test_id": "test_15_price_origin",
+  "question": "Does lookback find correct side?",
+  "answer": "Yes - 4/4 checks passed",
+  "passed": true,
+  "checks": [
+    {
+      "name": "origin_below",
+      "expected": "BELOW",
+      "actual": "BELOW",
+      "passed": true
+    },
+    {
+      "name": "origin_above",
+      "expected": "ABOVE",
+      "actual": "ABOVE",
+      "passed": true
+    },
+    {
+      "name": "origin_none",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "name": "most_recent_wins",
+      "expected": "ABOVE",
+      "actual": "ABOVE",
+      "passed": true
+    }
+  ]
+}
