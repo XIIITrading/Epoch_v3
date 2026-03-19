@@ -47,6 +47,8 @@ packages = [
     "shared.ui.charts",
     "shared.utils",
     "shared.charts",
+    "shared.calculations",
+    "shared.calculations.pdv",
 ]
 
 [tool.setuptools.package-dir]

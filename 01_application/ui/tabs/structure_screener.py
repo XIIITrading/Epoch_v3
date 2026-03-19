@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from ui.tabs.base_tab import BaseTab
 from ui.styles import COLORS
 from scanner import TickerManager, TickerList
+from shared.calculations.pdv import calculate_pdv, Alignment
 
 logger = logging.getLogger(__name__)
 
@@ -418,6 +419,14 @@ class StructureScreenerWorker(QThread):
                     # Score inline
                     score_ticker(row)
 
+                    # PDV alignment
+                    try:
+                        pdv = calculate_pdv(ticker, end_date, polygon_client=polygon)
+                        row["pdv_alignment"] = pdv.alignment.value if pdv.alignment else "—"
+                    except Exception as pdv_exc:
+                        logger.debug(f"PDV skip {ticker}: {pdv_exc}")
+                        row["pdv_alignment"] = "—"
+
                     return row
                 except Exception as exc:
                     logger.debug(f"Structure screener skip {ticker}: {exc}")
@@ -690,9 +699,9 @@ class StructureScreenerTab(BaseTab):
         self.results_table = self.create_table(
             headers=[
                 "Ticker", "Price", "Score", "Direction", "Strong", "Weak",
-                "State", "Prior D1", "ATR", "RVOL%", "Gap%",
+                "State", "Prior D1", "ATR", "RVOL%", "Gap%", "PDV Align",
             ],
-            column_widths=[80, 90, 60, 80, 100, 100, 120, 80, 70, 70, 70],
+            column_widths=[80, 90, 60, 80, 100, 100, 120, 80, 70, 70, 70, 130],
         )
         results_layout.addWidget(self.results_table)
 
@@ -878,14 +887,24 @@ class StructureScreenerTab(BaseTab):
                 f"${r['atr']:.2f}",
                 rvol_str,
                 gap_str,
+                r.get("pdv_alignment", "—"),
             ])
             colors.append(self._STATE_COLORS.get(r["state"]))
 
         self.populate_table(self.results_table, table_data, colors)
 
     def _populate_shortlists(self, results: list):
-        """Populate Top 10 Bull and Top 10 Bear shortlist tables."""
-        scoreable = [r for r in results if r.get("score", 0) > 0]
+        """Populate Top 10 Bull and Top 10 Bear shortlist tables.
+
+        Only tickers with PDV alignment = 'Aligned (Inside)' qualify
+        for the shortlists. This ensures the prior day value area
+        confirms the structural direction.
+        """
+        scoreable = [
+            r for r in results
+            if r.get("score", 0) > 0
+            and r.get("pdv_alignment") == Alignment.ALIGNED_INSIDE.value
+        ]
 
         bulls = sorted([r for r in scoreable if r["direction"] == "BULL"],
                        key=lambda r: r["score"], reverse=True)[:10]

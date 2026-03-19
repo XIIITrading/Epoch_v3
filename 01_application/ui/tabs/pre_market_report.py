@@ -173,6 +173,7 @@ class PreMarketChartBuilder:
         filtered_zones = result.get("filtered_zones", [])
         primary_setup = result.get("primary_setup", {})
         secondary_setup = result.get("secondary_setup", {})
+        h4_zones = result.get("h4_zones")  # H4SupplyDemandResult or None
 
         # Select dimensions based on mode
         if preview_mode:
@@ -265,7 +266,7 @@ class PreMarketChartBuilder:
         # Build chart first to get y-limits, then VP
         y_limits = self._build_price_chart(
             ax_chart, candle_data, primary_setup, secondary_setup,
-            epoch_pocs, bar_data, hvn_result
+            epoch_pocs, bar_data, hvn_result, h4_zones=h4_zones
         )
         self._build_volume_profile(ax_vp, volume_profile, y_limits)
 
@@ -571,7 +572,7 @@ class PreMarketChartBuilder:
     def _build_price_chart(self, ax: plt.Axes, candle_data: pd.DataFrame,
                            primary_setup: Dict, secondary_setup: Dict,
                            epoch_pocs: List[float], bar_data: Dict,
-                           hvn_result: Dict) -> Tuple[float, float]:
+                           hvn_result: Dict, h4_zones=None) -> Tuple[float, float]:
         """Build H1 candlestick chart with zones and POC lines."""
         ax.set_facecolor(VIZ_COLORS['dark_bg'])
 
@@ -583,7 +584,7 @@ class PreMarketChartBuilder:
                 y_min = hvn_result.get('price_range_low', 0)
                 y_max = hvn_result.get('price_range_high', 0)
                 if y_min and y_max:
-                    self._draw_zone_overlays(ax, primary_setup, secondary_setup, epoch_pocs, 100, -3, y_min, y_max)
+                    self._draw_zone_overlays(ax, primary_setup, secondary_setup, epoch_pocs, 100, -3, y_min, y_max, h4_zones=h4_zones)
                     ax.set_xlim(0, 100)
                     ax.set_ylim(y_min, y_max)
                     return (y_min, y_max)
@@ -626,7 +627,7 @@ class PreMarketChartBuilder:
         y_min -= padding
         y_max += padding
 
-        self._draw_zone_overlays(ax, primary_setup, secondary_setup, epoch_pocs, n_bars, -3, y_min, y_max)
+        self._draw_zone_overlays(ax, primary_setup, secondary_setup, epoch_pocs, n_bars, -3, y_min, y_max, h4_zones=h4_zones)
 
         ax.set_xlim(-2, n_bars + 15)
         ax.set_ylim(y_min, y_max)
@@ -644,8 +645,60 @@ class PreMarketChartBuilder:
 
     def _draw_zone_overlays(self, ax: plt.Axes, primary_setup: Dict, secondary_setup: Dict,
                             epoch_pocs: List[float], n_bars: int, label_offset: float,
-                            y_min: float, y_max: float):
-        """Draw zone overlays, POC lines, and target lines."""
+                            y_min: float, y_max: float, h4_zones=None):
+        """Draw zone overlays, POC lines, target lines, and H4 S/D zones."""
+
+        # H4 Supply & Demand Zones (drawn first, behind everything)
+        # Only show the closest 4 per side to keep the chart readable
+        H4_SUPPLY_COLOR = '#FF9800'  # Orange for supply/resistance
+        H4_DEMAND_COLOR = '#4CAF50'  # Green for demand/support
+        H4_ZONE_ALPHA = 0.10
+        H4_LABEL_SIZE = 7
+        H4_MAX_CHART_ZONES = 4       # max zones per side on chart
+
+        if h4_zones is not None and not getattr(h4_zones, 'error', None):
+            # Take closest 4 supply zones (sorted by midpoint ascending = closest first)
+            supply_display = sorted(h4_zones.supply_zones, key=lambda z: z.midpoint)[:H4_MAX_CHART_ZONES]
+            for zone in supply_display:
+                if zone.top >= y_min and zone.bottom <= y_max:
+                    ax.axhspan(
+                        zone.bottom, zone.top,
+                        alpha=H4_ZONE_ALPHA, color=H4_SUPPLY_COLOR, zorder=0
+                    )
+                    # Dashed border lines at zone edges
+                    ax.axhline(zone.top, color=H4_SUPPLY_COLOR, linewidth=0.5,
+                              linestyle='--', alpha=0.3, zorder=0)
+                    ax.axhline(zone.bottom, color=H4_SUPPLY_COLOR, linewidth=0.5,
+                              linestyle='--', alpha=0.3, zorder=0)
+                    # Label on right side of chart
+                    ax.text(n_bars + 1, zone.midpoint, f'{zone.zone_id}',
+                           color=H4_SUPPLY_COLOR, fontsize=H4_LABEL_SIZE,
+                           va='center', ha='left', alpha=0.7,
+                           bbox=dict(boxstyle='round,pad=0.15',
+                                    facecolor=VIZ_COLORS['dark_bg'],
+                                    edgecolor=H4_SUPPLY_COLOR,
+                                    alpha=0.5, linewidth=0.5))
+
+            # Take closest 4 demand zones (sorted by midpoint descending = closest first)
+            demand_display = sorted(h4_zones.demand_zones, key=lambda z: z.midpoint, reverse=True)[:H4_MAX_CHART_ZONES]
+            for zone in demand_display:
+                if zone.top >= y_min and zone.bottom <= y_max:
+                    ax.axhspan(
+                        zone.bottom, zone.top,
+                        alpha=H4_ZONE_ALPHA, color=H4_DEMAND_COLOR, zorder=0
+                    )
+                    ax.axhline(zone.top, color=H4_DEMAND_COLOR, linewidth=0.5,
+                              linestyle='--', alpha=0.3, zorder=0)
+                    ax.axhline(zone.bottom, color=H4_DEMAND_COLOR, linewidth=0.5,
+                              linestyle='--', alpha=0.3, zorder=0)
+                    ax.text(n_bars + 1, zone.midpoint, f'{zone.zone_id}',
+                           color=H4_DEMAND_COLOR, fontsize=H4_LABEL_SIZE,
+                           va='center', ha='left', alpha=0.7,
+                           bbox=dict(boxstyle='round,pad=0.15',
+                                    facecolor=VIZ_COLORS['dark_bg'],
+                                    edgecolor=H4_DEMAND_COLOR,
+                                    alpha=0.5, linewidth=0.5))
+
         # Primary Zone (Blue)
         if primary_setup and primary_setup.get('zone_high', 0) > 0 and primary_setup.get('zone_low', 0) > 0:
             ax.axhspan(
