@@ -1,0 +1,53 @@
+# Screener Universe - Fallback Ticker List
+# Format: TICKER or TICKER,YYYY-MM-DD (with epoch anchor date)
+# Used until Seed 005 populates screener_universe table in Supabase
+# Lines starting with # are comments
+SPY
+QQQ
+DIA
+NVDA
+AAPL
+MSFT
+AMZN
+GOOGL
+META
+AVGO
+TSLA
+LLY
+JPM
+V
+MU
+MA
+COST
+ORCL
+PLTR
+AMD
+HD
+CAT
+GE
+PANW
+QCOM
+UNH
+COIN
+MSTR
+HOOD
+ASML
+TMUS
+LIN
+KLAC
+AMGN
+TXN
+SHOP
+ADI
+APP
+HON
+ARM
+BKNG
+INTU
+VRTX
+CRWD
+SNPS
+CDNS
+DDOG
+ADP
+

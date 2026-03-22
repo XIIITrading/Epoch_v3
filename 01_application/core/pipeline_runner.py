@@ -52,7 +52,8 @@ class PipelineRunner:
         self,
         ticker_inputs: List[Dict],
         analysis_date: date,
-        end_timestamp: Optional[datetime] = None
+        end_timestamp: Optional[datetime] = None,
+        precomputed_options: Optional[Dict[str, list]] = None,
     ) -> Dict[str, List[Dict]]:
         """
         Run the full analysis pipeline.
@@ -92,7 +93,8 @@ class PipelineRunner:
         index_results = self._process_index_tickers(
             default_anchor,
             analysis_date,
-            end_timestamp
+            end_timestamp,
+            precomputed_options=precomputed_options,
         )
         results["index"] = index_results
         print(f"Index tickers complete: {len([r for r in index_results if r.get('success')])} successful")
@@ -125,11 +127,13 @@ class PipelineRunner:
             self._report_progress(progress, f"Processing {ticker}...")
 
             try:
+                ticker_options = (precomputed_options or {}).get(ticker)
                 result = self._process_single_ticker(
                     ticker=ticker,
                     anchor_date=anchor_date,
                     analysis_date=analysis_date,
-                    end_timestamp=end_timestamp
+                    end_timestamp=end_timestamp,
+                    precomputed_options=ticker_options,
                 )
                 results["custom"].append(result)
                 print(f"    [OK] {ticker}: {result.get('zones_count', 0)} zones, {result.get('direction', 'N/A')}")
@@ -165,7 +169,8 @@ class PipelineRunner:
         self,
         anchor_date: date,
         analysis_date: date,
-        end_timestamp: Optional[datetime]
+        end_timestamp: Optional[datetime],
+        precomputed_options: Optional[Dict[str, list]] = None,
     ) -> List[Dict]:
         """
         Process index tickers (SPY, QQQ, DIA) with prior month anchor.
@@ -178,11 +183,13 @@ class PipelineRunner:
         for ticker in INDEX_TICKERS:
             print(f"  Processing index: {ticker}...")
             try:
+                ticker_options = (precomputed_options or {}).get(ticker)
                 result = self._process_single_ticker(
                     ticker=ticker,
                     anchor_date=anchor_date,
                     analysis_date=analysis_date,
-                    end_timestamp=end_timestamp
+                    end_timestamp=end_timestamp,
+                    precomputed_options=ticker_options,
                 )
                 result["is_index"] = True
                 results.append(result)
@@ -205,7 +212,8 @@ class PipelineRunner:
         ticker: str,
         anchor_date: date,
         analysis_date: date,
-        end_timestamp: Optional[datetime] = None
+        end_timestamp: Optional[datetime] = None,
+        precomputed_options: Optional[list] = None,
     ) -> Dict:
         """
         Process a single ticker through the full pipeline.
@@ -273,19 +281,23 @@ class PipelineRunner:
 
         # Calculate options levels and add to bar_data
         print(f"    Stage 2b/6: Options levels...")
-        try:
-            options_levels = calculate_options_levels(
-                ticker=ticker,
-                analysis_date=analysis_date,
-                last_price=bar_data.price,
-                num_levels=10,
-                end_timestamp=end_timestamp
-            )
-            bar_data.options_levels = options_levels
-            print(f"              Found {len(options_levels)} options levels")
-        except Exception as e:
-            logger.warning(f"Options calculation failed for {ticker}: {e}")
-            print(f"              Options calculation failed: {e}")
+        if precomputed_options is not None:
+            bar_data.options_levels = precomputed_options
+            print(f"              Using {len(precomputed_options)} pre-computed options levels")
+        else:
+            try:
+                options_levels = calculate_options_levels(
+                    ticker=ticker,
+                    analysis_date=analysis_date,
+                    last_price=bar_data.price,
+                    num_levels=10,
+                    end_timestamp=end_timestamp
+                )
+                bar_data.options_levels = options_levels
+                print(f"              Found {len(options_levels)} options levels")
+            except Exception as e:
+                logger.warning(f"Options calculation failed for {ticker}: {e}")
+                print(f"              Options calculation failed: {e}")
 
         # Stage 3: HVN POCs
         print(f"    Stage 3/6: HVN POCs (anchor: {anchor_date})...")

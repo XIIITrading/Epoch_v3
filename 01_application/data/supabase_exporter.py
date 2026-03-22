@@ -98,6 +98,11 @@ class SupabaseExporter:
         """
         Export complete analysis results to Supabase.
 
+        Uses savepoints per ticker so one ticker's failure doesn't abort
+        the entire batch. If a ticker export fails, its savepoint is rolled
+        back (preserving previously deleted data for that ticker) and the
+        next ticker proceeds normally.
+
         Args:
             results: Analysis results dict from pipeline_runner
                      Contains 'custom' and 'index' lists of ticker results
@@ -120,22 +125,46 @@ class SupabaseExporter:
             # Ensure daily_sessions record exists (foreign key requirement)
             self._ensure_daily_session(session_date)
 
-            # Clean up existing data for this date
-            self._cleanup_session_data(session_date)
-
-            # Process index ticker results (SPY, QQQ, DIA)
-            index_results = results.get("index", [])
-            for result in index_results:
+            # Process each ticker with savepoint isolation
+            # If one ticker fails, roll back only that ticker's changes
+            all_results = []
+            for result in results.get("index", []):
                 if result.get("success"):
-                    self._export_ticker_result(result, session_date, is_index=True)
-
-            # Process custom ticker results
-            custom_results = results.get("custom", [])
-            for result in custom_results:
+                    all_results.append((result, True))
+            for result in results.get("custom", []):
                 if result.get("success"):
-                    self._export_ticker_result(result, session_date, is_index=False)
+                    all_results.append((result, False))
 
-            # Commit transaction
+            for result, is_index in all_results:
+                ticker = result.get("ticker", "unknown")
+                savepoint_name = f"sp_{ticker.replace('-', '_').replace('.', '_')}"
+
+                try:
+                    with self.conn.cursor() as cur:
+                        cur.execute(f"SAVEPOINT {savepoint_name}")
+
+                    # Clean up existing data for this ticker+date only
+                    self._cleanup_ticker_data(session_date, ticker)
+
+                    # Export all tables for this ticker
+                    self._export_ticker_result(result, session_date, is_index=is_index)
+
+                    with self.conn.cursor() as cur:
+                        cur.execute(f"RELEASE SAVEPOINT {savepoint_name}")
+
+                except Exception as e:
+                    # Roll back this ticker only — previous tickers are preserved
+                    error_msg = f"{ticker}: {str(e)}"
+                    self.stats.errors.append(error_msg)
+                    import logging
+                    logging.getLogger(__name__).error(f"Export failed for {ticker}: {e}")
+                    try:
+                        with self.conn.cursor() as cur:
+                            cur.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
+                    except Exception:
+                        pass  # Connection may be in bad state
+
+            # Commit all successful ticker exports
             self.conn.commit()
 
         except Exception as e:
@@ -149,19 +178,32 @@ class SupabaseExporter:
 
     def _get_session_date(self, results: Dict[str, Any]) -> Optional[date]:
         """Extract session date from analysis results."""
-        # Try custom results first
-        for result in results.get("custom", []):
-            if result.get("success"):
-                bar_data = result.get("bar_data")
-                if bar_data and hasattr(bar_data, 'analysis_date'):
-                    return bar_data.analysis_date
+        from datetime import datetime as dt
 
-        # Try index results
-        for result in results.get("index", []):
-            if result.get("success"):
+        # Check all result lists
+        for key in ("custom", "index"):
+            for result in results.get(key, []):
+                if not result.get("success"):
+                    continue
+
+                # Try top-level analysis_date (set by pipeline_runner)
+                ad = result.get("analysis_date")
+                if ad:
+                    if isinstance(ad, str):
+                        return dt.strptime(ad, '%Y-%m-%d').date()
+                    if isinstance(ad, date):
+                        return ad
+
+                # Try bar_data object attribute
                 bar_data = result.get("bar_data")
-                if bar_data and hasattr(bar_data, 'analysis_date'):
-                    return bar_data.analysis_date
+                if bar_data:
+                    if hasattr(bar_data, 'analysis_date'):
+                        return bar_data.analysis_date
+                    if isinstance(bar_data, dict) and bar_data.get("analysis_date"):
+                        ad = bar_data["analysis_date"]
+                        if isinstance(ad, str):
+                            return dt.strptime(ad, '%Y-%m-%d').date()
+                        return ad
 
         # Fall back to today
         return date.today()
@@ -177,7 +219,10 @@ class SupabaseExporter:
             """, (session_date,))
 
     def _cleanup_session_data(self, session_date: date):
-        """Delete existing data for the session date before re-importing."""
+        """Delete existing data for the session date before re-importing.
+        DEPRECATED: Use _cleanup_ticker_data() for per-ticker savepoint safety.
+        Kept for backward compatibility but no longer called by export_analysis_results.
+        """
         with self.conn.cursor() as cur:
             # Delete setups first (may have foreign key constraints)
             cur.execute("DELETE FROM setups WHERE date = %s", (session_date,))
@@ -193,6 +238,23 @@ class SupabaseExporter:
 
             # Delete market_structure
             cur.execute("DELETE FROM market_structure WHERE date = %s", (session_date,))
+
+    def _cleanup_ticker_data(self, session_date: date, ticker: str):
+        """Delete existing data for a single ticker+date before re-importing.
+        Used within savepoint isolation so rollback restores this ticker's data
+        if the subsequent insert fails.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute("DELETE FROM setups WHERE date = %s AND ticker = %s", (session_date, ticker))
+            cur.execute("DELETE FROM zones WHERE date = %s AND ticker = %s", (session_date, ticker))
+            cur.execute("DELETE FROM bar_data WHERE date = %s AND ticker = %s", (session_date, ticker))
+            cur.execute("DELETE FROM hvn_pocs WHERE date = %s AND ticker = %s", (session_date, ticker))
+            cur.execute("DELETE FROM market_structure WHERE date = %s AND ticker = %s", (session_date, ticker))
+
+    @staticmethod
+    def _build_ticker_id(ticker: str, session_date: date) -> str:
+        """Build ticker_id from ticker symbol and date. Format: TICKER_MMDDYY"""
+        return f"{ticker}_{session_date.strftime('%m%d%y')}"
 
     def _export_ticker_result(self, result: Dict[str, Any], session_date: date, is_index: bool = False):
         """Export a single ticker's analysis results."""
@@ -324,14 +386,130 @@ class SupabaseExporter:
                 "pd_vp_poc": bar_data.pd_vp_poc,
                 "pd_vp_vah": bar_data.pd_vp_vah,
                 "pd_vp_val": bar_data.pd_vp_val,
+                # Pre-Market levels (written by Bucket C morning runner)
+                "pm_high": getattr(bar_data, 'pm_high', None),
+                "pm_low": getattr(bar_data, 'pm_low', None),
+                "pm_poc": getattr(bar_data, 'pm_poc', None),
+                "pm_vah": getattr(bar_data, 'pm_vah', None),
+                "pm_val": getattr(bar_data, 'pm_val', None),
+                "pm_price": getattr(bar_data, 'pm_price', None),
             }
         else:
-            # Dict format (fallback)
+            # Dict format (from model_dump() — handles nested dicts)
+            ticker = bar_data.get("ticker", "")
+            ticker_id = bar_data.get("ticker_id") or self._build_ticker_id(ticker, session_date)
+
+            # Helper to extract nested OHLC from dict format
+            def _ohlc(key):
+                val = bar_data.get(key)
+                if isinstance(val, dict):
+                    return val.get("open"), val.get("high"), val.get("low"), val.get("close")
+                return None, None, None, None
+
+            m1c_o, m1c_h, m1c_l, m1c_c = _ohlc("m1_current")
+            m1p_o, m1p_h, m1p_l, m1p_c = _ohlc("m1_prior")
+            w1c_o, w1c_h, w1c_l, w1c_c = _ohlc("w1_current")
+            w1p_o, w1p_h, w1p_l, w1p_c = _ohlc("w1_prior")
+            d1c_o, d1c_h, d1c_l, d1c_c = _ohlc("d1_current")
+            d1p_o, d1p_h, d1p_l, d1p_c = _ohlc("d1_prior")
+
+            # Helper to extract nested Camarilla from dict format
+            def _cam(key):
+                val = bar_data.get(key)
+                if isinstance(val, dict):
+                    return val.get("s6"), val.get("s4"), val.get("s3"), val.get("r3"), val.get("r4"), val.get("r6")
+                return None, None, None, None, None, None
+
+            cam_d_s6, cam_d_s4, cam_d_s3, cam_d_r3, cam_d_r4, cam_d_r6 = _cam("camarilla_daily")
+            cam_w_s6, cam_w_s4, cam_w_s3, cam_w_r3, cam_w_r4, cam_w_r6 = _cam("camarilla_weekly")
+            cam_m_s6, cam_m_s4, cam_m_s3, cam_m_r3, cam_m_r4, cam_m_r6 = _cam("camarilla_monthly")
+
+            # Options levels from list
+            options = bar_data.get("options_levels", [])
+
             record = {
                 "date": session_date,
-                "ticker_id": bar_data.get("ticker_id"),
-                "ticker": bar_data.get("ticker"),
+                "ticker_id": ticker_id,
+                "ticker": ticker,
                 "price": bar_data.get("price"),
+                # Monthly OHLC
+                "m1_open": bar_data.get("m1_open", m1c_o),
+                "m1_high": bar_data.get("m1_high", m1c_h),
+                "m1_low": bar_data.get("m1_low", m1c_l),
+                "m1_close": bar_data.get("m1_close", m1c_c),
+                "m1_prior_open": bar_data.get("m1_prior_open", m1p_o),
+                "m1_prior_high": bar_data.get("m1_prior_high", m1p_h),
+                "m1_prior_low": bar_data.get("m1_prior_low", m1p_l),
+                "m1_prior_close": bar_data.get("m1_prior_close", m1p_c),
+                # Weekly OHLC
+                "w1_open": bar_data.get("w1_open", w1c_o),
+                "w1_high": bar_data.get("w1_high", w1c_h),
+                "w1_low": bar_data.get("w1_low", w1c_l),
+                "w1_close": bar_data.get("w1_close", w1c_c),
+                "w1_prior_open": bar_data.get("w1_prior_open", w1p_o),
+                "w1_prior_high": bar_data.get("w1_prior_high", w1p_h),
+                "w1_prior_low": bar_data.get("w1_prior_low", w1p_l),
+                "w1_prior_close": bar_data.get("w1_prior_close", w1p_c),
+                # Daily OHLC
+                "d1_open": bar_data.get("d1_open", d1c_o),
+                "d1_high": bar_data.get("d1_high", d1c_h),
+                "d1_low": bar_data.get("d1_low", d1c_l),
+                "d1_close": bar_data.get("d1_close", d1c_c),
+                "d1_prior_open": bar_data.get("d1_prior_open", d1p_o),
+                "d1_prior_high": bar_data.get("d1_prior_high", d1p_h),
+                "d1_prior_low": bar_data.get("d1_prior_low", d1p_l),
+                "d1_prior_close": bar_data.get("d1_prior_close", d1p_c),
+                # Overnight
+                "d1_overnight_high": bar_data.get("overnight_high") or bar_data.get("d1_overnight_high"),
+                "d1_overnight_low": bar_data.get("overnight_low") or bar_data.get("d1_overnight_low"),
+                # Options
+                "op_01": options[0] if len(options) > 0 else bar_data.get("op_01"),
+                "op_02": options[1] if len(options) > 1 else bar_data.get("op_02"),
+                "op_03": options[2] if len(options) > 2 else bar_data.get("op_03"),
+                "op_04": options[3] if len(options) > 3 else bar_data.get("op_04"),
+                "op_05": options[4] if len(options) > 4 else bar_data.get("op_05"),
+                "op_06": options[5] if len(options) > 5 else bar_data.get("op_06"),
+                "op_07": options[6] if len(options) > 6 else bar_data.get("op_07"),
+                "op_08": options[7] if len(options) > 7 else bar_data.get("op_08"),
+                "op_09": options[8] if len(options) > 8 else bar_data.get("op_09"),
+                "op_10": options[9] if len(options) > 9 else bar_data.get("op_10"),
+                # ATR
+                "m5_atr": bar_data.get("m5_atr"),
+                "m15_atr": bar_data.get("m15_atr"),
+                "h1_atr": bar_data.get("h1_atr"),
+                "d1_atr": bar_data.get("d1_atr"),
+                # Camarilla Daily
+                "d1_cam_s6": bar_data.get("d1_cam_s6", cam_d_s6),
+                "d1_cam_s4": bar_data.get("d1_cam_s4", cam_d_s4),
+                "d1_cam_s3": bar_data.get("d1_cam_s3", cam_d_s3),
+                "d1_cam_r3": bar_data.get("d1_cam_r3", cam_d_r3),
+                "d1_cam_r4": bar_data.get("d1_cam_r4", cam_d_r4),
+                "d1_cam_r6": bar_data.get("d1_cam_r6", cam_d_r6),
+                # Camarilla Weekly
+                "w1_cam_s6": bar_data.get("w1_cam_s6", cam_w_s6),
+                "w1_cam_s4": bar_data.get("w1_cam_s4", cam_w_s4),
+                "w1_cam_s3": bar_data.get("w1_cam_s3", cam_w_s3),
+                "w1_cam_r3": bar_data.get("w1_cam_r3", cam_w_r3),
+                "w1_cam_r4": bar_data.get("w1_cam_r4", cam_w_r4),
+                "w1_cam_r6": bar_data.get("w1_cam_r6", cam_w_r6),
+                # Camarilla Monthly
+                "m1_cam_s6": bar_data.get("m1_cam_s6", cam_m_s6),
+                "m1_cam_s4": bar_data.get("m1_cam_s4", cam_m_s4),
+                "m1_cam_s3": bar_data.get("m1_cam_s3", cam_m_s3),
+                "m1_cam_r3": bar_data.get("m1_cam_r3", cam_m_r3),
+                "m1_cam_r4": bar_data.get("m1_cam_r4", cam_m_r4),
+                "m1_cam_r6": bar_data.get("m1_cam_r6", cam_m_r6),
+                # Prior Day Volume Profile
+                "pd_vp_poc": bar_data.get("pd_vp_poc"),
+                "pd_vp_vah": bar_data.get("pd_vp_vah"),
+                "pd_vp_val": bar_data.get("pd_vp_val"),
+                # Pre-Market levels
+                "pm_high": bar_data.get("pm_high"),
+                "pm_low": bar_data.get("pm_low"),
+                "pm_poc": bar_data.get("pm_poc"),
+                "pm_vah": bar_data.get("pm_vah"),
+                "pm_val": bar_data.get("pm_val"),
+                "pm_price": bar_data.get("pm_price"),
             }
 
         self._upsert_bar_data(record)
@@ -375,22 +553,33 @@ class SupabaseExporter:
                 "poc_10": poc_prices.get(10),
             }
         else:
-            # Dict format (fallback)
+            # Dict format (from model_dump())
+            ticker = hvn_result.get("ticker", "")
+            ticker_id = hvn_result.get("ticker_id") or self._build_ticker_id(ticker, session_date)
+
+            # Extract POCs — may be in "pocs" list (from model_dump) or flat poc_1..poc_10
+            poc_prices = {}
+            pocs_list = hvn_result.get("pocs", [])
+            if pocs_list and isinstance(pocs_list, list):
+                for poc in pocs_list:
+                    if isinstance(poc, dict) and "rank" in poc and "price" in poc:
+                        poc_prices[poc["rank"]] = poc["price"]
+
             record = {
                 "date": session_date,
-                "ticker_id": hvn_result.get("ticker_id"),
-                "ticker": hvn_result.get("ticker"),
-                "epoch_start_date": hvn_result.get("epoch_start_date"),
-                "poc_1": hvn_result.get("poc_1"),
-                "poc_2": hvn_result.get("poc_2"),
-                "poc_3": hvn_result.get("poc_3"),
-                "poc_4": hvn_result.get("poc_4"),
-                "poc_5": hvn_result.get("poc_5"),
-                "poc_6": hvn_result.get("poc_6"),
-                "poc_7": hvn_result.get("poc_7"),
-                "poc_8": hvn_result.get("poc_8"),
-                "poc_9": hvn_result.get("poc_9"),
-                "poc_10": hvn_result.get("poc_10"),
+                "ticker_id": ticker_id,
+                "ticker": ticker,
+                "epoch_start_date": hvn_result.get("start_date") or hvn_result.get("epoch_start_date"),
+                "poc_1": poc_prices.get(1) or hvn_result.get("poc_1"),
+                "poc_2": poc_prices.get(2) or hvn_result.get("poc_2"),
+                "poc_3": poc_prices.get(3) or hvn_result.get("poc_3"),
+                "poc_4": poc_prices.get(4) or hvn_result.get("poc_4"),
+                "poc_5": poc_prices.get(5) or hvn_result.get("poc_5"),
+                "poc_6": poc_prices.get(6) or hvn_result.get("poc_6"),
+                "poc_7": poc_prices.get(7) or hvn_result.get("poc_7"),
+                "poc_8": poc_prices.get(8) or hvn_result.get("poc_8"),
+                "poc_9": poc_prices.get(9) or hvn_result.get("poc_9"),
+                "poc_10": poc_prices.get(10) or hvn_result.get("poc_10"),
             }
 
         self._upsert_hvn_pocs(record)
@@ -436,28 +625,69 @@ class SupabaseExporter:
                 "m15_weak": market_structure.m15.weak,
                 # Composite
                 "composite_direction": market_structure.composite.value if hasattr(market_structure.composite, 'value') else str(market_structure.composite),
+                # W1/M1 structure (written by Bucket A weekly runner)
+                "w1_direction": getattr(market_structure, 'w1_direction', None),
+                "w1_strong": getattr(market_structure, 'w1_strong', None),
+                "w1_weak": getattr(market_structure, 'w1_weak', None),
+                "m1_direction": getattr(market_structure, 'm1_direction', None),
+                "m1_strong": getattr(market_structure, 'm1_strong', None),
+                "m1_weak": getattr(market_structure, 'm1_weak', None),
             }
         else:
-            # Dict format (fallback)
+            # Dict format (from model_dump() — handles nested timeframe dicts)
+            ticker = market_structure.get("ticker", "")
+            ticker_id = market_structure.get("ticker_id") or self._build_ticker_id(ticker, session_date)
+
+            # Helper to extract direction/strong/weak from nested dict
+            def _tf(key):
+                val = market_structure.get(key)
+                if isinstance(val, dict):
+                    d = val.get("direction")
+                    if isinstance(d, dict):
+                        d = d.get("value", d)
+                    elif hasattr(d, 'value'):
+                        d = d.value
+                    return d, val.get("strong"), val.get("weak")
+                return None, None, None
+
+            d1_dir, d1_s, d1_w = _tf("d1")
+            h4_dir, h4_s, h4_w = _tf("h4")
+            h1_dir, h1_s, h1_w = _tf("h1")
+            m15_dir, m15_s, m15_w = _tf("m15")
+
+            # Composite direction
+            comp = market_structure.get("composite") or market_structure.get("composite_direction")
+            if isinstance(comp, dict):
+                comp = comp.get("value", comp)
+            elif hasattr(comp, 'value'):
+                comp = comp.value
+
             record = {
                 "date": session_date,
-                "ticker": market_structure.get("ticker"),
-                "ticker_id": market_structure.get("ticker_id"),
-                "is_index": market_structure.get("is_index", False),
-                "scan_price": market_structure.get("price"),
-                "d1_direction": market_structure.get("d1_direction"),
-                "d1_strong": market_structure.get("d1_strong"),
-                "d1_weak": market_structure.get("d1_weak"),
-                "h4_direction": market_structure.get("h4_direction"),
-                "h4_strong": market_structure.get("h4_strong"),
-                "h4_weak": market_structure.get("h4_weak"),
-                "h1_direction": market_structure.get("h1_direction"),
-                "h1_strong": market_structure.get("h1_strong"),
-                "h1_weak": market_structure.get("h1_weak"),
-                "m15_direction": market_structure.get("m15_direction"),
-                "m15_strong": market_structure.get("m15_strong"),
-                "m15_weak": market_structure.get("m15_weak"),
-                "composite_direction": market_structure.get("composite_direction"),
+                "ticker": ticker,
+                "ticker_id": ticker_id,
+                "is_index": is_index or market_structure.get("is_index", False),
+                "scan_price": market_structure.get("price") or market_structure.get("scan_price"),
+                "d1_direction": market_structure.get("d1_direction", d1_dir),
+                "d1_strong": market_structure.get("d1_strong", d1_s),
+                "d1_weak": market_structure.get("d1_weak", d1_w),
+                "h4_direction": market_structure.get("h4_direction", h4_dir),
+                "h4_strong": market_structure.get("h4_strong", h4_s),
+                "h4_weak": market_structure.get("h4_weak", h4_w),
+                "h1_direction": market_structure.get("h1_direction", h1_dir),
+                "h1_strong": market_structure.get("h1_strong", h1_s),
+                "h1_weak": market_structure.get("h1_weak", h1_w),
+                "m15_direction": market_structure.get("m15_direction", m15_dir),
+                "m15_strong": market_structure.get("m15_strong", m15_s),
+                "m15_weak": market_structure.get("m15_weak", m15_w),
+                "composite_direction": market_structure.get("composite_direction", comp),
+                # W1/M1 structure
+                "w1_direction": market_structure.get("w1_direction"),
+                "w1_strong": market_structure.get("w1_strong"),
+                "w1_weak": market_structure.get("w1_weak"),
+                "m1_direction": market_structure.get("m1_direction"),
+                "m1_strong": market_structure.get("m1_strong"),
+                "m1_weak": market_structure.get("m1_weak"),
             }
 
         self._upsert_market_structure(record)

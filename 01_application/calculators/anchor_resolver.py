@@ -105,7 +105,7 @@ def find_max_volume_anchor(
             f"only exceeds 2nd ({second_volume:,.0f}) by {pct:.1f}% (threshold: {MAX_VOLUME_THRESHOLD_PCT*100:.0f}%)"
         )
 
-    # Convert date type if needed (pandas Timestamp → python date)
+    # Convert date type if needed (pandas Timestamp -> python date)
     if hasattr(max_date, 'date'):
         anchor_date = max_date.date()
     elif isinstance(max_date, date):
@@ -114,7 +114,7 @@ def find_max_volume_anchor(
         from datetime import datetime as dt
         anchor_date = dt.strptime(str(max_date), '%Y-%m-%d').date()
 
-    logger.info(f"Auto-anchor: {ticker} → {anchor_date} (vol: {max_volume:,.0f}, bars: {len(df)})")
+    logger.info(f"Auto-anchor: {ticker} -> {anchor_date} (vol: {max_volume:,.0f}, bars: {len(df)})")
 
     return anchor_date, metadata
 
